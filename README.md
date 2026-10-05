@@ -4,7 +4,8 @@ A focused, browser-based composer for presentation-ready device mockups.
 
 **Drop a screenshot → choose a device → adjust the composition → export a polished image.**
 
-Everything runs locally in the browser. There are no accounts, no uploads and no server-side processing.
+Everything runs locally in the browser. There are no accounts, no uploads and no server-side processing. The
+production site counts visits with Yandex Metrica.
 
 ## Features
 
