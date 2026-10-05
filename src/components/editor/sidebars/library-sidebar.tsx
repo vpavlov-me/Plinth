@@ -7,7 +7,7 @@ import { useId, useState, type ReactNode } from "react";
 import { gradientCss } from "@/components/editor/css-background";
 import { CanvasPresetPicker } from "@/components/editor/canvas-preset-picker";
 import { pickImageFile } from "@/components/editor/pick-file";
-import { COLLAPSE_CHEVRON, COLLAPSE_PANEL } from "@/components/ui/collapse";
+import { COLLAPSE_CHEVRON, COLLAPSE_PANEL, COLLAPSE_TRIGGER } from "@/components/ui/collapse";
 import { Tooltip } from "@/components/ui/tooltip";
 import { importDeviceFrame } from "@/editor/actions";
 import { useAsset } from "@/editor/assets";
@@ -61,14 +61,14 @@ function LibraryHalf({
       className="flex min-h-11 basis-0 flex-col overflow-hidden transition-[flex-grow] duration-300 ease-out motion-reduce:transition-none"
       style={{ flexGrow: open ? 1 : 0.0001 }}
     >
-      <h2 className="shrink-0 px-4 pt-3 pb-1">
+      <h2 className="flex shrink-0 items-center px-4 pt-3 pb-1">
         <button
           type="button"
           aria-expanded={open}
           aria-controls={id}
           onClick={onToggle}
           {...(open ? { "data-panel-open": "" } : {})}
-          className="group flex h-6 cursor-default items-center gap-1.5 text-2xs font-semibold tracking-wide text-subtle uppercase transition-colors hover:text-muted"
+          className={COLLAPSE_TRIGGER}
         >
           {title}
           <ChevronDown className={COLLAPSE_CHEVRON} />
@@ -102,11 +102,11 @@ function Folder({
 }) {
   return (
     <Collapsible.Root defaultOpen={defaultOpen} render={<div role="group" aria-label={label} />} className="px-2">
-      <Collapsible.Trigger className="group flex h-8 w-full cursor-default items-center gap-2 rounded-md px-2 text-left text-xs text-muted transition-colors hover:bg-hover hover:text-ink data-[panel-open]:text-ink">
+      <Collapsible.Trigger className={cn(COLLAPSE_TRIGGER, "w-full gap-2 px-2 hover:bg-hover")}>
         <FolderClosed className="size-3.5 shrink-0 text-subtle group-data-[panel-open]:hidden" />
         <FolderOpen className="hidden size-3.5 shrink-0 text-subtle group-data-[panel-open]:block" />
-        <span className="truncate font-medium">{label}</span>
-        {count !== undefined ? <span className="text-2xs text-subtle tabular-nums">{count}</span> : null}
+        <span className="truncate">{label}</span>
+        {count !== undefined ? <span className="text-2xs font-normal text-subtle tabular-nums">{count}</span> : null}
         <ChevronDown className={COLLAPSE_CHEVRON} />
       </Collapsible.Trigger>
       <Collapsible.Panel className={COLLAPSE_PANEL}>

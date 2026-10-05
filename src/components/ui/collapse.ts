@@ -10,3 +10,7 @@ export const COLLAPSE_PANEL =
 /** Small chevron placed right after a heading; points down when open. */
 export const COLLAPSE_CHEVRON =
   "size-3 shrink-0 text-subtle transition-transform duration-200 ease-out -rotate-90 group-data-[panel-open]:rotate-0 motion-reduce:transition-none";
+
+/** Collapsible heading text: identical everywhere (inspector, library, folders). */
+export const COLLAPSE_TRIGGER =
+  "group flex h-7 cursor-default items-center gap-1.5 rounded-md text-left text-xs font-semibold text-ink transition-colors hover:text-ink/75";

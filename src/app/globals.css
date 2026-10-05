@@ -99,3 +99,22 @@ body {
   scrollbar-width: thin;
   scrollbar-color: var(--line-strong) transparent;
 }
+
+/*
+ * Cursor spotlight: a brighter copy of the dot grid, revealed through a
+ * radial mask that follows the pointer (--spot-x / --spot-y, set in JS).
+ */
+.workspace-spotlight {
+  pointer-events: none;
+  position: absolute;
+  inset: 0;
+  background-image:
+    radial-gradient(rgb(255 255 255 / 0.55) 1.1px, transparent 1.3px),
+    radial-gradient(circle 260px at var(--spot-x, -999px) var(--spot-y, -999px), rgb(107 140 255 / 0.07), transparent);
+  background-size:
+    16px 16px,
+    100% 100%;
+  mask-image: radial-gradient(circle 200px at var(--spot-x, -999px) var(--spot-y, -999px), #000 0%, transparent 100%);
+  opacity: var(--spot-opacity, 0);
+  transition: opacity 400ms ease-out;
+}

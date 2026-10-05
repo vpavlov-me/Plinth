@@ -1,5 +1,6 @@
 "use client";
 
+import { useRef } from "react";
 import { Monitor } from "lucide-react";
 import { EditorToolbar } from "@/components/editor/editor-toolbar";
 import { InspectorSidebar } from "@/components/editor/sidebars/inspector-sidebar";
@@ -16,13 +17,20 @@ export function EditorShell() {
   usePersistence();
   useEditorShortcuts();
   const panels = useUIStore((s) => s.panels);
+  const { shellRef, moveSpotlight, hideSpotlight } = useSpotlight();
 
   return (
     <TooltipProvider delay={400}>
       <Toaster>
-        <div className="workspace-bg hidden h-dvh flex-col md:flex">
+        <div
+          ref={shellRef}
+          className="workspace-bg relative hidden h-dvh flex-col md:flex"
+          onPointerMove={moveSpotlight}
+          onPointerLeave={hideSpotlight}
+        >
+          <div className="workspace-spotlight" aria-hidden />
           <EditorToolbar />
-          <div className="flex min-h-0 flex-1 gap-3 px-3 pb-3">
+          <div className="relative flex min-h-0 flex-1 gap-3 px-3 pb-3">
             <SlidingPanel open={panels.library} width={248} side="left" className="hidden xl:block">
               <LibrarySidebar />
             </SlidingPanel>
@@ -93,4 +101,30 @@ function SlidingPanel({
       </div>
     </div>
   );
+}
+
+/**
+ * Drives the dot-grid spotlight with CSS variables (no React re-renders),
+ * throttled to one update per animation frame.
+ */
+function useSpotlight() {
+  const shellRef = useRef<HTMLDivElement>(null);
+  const frame = useRef(0);
+  const moveSpotlight = (event: React.PointerEvent) => {
+    const shell = shellRef.current;
+    if (!shell || event.pointerType === "touch") return;
+    const { clientX, clientY } = event;
+    cancelAnimationFrame(frame.current);
+    frame.current = requestAnimationFrame(() => {
+      const rect = shell.getBoundingClientRect();
+      shell.style.setProperty("--spot-x", `${clientX - rect.left}px`);
+      shell.style.setProperty("--spot-y", `${clientY - rect.top}px`);
+      shell.style.setProperty("--spot-opacity", "1");
+    });
+  };
+  const hideSpotlight = () => {
+    cancelAnimationFrame(frame.current);
+    shellRef.current?.style.setProperty("--spot-opacity", "0");
+  };
+  return { shellRef, moveSpotlight, hideSpotlight };
 }

@@ -3,7 +3,7 @@
 import { Collapsible } from "@base-ui/react/collapsible";
 import { ChevronDown } from "lucide-react";
 import type { ReactNode } from "react";
-import { COLLAPSE_CHEVRON, COLLAPSE_PANEL } from "@/components/ui/collapse";
+import { COLLAPSE_CHEVRON, COLLAPSE_PANEL, COLLAPSE_TRIGGER } from "@/components/ui/collapse";
 
 type Props = {
   title: string;
@@ -22,7 +22,7 @@ export function Section({ title, action, defaultOpen = true, children }: Props) 
       className="border-b border-line px-4 py-3 last:border-b-0"
     >
       <header className="flex h-7 items-center justify-between gap-2">
-        <Collapsible.Trigger className="group flex h-7 cursor-default items-center gap-1.5 rounded-md text-left text-xs font-semibold text-ink transition-colors hover:text-ink/75">
+        <Collapsible.Trigger className={COLLAPSE_TRIGGER}>
           {title}
           <ChevronDown className={COLLAPSE_CHEVRON} />
         </Collapsible.Trigger>

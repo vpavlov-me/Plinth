@@ -91,10 +91,11 @@ export function Workspace() {
           >
             <CanvasStage viewScale={viewScale} />
           </div>
+          {isEmpty && !dragging && active ? (
+            <EmptyState instance={active} canvas={canvas} viewScale={viewScale} busy={importing} />
+          ) : null}
         </div>
       ) : null}
-
-      {isEmpty && !dragging ? <EmptyState deviceId={activeId} busy={importing} /> : null}
 
       {dragging ? (
         <div className="pointer-events-none absolute inset-3 flex items-center justify-center rounded-2xl border-2 border-dashed border-accent bg-accent/8">
