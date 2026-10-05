@@ -80,7 +80,8 @@ export const GRADIENT_PRESETS: GradientPreset[] = [
   },
 ];
 
-export const DEFAULT_GRADIENT = GRADIENT_PRESETS.find((p) => p.id === "liquid-blue")!.gradient;
+/** Background of a new project, and the first gradient offered. */
+export const DEFAULT_GRADIENT = GRADIENT_PRESETS.find((p) => p.id === "blue-hour")!.gradient;
 
 /** Deep copy so presets are never mutated through the scene. */
 export function cloneGradient(gradient: GradientConfig): GradientConfig {

@@ -9,7 +9,7 @@ production site counts visits with Yandex Metrica.
 
 ## Features
 
-- **First visit**: a calm starter mockup — a white phone on a museum painting in a 4:5 canvas — with the upload prompt
+- **First visit**: a calm starter mockup — a black phone on the Blue Hour gradient in a 4:5 canvas — with the upload prompt
   inside the phone's screen, folders collapsed, and a small three-step hint ("Add a screenshot · Pick a device or layout ·
   Export") that is closed with one click and disappears for good after the first export.
 - **Input**: "Choose file" on the mockup's screen or "Add screenshot" in the inspector; also drag & drop anywhere, paste
@@ -53,8 +53,8 @@ production site counts visits with Yandex Metrica.
   headline), Google Play feature graphic, Portfolio hero (laptop + phone) and Presentation.
 - **Export**: PNG at 1×/2×/3×, JPG with a quality setting, transparent PNG, and copying to the clipboard (`⌘E` downloads).
 - **Panels**: floating library (left: Devices, Layouts and Presets, each part scrolls independently and collapses; groups
-  are folders) and properties panel (right: Mockup, Screenshot, Perspective, Canvas, Background, Shadow — each
-  section collapses). Hide/show the panels from
+  are folders) and properties panel (right: Mockup, Screenshot, Perspective and Shadow for the selected device, then Canvas and
+  Background for the scene — each section collapses). Hide/show the panels from
   the toolbar or with `[` / `]`. All expanding, collapsing and panel transitions are animated (and respect
   "reduce motion").
 - **Undo/redo**: `⌘Z`, `⌘⇧Z` (or `Ctrl+Y`). A drag or slider movement counts as one step.
@@ -257,7 +257,7 @@ Cleveland Museum of Art and the Art Institute of Chicago — used under the [Uns
 backgrounds:fetch` downloads them again.
 
 The list lives in `PHOTO_PRESETS` in `src/editor/presets/photo-presets.ts`, with each artwork's `author` and
-`sourceUrl`; the tile's tooltip shows the attribution. `DEFAULT_PHOTO_ID` is the background of a new project. To add an
+`sourceUrl`; the tile's tooltip shows the attribution. To add an
 image, add it to both `PHOTO_PRESETS` and `scripts/fetch-backgrounds.sh` and run the script.
 
 ## Current limitations

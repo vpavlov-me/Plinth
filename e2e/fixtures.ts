@@ -15,6 +15,9 @@ export async function createFixtures(browser: Browser): Promise<void> {
   const shot = async (name: string, width: number, height: number, html: string, omitBackground = false) => {
     await page.setViewportSize({ width, height });
     await page.setContent(`<html><body style="margin:0;font-family:sans-serif">${html}</body></html>`);
+    // After a viewport change the next frame may not be painted yet; a blank
+    // capture would make the frame fixture fully transparent.
+    await page.evaluate(() => new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve))));
     await page.screenshot({
       path: join(FIXTURE_DIR, name),
       omitBackground,

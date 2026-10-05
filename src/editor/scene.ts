@@ -16,7 +16,7 @@ import {
   type LayoutSlot,
 } from "@/editor/presets/layout-presets";
 import type { ScenePreset } from "@/editor/presets/scene-presets";
-import { DEFAULT_PHOTO_ID } from "@/editor/presets/photo-presets";
+import { cloneGradient, DEFAULT_GRADIENT } from "@/editor/presets/background-presets";
 import { DEFAULT_SHADOW, SHADOW_PRESETS } from "@/editor/presets/shadow-presets";
 import type {
   CanvasConfig,
@@ -66,15 +66,15 @@ export function createDeviceInstance(
 }
 
 /**
- * The first thing a new user sees: a white phone on one of the built-in
- * artworks, in a social-friendly 4:5 canvas — calm, finished-looking and
- * ready for a screenshot.
+ * The first thing a new user sees: a black phone on the "Blue Hour"
+ * gradient in a social-friendly 4:5 canvas — finished-looking and ready for
+ * a screenshot.
  */
 export function createDefaultScene(): Scene {
   return {
     canvas: { width: 1080, height: 1350, preset: "portrait" },
-    background: { type: "image", source: { kind: "photo", photoId: DEFAULT_PHOTO_ID } },
-    devices: [createDeviceInstance(DEFAULT_DEVICE_ID, { variantId: "white", shadow: { ...SHADOW_PRESETS.medium } })],
+    background: cloneGradient(DEFAULT_GRADIENT),
+    devices: [createDeviceInstance(DEFAULT_DEVICE_ID, { shadow: { ...SHADOW_PRESETS.medium } })],
     layout: DEFAULT_LAYOUT_ID,
     screenshots: [],
   };

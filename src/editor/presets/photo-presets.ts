@@ -56,9 +56,6 @@ export const PHOTO_PRESETS: PhotoPreset[] = [
   },
 ];
 
-/** Background of a new project. */
-export const DEFAULT_PHOTO_ID = "lake-painting";
-
 export const photoSrc = (id: string) => `/backgrounds/${id}.jpg`;
 export const photoThumbSrc = (id: string) => `/backgrounds/${id}-thumb.jpg`;
 

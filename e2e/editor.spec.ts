@@ -308,16 +308,16 @@ test("perspective: Perspective Right exports at every scale and as JPG", async (
 
 test("match colors: one click applies a background; undo and redo restore it", async ({ page }) => {
   await openScreenshot(page, "landscape.png");
-  const lake = page.getByRole("button", { name: "Lake painting", exact: true });
-  await expect(lake).toHaveAttribute("aria-pressed", "true");
+  const blueHour = page.getByRole("button", { name: "Blue Hour", exact: true });
+  await expect(blueHour).toHaveAttribute("aria-pressed", "true");
 
   await page.getByRole("button", { name: "Match colors", exact: true }).click();
-  await expect(page.getByRole("button", { name: "Gradient", exact: true })).toHaveAttribute("aria-pressed", "true");
+  await expect(blueHour).toHaveAttribute("aria-pressed", "false");
 
   await page.keyboard.press("ControlOrMeta+z");
-  await expect(lake).toHaveAttribute("aria-pressed", "true");
+  await expect(blueHour).toHaveAttribute("aria-pressed", "true");
   await page.keyboard.press("ControlOrMeta+Shift+z");
-  await expect(lake).toBeHidden();
+  await expect(blueHour).toHaveAttribute("aria-pressed", "false");
 
   await page.getByRole("button", { name: "Match colors: Dark" }).click();
   expect(pngSize(await exportImage(page, "PNG", 1))).toMatchObject({ width: 1080, height: 1350 });

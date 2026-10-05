@@ -7,6 +7,11 @@ import { PerspectivePanel } from "@/components/editor/panels/perspective-panel";
 import { ScreenshotPanel } from "@/components/editor/panels/screenshot-panel";
 import { ShadowPanel } from "@/components/editor/panels/shadow-panel";
 
+/**
+ * Inspector, ordered from the selected device outwards: what it is
+ * (Mockup), what it shows (Screenshot), how it's posed (Perspective, Shadow),
+ * then the scene around it (Canvas size, Background).
+ */
 export function InspectorSidebar() {
   return (
     <aside
@@ -16,9 +21,10 @@ export function InspectorSidebar() {
       <DevicePanel />
       <ScreenshotPanel />
       <PerspectivePanel />
+      <ShadowPanel />
+      <div role="separator" className="mx-4 my-1.5 h-px shrink-0 bg-line" />
       <CanvasPanel />
       <BackgroundPanel />
-      <ShadowPanel />
     </aside>
   );
 }
