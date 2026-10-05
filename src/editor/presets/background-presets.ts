@@ -18,86 +18,100 @@ const mesh = (base: [string, string], blobs: MeshBlob[], grain = 0.14): Gradient
   grain,
 });
 
+/**
+ * Plinth's signature gradients. Most are drawn from the palettes of the
+ * built-in museum artworks (see photo-presets.ts), so photos and gradients
+ * read as one family; a few neutrals cover everyday product shots.
+ */
 export const GRADIENT_PRESETS: GradientPreset[] = [
   {
-    id: "aurora",
-    name: "Aurora",
+    id: "lake",
+    name: "Lake",
     gradient: mesh(
-      ["#070b1f", "#120a2a"],
-      [blob(0.15, 0.2, 0.55, "#3b6cffcc"), blob(0.85, 0.25, 0.5, "#9b5cffcc"), blob(0.55, 0.95, 0.6, "#14d5c7aa")],
-    ),
-  },
-  {
-    id: "candy",
-    name: "Candy",
-    gradient: mesh(
-      ["#ffe4ef", "#ffeedd"],
-      [blob(0.1, 0.15, 0.55, "#ff7ab6cc"), blob(0.9, 0.3, 0.5, "#ffb27acc"), blob(0.5, 0.95, 0.55, "#b49cffcc")],
-      0.1,
-    ),
-  },
-  {
-    id: "ocean",
-    name: "Ocean",
-    gradient: mesh(
-      ["#04182e", "#07324d"],
-      [blob(0.2, 0.85, 0.6, "#00c2ffbb"), blob(0.85, 0.15, 0.5, "#3d7bffcc"), blob(0.7, 0.75, 0.35, "#7af5d199")],
-    ),
-  },
-  {
-    id: "sunrise",
-    name: "Sunrise",
-    gradient: mesh(
-      ["#ffd2ad", "#ffa79a"],
-      [blob(0.15, 0.85, 0.55, "#ff5e62cc"), blob(0.85, 0.15, 0.5, "#ffd166dd"), blob(0.75, 0.85, 0.45, "#f78fb3bb")],
+      ["#f3e6cf", "#e9d3b0"],
+      [blob(0.12, 0.18, 0.55, "#f2b880cc"), blob(0.9, 0.3, 0.5, "#b8c79acc"), blob(0.5, 0.98, 0.55, "#c9d8dfcc")],
       0.12,
     ),
   },
   {
-    id: "nebula",
-    name: "Nebula",
+    id: "tide",
+    name: "Tide",
     gradient: mesh(
-      ["#0e0718", "#06040c"],
-      [blob(0.8, 0.2, 0.5, "#ff4d8dbb"), blob(0.2, 0.35, 0.55, "#7c3aedcc"), blob(0.5, 1, 0.55, "#2563ebbb")],
-      0.18,
+      ["#2d6f7c", "#5f9c9a"],
+      [blob(0.15, 0.85, 0.6, "#a8d8cfcc"), blob(0.85, 0.15, 0.5, "#1f4e5fcc"), blob(0.7, 0.8, 0.4, "#e7f3eeaa")],
+      0.14,
     ),
   },
   {
-    id: "mint",
-    name: "Mint",
+    id: "hills",
+    name: "Hills",
     gradient: mesh(
-      ["#eefcf6", "#e2f3ff"],
-      [blob(0.15, 0.25, 0.5, "#6ee7b7bb"), blob(0.9, 0.2, 0.45, "#93c5fdcc"), blob(0.6, 0.95, 0.5, "#fef08acc")],
+      ["#e3e9da", "#c3d1b2"],
+      [blob(0.1, 0.9, 0.55, "#6f9767cc"), blob(0.9, 0.15, 0.5, "#9db8d0cc"), blob(0.55, 0.35, 0.4, "#f4f1e4cc")],
+      0.1,
+    ),
+  },
+  {
+    id: "lily",
+    name: "Lily",
+    gradient: mesh(
+      ["#f7f0e6", "#e5f0ea"],
+      [blob(0.12, 0.2, 0.5, "#f2b49acc"), blob(0.88, 0.3, 0.45, "#9ccdbacc"), blob(0.5, 0.98, 0.5, "#fde3c2cc")],
       0.08,
     ),
   },
   {
-    id: "ember",
-    name: "Ember",
+    id: "fog",
+    name: "Fog",
     gradient: mesh(
-      ["#140404", "#200802"],
-      [blob(0.2, 0.9, 0.6, "#ff4d00bb"), blob(0.85, 0.7, 0.45, "#ff9500aa"), blob(0.75, 0.1, 0.45, "#c2185baa")],
+      ["#dcd7ec", "#c8cfe8"],
+      [blob(0.15, 0.2, 0.55, "#a99bd6cc"), blob(0.85, 0.3, 0.5, "#efe0f0cc"), blob(0.5, 0.95, 0.55, "#9fb4dccc")],
+      0.1,
+    ),
+  },
+  {
+    id: "clay",
+    name: "Clay",
+    gradient: mesh(
+      ["#efd6c6", "#dcab94"],
+      [blob(0.15, 0.85, 0.55, "#c9765bcc"), blob(0.85, 0.2, 0.5, "#f4dcb8cc"), blob(0.8, 0.85, 0.4, "#b8707099")],
+      0.12,
+    ),
+  },
+  { id: "paper", name: "Paper", gradient: linear(["#f6f4f0", "#e6e1d8"], 160) },
+  {
+    id: "dusk",
+    name: "Dusk",
+    gradient: mesh(
+      ["#3a3e50", "#b98463"],
+      [blob(0.2, 0.9, 0.6, "#f2b36fcc"), blob(0.85, 0.15, 0.5, "#5d5a7bcc"), blob(0.7, 0.75, 0.35, "#f7d7a6aa")],
+      0.16,
+    ),
+  },
+  {
+    id: "lacquer",
+    name: "Lacquer",
+    gradient: mesh(
+      ["#0d0b08", "#1a140c"],
+      [blob(0.15, 0.2, 0.55, "#b8893fbb"), blob(0.85, 0.85, 0.5, "#6b4a1fbb"), blob(0.75, 0.15, 0.35, "#e2c27a88")],
       0.18,
     ),
   },
   {
-    id: "pearl",
-    name: "Pearl",
+    id: "night",
+    name: "Night",
     gradient: mesh(
-      ["#f6f6f8", "#ececf1"],
-      [blob(0.15, 0.2, 0.5, "#c7d2fecc"), blob(0.85, 0.35, 0.45, "#fbcfe8cc"), blob(0.45, 0.95, 0.5, "#bae6fdcc")],
-      0.08,
+      ["#0b1530", "#0f1838"],
+      [blob(0.15, 0.2, 0.55, "#2c4fa3bb"), blob(0.85, 0.3, 0.5, "#5b3f9cbb"), blob(0.55, 0.98, 0.6, "#1d8a9aaa")],
+      0.18,
     ),
   },
-  { id: "mist", name: "Mist", gradient: linear(["#eef2f7", "#cfd8e6"], 160) },
-  { id: "peach", name: "Peach", gradient: linear(["#ffd6c2", "#f6a5c0"], 135) },
-  { id: "lagoon", name: "Lagoon", gradient: linear(["#a8e6f0", "#5b8def"], 135) },
-  { id: "lilac", name: "Lilac", gradient: linear(["#e4d9ff", "#a78bfa"], 150) },
-  { id: "meadow", name: "Meadow", gradient: linear(["#e3f7c8", "#7fd1ae"], 135) },
   { id: "ink", name: "Ink", gradient: linear(["#1c1f26", "#0b0c10"], 180) },
+  { id: "sage", name: "Sage", gradient: linear(["#e9efe4", "#b9c9b1"], 160) },
+  { id: "mist", name: "Mist", gradient: linear(["#eef2f6", "#cdd8e3"], 160) },
 ];
 
-export const DEFAULT_GRADIENT = GRADIENT_PRESETS.find((p) => p.id === "pearl")!.gradient;
+export const DEFAULT_GRADIENT = GRADIENT_PRESETS.find((p) => p.id === "lake")!.gradient;
 
 /** Deep copy so presets are never mutated through the scene. */
 export function cloneGradient(gradient: GradientConfig): GradientConfig {

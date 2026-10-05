@@ -24,7 +24,7 @@ describe("scene operations", () => {
     const next = setCanvasPreset(moved, "story", sizeOf);
     expect(next.canvas).toEqual({ preset: "story", width: 1080, height: 1920 });
     expect(next.devices[0]).toMatchObject({ x: 0.25, scale: 0.8 });
-    expect(moved.canvas.preset).toBe("landscape"); // immutable
+    expect(moved.canvas.preset).toBe("portrait"); // immutable
   });
 
   it("sizes the Original canvas from the screenshot", () => {

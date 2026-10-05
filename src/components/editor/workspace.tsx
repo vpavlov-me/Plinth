@@ -3,6 +3,8 @@
 import dynamic from "next/dynamic";
 import { useEffect, useRef, useState } from "react";
 import { EmptyState } from "@/components/editor/empty-state";
+import { OnboardingHint } from "@/components/editor/onboarding-hint";
+import { useOnboardingStore } from "@/editor/onboarding";
 import { importScreenshot, importScreenshots } from "@/editor/actions";
 import { firstImageFile, imageFiles } from "@/editor/import-image";
 import { useActiveDeviceId } from "@/editor/selection";
@@ -14,6 +16,8 @@ const CanvasStage = dynamic(() => import("@/components/editor/canvas-stage"), { 
 
 /** Space kept around the canvas inside the workspace, in CSS pixels. */
 const MARGIN = 40;
+/** Extra room under the canvas for the first-visit hint. */
+const HINT_SPACE = 44;
 const MAX_VIEW_SCALE = 2;
 
 export function Workspace() {
@@ -28,6 +32,7 @@ export function Workspace() {
   const hydrated = useUIStore((s) => s.hydrated);
   const importing = useUIStore((s) => s.importing);
   const select = useUIStore((s) => s.select);
+  const showHint = useOnboardingStore((s) => s.done === false);
 
   useEffect(() => {
     const element = containerRef.current;
@@ -43,7 +48,11 @@ export function Workspace() {
   const viewScale = size
     ? Math.max(
         0.01,
-        Math.min(MAX_VIEW_SCALE, (size.width - MARGIN * 2) / canvas.width, (size.height - MARGIN * 2) / canvas.height),
+        Math.min(
+          MAX_VIEW_SCALE,
+          (size.width - MARGIN * 2) / canvas.width,
+          (size.height - MARGIN * 2 - (showHint ? HINT_SPACE : 0)) / canvas.height,
+        ),
       )
     : 0;
 
@@ -87,7 +96,12 @@ export function Workspace() {
       {size && hydrated ? (
         <div
           className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2"
-          style={{ width: Math.round(canvas.width * viewScale), height: Math.round(canvas.height * viewScale) }}
+          style={{
+            width: Math.round(canvas.width * viewScale),
+            height: Math.round(canvas.height * viewScale),
+            // Keep the canvas clear of the hint below it.
+            top: showHint ? `calc(50% - ${HINT_SPACE / 2}px)` : undefined,
+          }}
         >
           <div
             role="img"
@@ -109,6 +123,8 @@ export function Workspace() {
           </span>
         </div>
       ) : null}
+
+      {hydrated && !importing && !dragging ? <OnboardingHint /> : null}
 
       {importing && !isEmpty ? (
         <div

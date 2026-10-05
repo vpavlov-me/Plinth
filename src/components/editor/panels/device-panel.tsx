@@ -35,7 +35,7 @@ export function DevicePanel() {
 
   return (
     <Section
-      title="Device"
+      title="Mockup"
       action={
         <div className="-mr-1 flex items-center gap-1">
           {ids.length > 1 ? (

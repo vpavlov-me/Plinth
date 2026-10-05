@@ -160,31 +160,6 @@ export async function importBackgroundImage(file: Blob & { name?: string }): Pro
 }
 
 /**
- * Reads an image through the async Clipboard API (used by the "Paste"
- * button). Keyboard paste goes through the `paste` event instead, which
- * works without extra permissions.
- */
-export async function pasteScreenshotFromClipboard(instanceId?: string | null): Promise<void> {
-  if (!navigator.clipboard?.read) {
-    notify("Clipboard access isn’t available", { description: "Press ⌘V / Ctrl+V to paste instead." });
-    return;
-  }
-  try {
-    const items = await navigator.clipboard.read();
-    for (const item of items) {
-      const type = item.types.find((t) => t.startsWith("image/"));
-      if (type) {
-        await importScreenshot(await item.getType(type), instanceId);
-        return;
-      }
-    }
-    notify("No image on the clipboard", { description: "Copy a screenshot first, then paste." });
-  } catch {
-    notify("Clipboard access was blocked", { description: "Press ⌘V / Ctrl+V to paste instead." });
-  }
-}
-
-/**
  * Adds a user-supplied device frame (PNG/WebP with a transparent screen) to
  * the library and applies it to the active device.
  */

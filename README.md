@@ -9,7 +9,11 @@ production site counts visits with Yandex Metrica.
 
 ## Features
 
-- **Input**: drag & drop anywhere, file picker (`⌘O`), or paste (`⌘V`). PNG, JPG and WebP up to 50 MB. Very large
+- **First visit**: a calm starter mockup — a white phone on a museum painting in a 4:5 canvas — with the upload prompt
+  inside the phone's screen, folders collapsed, and a small three-step hint ("Add a screenshot · Pick a device or layout ·
+  Export") that is closed with one click and disappears for good after the first export.
+- **Input**: "Choose file" on the mockup's screen or "Add screenshot" in the inspector; also drag & drop anywhere, paste
+  (`⌘V`) or `⌘O`. PNG, JPG and WebP up to 50 MB. Very large
   images are downscaled to at most 8192 px / 48 MP so the editor stays responsive.
 - **Devices**: 25 built-in devices with colour options — phones (Pro, Pro Max, standard, compact with home button,
   Android Pro / Ultra / Fold), tablets (13″ and 11″ pro, mini, Android, 2-in-1), laptops (Air 13″, Pro 14″/16″,
@@ -30,7 +34,7 @@ production site counts visits with Yandex Metrica.
 - **Your own frames**: upload any PNG/WebP device frame with a transparent screen (for example official bezels you
   downloaded under their licence). The screen opening is detected automatically, the shadow follows the frame's shape,
   and the frame is kept in your local library — it never leaves your browser.
-- **Canvas**: picked in the library's Presets (left): Original (screenshot at native resolution), 1:1, 4:5, 16:9, 9:16 and
+- **Canvas**: the inspector's Canvas section: Original (screenshot at native resolution), 1:1, 4:5, 16:9, 9:16 and
   custom sizes (100–8000 px).
   Changing the canvas keeps the composition.
 - **Composition**: drag on the canvas (snaps to the centre lines), corner handles to scale, the rotation handle (snaps
@@ -38,8 +42,8 @@ production site counts visits with Yandex Metrica.
   Arrow keys nudge the device (`⇧` for 10 px).
 - **Background**: Solid, Gradient, Image or None. Each tab shows built-in options plus the user's own: pick a colour,
   build a two-colour gradient, or upload an image with the "+" tile. Built-in gradients include mesh gradients (soft
-  colour lights with film grain). The personal library is stored locally and kept
-  across sessions; hover a personal tile to remove it. The Image tab also offers five built-in Unsplash photos (paintings and nature)
+  colour lights with film grain), a signature set drawn from the palettes of the built-in artworks. The personal library is stored locally and kept
+  across sessions; hover a personal tile to remove it. The Image tab also offers six built-in artworks from museum collections
   (see [Background images](#background-images)).
 - **Shadow**: None / Soft / Medium / Strong.
 - **Presets**: social sizes (Instagram post/portrait/story, X, LinkedIn, Facebook, Pinterest, YouTube thumbnail,
@@ -48,8 +52,8 @@ production site counts visits with Yandex Metrica.
   headline), Google Play feature graphic, Portfolio hero (laptop + phone) and Presentation.
 - **Export**: PNG at 1×/2×/3×, JPG with a quality setting, transparent PNG, and copying to the clipboard (`⌘E` downloads).
 - **Panels**: floating library (left: Devices, Layouts and Presets, each part scrolls independently and collapses; groups
-  are folders) and properties panel (right: Device, Screenshot, Perspective, Background, Shadow — each section
-  collapses). Hide/show the panels from
+  are folders) and properties panel (right: Mockup, Screenshot, Perspective, Canvas, Background, Shadow — each
+  section collapses). Hide/show the panels from
   the toolbar or with `[` / `]`. All expanding, collapsing and panel transitions are animated (and respect
   "reduce motion").
 - **Undo/redo**: `⌘Z`, `⌘⇧Z` (or `Ctrl+Y`). A drag or slider movement counts as one step.
@@ -246,12 +250,14 @@ Artwork can be replaced by higher-fidelity files of the same dimensions without 
 ## Background images
 
 The built-in images in `public/backgrounds/` (`<id>.jpg` at 2560 px wide and `<id>-thumb.jpg` for the tile) are
-photos from [Unsplash](https://unsplash.com), used under the [Unsplash License](https://unsplash.com/license) (free
-photos only, not Unsplash+). `npm run backgrounds:fetch` downloads them again.
+public-domain artworks published on [Unsplash](https://unsplash.com) by museums — Birmingham Museums Trust, the
+Cleveland Museum of Art and the Art Institute of Chicago — used under the [Unsplash License](https://unsplash.com/license)
+(free photos only, not Unsplash+). They were chosen to be distinctive yet quiet behind a device. `npm run
+backgrounds:fetch` downloads them again.
 
-The list lives in `PHOTO_PRESETS` in `src/editor/presets/photo-presets.ts`, with each photo's `author` and `sourceUrl`;
-the picker shows the attribution in the tile's tooltip. The first entry is selected when the Image tab is opened. To
-add a photo, add it to both `PHOTO_PRESETS` and `scripts/fetch-backgrounds.sh` and run the script.
+The list lives in `PHOTO_PRESETS` in `src/editor/presets/photo-presets.ts`, with each artwork's `author` and
+`sourceUrl`; the tile's tooltip shows the attribution. `DEFAULT_PHOTO_ID` is the background of a new project. To add an
+image, add it to both `PHOTO_PRESETS` and `scripts/fetch-backgrounds.sh` and run the script.
 
 ## Current limitations
 

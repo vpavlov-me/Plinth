@@ -1,6 +1,7 @@
 "use client";
 
 import { BackgroundPanel } from "@/components/editor/panels/background-panel";
+import { CanvasPanel } from "@/components/editor/panels/canvas-panel";
 import { DevicePanel } from "@/components/editor/panels/device-panel";
 import { PerspectivePanel } from "@/components/editor/panels/perspective-panel";
 import { ScreenshotPanel } from "@/components/editor/panels/screenshot-panel";
@@ -15,6 +16,7 @@ export function InspectorSidebar() {
       <DevicePanel />
       <ScreenshotPanel />
       <PerspectivePanel />
+      <CanvasPanel />
       <BackgroundPanel />
       <ShadowPanel />
     </aside>

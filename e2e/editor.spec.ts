@@ -16,7 +16,9 @@ test.beforeEach(async ({ page }) => {
 
 async function openScreenshot(page: Page, file: string) {
   const chooser = page.waitForEvent("filechooser");
-  await page.getByRole("button", { name: "Open screenshot" }).click();
+  const section = page.getByRole("region", { name: "Screenshot" });
+  const replace = section.getByRole("button", { name: "Replace screenshot" });
+  await ((await replace.isVisible()) ? replace : section.getByRole("button", { name: "Add screenshot" })).click();
   await (await chooser).setFiles(join(FIXTURE_DIR, file));
 }
 
@@ -37,8 +39,8 @@ async function exportImage(page: Page, format: "PNG" | "JPG", scale: 1 | 2 | 3) 
   return path;
 }
 
-/** The inspector's Device section (the Screenshot section has sliders with the same names). */
-const deviceSection = (page: Page) => page.getByRole("region", { name: "Device", exact: true });
+/** The inspector's Mockup section (the Screenshot section has sliders with the same names). */
+const deviceSection = (page: Page) => page.getByRole("region", { name: "Mockup", exact: true });
 
 const canvasSize = (page: Page) => page.getByRole("img", { name: /Mockup canvas/ }).getAttribute("aria-label");
 
@@ -170,9 +172,9 @@ test("picks a built-in background image and exports it", async ({ page }) => {
     "true",
   );
 
-  const dunes = page.getByRole("button", { name: "Sand dunes", exact: true });
-  await dunes.click();
-  await expect(dunes).toHaveAttribute("aria-pressed", "true");
+  const sea = page.getByRole("button", { name: "Starry sea", exact: true });
+  await sea.click();
+  await expect(sea).toHaveAttribute("aria-pressed", "true");
 
   expect(pngSize(await exportImage(page, "PNG", 1))).toMatchObject({ width: 1920, height: 1080 });
 });
@@ -188,7 +190,7 @@ test("uploads a custom device frame and detects its screen", async ({ page }) =>
 
   await openScreenshot(page, "portrait.png");
   const file = await exportImage(page, "PNG", 1);
-  expect(pngSize(file)).toMatchObject({ width: 1920, height: 1080 });
+  expect(pngSize(file)).toMatchObject({ width: 1080, height: 1350 });
 
   await page.waitForTimeout(800);
   await page.reload();
@@ -196,6 +198,7 @@ test("uploads a custom device frame and detects its screen", async ({ page }) =>
 });
 
 test("applies social presets", async ({ page }) => {
+  await page.getByRole("button", { name: /^Social/ }).click();
   await page.getByRole("button", { name: /TikTok story/ }).click();
   expect(await canvasSize(page)).toContain("1080 by 1920");
   await page.getByRole("button", { name: /^YouTube thumbnail/ }).click();
@@ -223,6 +226,9 @@ test("hides and shows the side panels and collapses sections", async ({ page }) 
 /* Layouts, crop, perspective, match colors                                   */
 /* -------------------------------------------------------------------------- */
 
+/** The Perspective section starts collapsed to keep the first view simple. */
+const openPerspective = (page: Page) => page.getByRole("button", { name: "Perspective", exact: true }).click();
+
 const canvasCenter = async (page: Page) => {
   const box = (await page.locator("canvas").first().boundingBox())!;
   return { x: box.x + box.width / 2, y: box.y + box.height / 2 };
@@ -246,7 +252,7 @@ test("multi-device: Duo → select second device → move → export", async ({ 
   await page.getByRole("button", { name: "Device 1", exact: true }).click();
   await expect(deviceSection(page).getByRole("slider", { name: "Horizontal" })).not.toHaveValue("0");
 
-  expect(pngSize(await exportImage(page, "PNG", 2))).toMatchObject({ width: 3840, height: 2160 });
+  expect(pngSize(await exportImage(page, "PNG", 2))).toMatchObject({ width: 2160, height: 2700 });
 
   // A secondary device can be removed; the last one stays.
   await page.getByRole("button", { name: "Remove device" }).click();
@@ -276,7 +282,7 @@ test("crop: zoom and reposition the screenshot inside the screen, then export", 
 
   await page.keyboard.press("Escape");
   await expect(page.getByRole("button", { name: "Adjust on canvas" })).toBeVisible();
-  expect(pngSize(await exportImage(page, "PNG", 2))).toMatchObject({ width: 3840, height: 2160 });
+  expect(pngSize(await exportImage(page, "PNG", 2))).toMatchObject({ width: 2160, height: 2700 });
 
   // The whole crop is one undo step.
   await page.keyboard.press("ControlOrMeta+z");
@@ -287,11 +293,12 @@ test("crop: zoom and reposition the screenshot inside the screen, then export", 
 
 test("perspective: Perspective Right exports at every scale and as JPG", async ({ page }) => {
   await openScreenshot(page, "portrait.png");
+  await openPerspective(page);
   const right = page.getByRole("radio", { name: "Perspective Right" });
   await right.click();
   await expect(right).toHaveAttribute("aria-checked", "true");
   for (const scale of [1, 3] as const) {
-    expect(pngSize(await exportImage(page, "PNG", scale))).toMatchObject({ width: 1920 * scale, height: 1080 * scale });
+    expect(pngSize(await exportImage(page, "PNG", scale))).toMatchObject({ width: 1080 * scale, height: 1350 * scale });
   }
   const jpg = readFileSync(await exportImage(page, "JPG", 2));
   expect([...jpg.subarray(0, 3)]).toEqual([0xff, 0xd8, 0xff]);
@@ -301,32 +308,34 @@ test("perspective: Perspective Right exports at every scale and as JPG", async (
 
 test("match colors: one click applies a background; undo and redo restore it", async ({ page }) => {
   await openScreenshot(page, "landscape.png");
-  const pearl = page.getByRole("button", { name: "Pearl", exact: true });
-  await expect(pearl).toHaveAttribute("aria-pressed", "true");
+  const lake = page.getByRole("button", { name: "Lake painting", exact: true });
+  await expect(lake).toHaveAttribute("aria-pressed", "true");
 
   await page.getByRole("button", { name: "Match colors", exact: true }).click();
-  await expect(pearl).toHaveAttribute("aria-pressed", "false");
+  await expect(page.getByRole("button", { name: "Gradient", exact: true })).toHaveAttribute("aria-pressed", "true");
 
   await page.keyboard.press("ControlOrMeta+z");
-  await expect(pearl).toHaveAttribute("aria-pressed", "true");
+  await expect(lake).toHaveAttribute("aria-pressed", "true");
   await page.keyboard.press("ControlOrMeta+Shift+z");
-  await expect(pearl).toHaveAttribute("aria-pressed", "false");
+  await expect(lake).toBeHidden();
 
   await page.getByRole("button", { name: "Match colors: Dark" }).click();
-  expect(pngSize(await exportImage(page, "PNG", 1))).toMatchObject({ width: 1920, height: 1080 });
+  expect(pngSize(await exportImage(page, "PNG", 1))).toMatchObject({ width: 1080, height: 1350 });
 });
 
 test("persistence: a multi-device composition is restored after reload", async ({ page }) => {
   await openScreenshot(page, "portrait.png");
   await page.getByRole("button", { name: "Fan", exact: true }).click();
   await page.getByRole("button", { name: "Device 3", exact: true }).click();
+  await openPerspective(page);
   await page.getByRole("radio", { name: "Tilt Left" }).click();
   await page.waitForTimeout(800);
   await page.reload();
   await expect(page.getByRole("button", { name: "Fan", exact: true })).toHaveAttribute("aria-pressed", "true");
   await expect(page.getByRole("button", { name: "Device 3", exact: true })).toHaveAttribute("aria-pressed", "true");
-  await expect(page.getByRole("radio", { name: "Tilt Left" })).toHaveAttribute("aria-checked", "true");
   await expect(page.getByText("portrait.png")).toBeVisible();
+  await openPerspective(page);
+  await expect(page.getByRole("radio", { name: "Tilt Left" })).toHaveAttribute("aria-checked", "true");
 });
 
 test("showcase presets use layouts", async ({ page }) => {
@@ -339,4 +348,17 @@ test("showcase presets use layouts", async ({ page }) => {
   );
   expect(await canvasSize(page)).toContain("1920 by 1080");
   expect(pngSize(await exportImage(page, "PNG", 1))).toMatchObject({ width: 1920, height: 1080 });
+});
+
+test("first visit: a starter mockup and a dismissible three-step hint", async ({ page }) => {
+  expect(await canvasSize(page)).toContain("1080 by 1350");
+  const hint = page.getByRole("complementary", { name: "Getting started" });
+  await expect(hint).toBeVisible();
+  await expect(page.getByRole("button", { name: "Open screenshot" })).toHaveCount(0);
+
+  await page.getByRole("button", { name: "Dismiss tips" }).click();
+  await expect(hint).toBeHidden();
+  await page.reload();
+  await expect(page.getByRole("heading", { name: "Drop a screenshot" })).toBeVisible();
+  await expect(hint).toBeHidden();
 });

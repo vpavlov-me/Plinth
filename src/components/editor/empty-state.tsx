@@ -1,10 +1,10 @@
 "use client";
 
-import { ClipboardPaste, ImageUp, Loader2 } from "lucide-react";
+import { ImageUp, Loader2 } from "lucide-react";
 import { pickImageFile } from "@/components/editor/pick-file";
 import { Button } from "@/components/ui/button";
 import { Tooltip } from "@/components/ui/tooltip";
-import { importScreenshot, pasteScreenshotFromClipboard } from "@/editor/actions";
+import { importScreenshot } from "@/editor/actions";
 import { cornerRadii } from "@/editor/geometry";
 import { useDeviceLayout } from "@/editor/rendering/use-device-layout";
 import type { CanvasConfig, DeviceInstance } from "@/editor/types";
@@ -101,12 +101,6 @@ export function EmptyState({ instance, canvas, viewScale, busy }: Props) {
               <ImageUp className="size-4" />
               Choose file
             </Button>
-            {variant === "full" ? (
-              <Button disabled={busy} onClick={() => void pasteScreenshotFromClipboard(instance.id)}>
-                <ClipboardPaste className="size-4" />
-                Paste
-              </Button>
-            ) : null}
           </div>
           {variant === "full" ? (
             <p className="mt-4 text-2xs text-subtle">Images stay on your device. Nothing is uploaded.</p>

@@ -5,7 +5,6 @@ import { Collapsible } from "@base-ui/react/collapsible";
 import { ChevronDown, FolderClosed, FolderOpen, Plus, ScanLine, X } from "lucide-react";
 import { useId, useState, type ReactNode } from "react";
 import { gradientCss } from "@/components/editor/css-background";
-import { CanvasPresetPicker } from "@/components/editor/canvas-preset-picker";
 import { pickImageFile } from "@/components/editor/pick-file";
 import { COLLAPSE_CHEVRON, COLLAPSE_PANEL, COLLAPSE_TRIGGER } from "@/components/ui/collapse";
 import { Tooltip } from "@/components/ui/tooltip";
@@ -40,7 +39,7 @@ export function LibrarySidebar() {
       <LibraryHalf
         title="Layouts"
         open={open.layouts}
-        grow={0.55}
+        fit
         onToggle={() => setOpen((o) => ({ ...o, layouts: !o.layouts }))}
       >
         <LayoutLibrary />
@@ -56,6 +55,7 @@ function LibraryHalf({
   title,
   open,
   grow = 1,
+  fit = false,
   onToggle,
   children,
 }: {
@@ -63,6 +63,8 @@ function LibraryHalf({
   open: boolean;
   /** Share of the free height while open. */
   grow?: number;
+  /** Takes exactly the height of its content instead of a share of the free space. */
+  fit?: boolean;
   onToggle: () => void;
   children: ReactNode;
 }) {
@@ -71,7 +73,7 @@ function LibraryHalf({
     <section
       aria-label={title}
       className="flex min-h-11 basis-0 flex-col overflow-hidden transition-[flex-grow] duration-300 ease-out motion-reduce:transition-none"
-      style={{ flexGrow: open ? grow : 0.0001 }}
+      style={fit ? { flex: "none" } : { flexGrow: open ? grow : 0.0001 }}
     >
       <h2 className="flex shrink-0 items-center px-4 pt-3 pb-1">
         <button
@@ -92,6 +94,7 @@ function LibraryHalf({
         className={cn(
           "min-h-0 flex-1 scrollbar-thin overflow-y-auto pb-3 transition-opacity duration-300",
           open ? "opacity-100" : "opacity-0",
+          fit && !open && "hidden",
         )}
       >
         {children}
@@ -149,13 +152,8 @@ function DeviceLibrary() {
 
   return (
     <div className="flex flex-col gap-0.5">
-      {DEVICE_GROUPS.map((group, index) => (
-        <Folder
-          key={group.label}
-          label={group.label}
-          count={group.devices.length}
-          defaultOpen={group.devices.some((d) => d.id === active?.deviceId) || (index === 0 && !active)}
-        >
+      {DEVICE_GROUPS.map((group) => (
+        <Folder key={group.label} label={group.label} count={group.devices.length} defaultOpen={false}>
           <div className="grid grid-cols-2 gap-1">
             {group.devices.map((device) => (
               <DeviceTile
@@ -219,11 +217,7 @@ function CustomFrames({ selectedId, onSelect }: { selectedId: string | null; onS
   const activeId = useActiveDeviceId();
 
   return (
-    <Folder
-      label="Your frames"
-      count={frames.length}
-      defaultOpen={frames.some((f) => customDeviceId(f.assetId) === selectedId)}
-    >
+    <Folder label="Your frames" count={frames.length} defaultOpen={false}>
       <div className="grid grid-cols-2 gap-1">
         <Tooltip label="PNG or WebP with a transparent screen, e.g. official bezels you downloaded">
           <button
@@ -377,13 +371,10 @@ function PresetLibrary() {
   const currentBackground = useScene((s) => s.background);
   return (
     <div className="flex flex-col gap-0.5">
-      <Folder label="Canvas" defaultOpen>
-        <CanvasPresetPicker />
-      </Folder>
       {SCENE_PRESET_GROUPS.map((group) => {
         const presets = SCENE_PRESETS.filter((p) => p.group === group.id);
         return (
-          <Folder key={group.id} label={group.label} count={presets.length} defaultOpen={group.id === "social"}>
+          <Folder key={group.id} label={group.label} count={presets.length} defaultOpen={false}>
             <ul className="flex flex-col gap-0.5">
               {presets.map((preset) => (
                 <li key={preset.id}>

@@ -8,7 +8,6 @@ import {
   resolveDeviceGeometry,
   type Size,
 } from "@/editor/geometry";
-import { cloneGradient, DEFAULT_GRADIENT } from "@/editor/presets/background-presets";
 import { clampCanvasDimension, getCanvasPreset, originalCanvasSize } from "@/editor/presets/canvas-presets";
 import {
   DEFAULT_DEVICE_BY_CATEGORY,
@@ -17,7 +16,8 @@ import {
   type LayoutSlot,
 } from "@/editor/presets/layout-presets";
 import type { ScenePreset } from "@/editor/presets/scene-presets";
-import { DEFAULT_SHADOW } from "@/editor/presets/shadow-presets";
+import { DEFAULT_PHOTO_ID } from "@/editor/presets/photo-presets";
+import { DEFAULT_SHADOW, SHADOW_PRESETS } from "@/editor/presets/shadow-presets";
 import type {
   CanvasConfig,
   CanvasPresetId,
@@ -65,11 +65,16 @@ export function createDeviceInstance(
   };
 }
 
+/**
+ * The first thing a new user sees: a white phone on one of the built-in
+ * artworks, in a social-friendly 4:5 canvas — calm, finished-looking and
+ * ready for a screenshot.
+ */
 export function createDefaultScene(): Scene {
   return {
-    canvas: { width: 1920, height: 1080, preset: "landscape" },
-    background: cloneGradient(DEFAULT_GRADIENT),
-    devices: [createDeviceInstance()],
+    canvas: { width: 1080, height: 1350, preset: "portrait" },
+    background: { type: "image", source: { kind: "photo", photoId: DEFAULT_PHOTO_ID } },
+    devices: [createDeviceInstance(DEFAULT_DEVICE_ID, { variantId: "white", shadow: { ...SHADOW_PRESETS.medium } })],
     layout: DEFAULT_LAYOUT_ID,
     screenshots: [],
   };

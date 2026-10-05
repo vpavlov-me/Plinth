@@ -3,9 +3,9 @@
  *
  * Files live in `public/backgrounds/<id>.jpg` (full size, ≤ 2560 px) and
  * `public/backgrounds/<id>-thumb.jpg` (tile preview), downloaded by
- * `scripts/fetch-backgrounds.sh`. They are Unsplash photos
- * (https://unsplash.com/license); `author` and `sourceUrl` are shown in the
- * picker as attribution.
+ * `scripts/fetch-backgrounds.sh`. They are public-domain artworks published
+ * on Unsplash by museums (https://unsplash.com/license); `author` and
+ * `sourceUrl` are shown in the picker as attribution.
  */
 export type PhotoPreset = {
   id: string;
@@ -25,30 +25,39 @@ export const PHOTO_PRESETS: PhotoPreset[] = [
     sourceUrl: "https://unsplash.com/photos/n1KetoL-JC8",
   },
   {
-    id: "great-wave",
-    name: "The Great Wave",
+    id: "starry-sea",
+    name: "Starry sea",
+    author: "The Cleveland Museum of Art",
+    sourceUrl: "https://unsplash.com/photos/aUCfZrhCd00",
+  },
+  {
+    id: "green-hills",
+    name: "Green hills",
+    author: "The Cleveland Museum of Art",
+    sourceUrl: "https://unsplash.com/photos/oF5n8culzHg",
+  },
+  {
+    id: "lilac-fog",
+    name: "Lilac fog",
     author: "Art Institute of Chicago",
-    sourceUrl: "https://unsplash.com/photos/ygxDHwEn5X0",
+    sourceUrl: "https://unsplash.com/photos/ONe3eufNvz4",
   },
   {
-    id: "mountain-lake",
-    name: "Mountain lake",
-    author: "clement fusil",
-    sourceUrl: "https://unsplash.com/photos/Fpqx6GGXfXs",
+    id: "lilies",
+    name: "Lilies",
+    author: "Art Institute of Chicago",
+    sourceUrl: "https://unsplash.com/photos/O3RJ29-Vezw",
   },
   {
-    id: "lavender-field",
-    name: "Lavender field",
-    author: "Dimitri Iakymuk",
-    sourceUrl: "https://unsplash.com/photos/mCR10j_B6sM",
-  },
-  {
-    id: "sand-dunes",
-    name: "Sand dunes",
-    author: "Andrew Svk",
-    sourceUrl: "https://unsplash.com/photos/0s9oD70F-l4",
+    id: "gold-flowers",
+    name: "Gold flowers",
+    author: "The Cleveland Museum of Art",
+    sourceUrl: "https://unsplash.com/photos/E4gghSrMtdw",
   },
 ];
+
+/** Background of a new project. */
+export const DEFAULT_PHOTO_ID = "lake-painting";
 
 export const photoSrc = (id: string) => `/backgrounds/${id}.jpg`;
 export const photoThumbSrc = (id: string) => `/backgrounds/${id}-thumb.jpg`;

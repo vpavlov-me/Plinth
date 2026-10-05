@@ -14,10 +14,11 @@ mkdir -p "$OUT"
 # <id> <images.unsplash.com photo path>
 PHOTOS=(
   "lake-painting photo-1694636941182-9e9fd8b3edb5"
-  "great-wave photo-1687382130081-ebd36ecd38a9"
-  "mountain-lake photo-1546587348-d12660c30c50"
-  "lavender-field photo-1600699260716-d5ed9a3f9efe"
-  "sand-dunes photo-1639402479478-f5e7881c0ccc"
+  "starry-sea photo-1701293773241-de1a7bff8e3d"
+  "green-hills photo-1699002194307-928d94c601fe"
+  "lilac-fog photo-1689018161162-34b37b5d0f3d"
+  "lilies photo-1687383876768-04a1505ffcdf"
+  "gold-flowers photo-1683661649729-1053579e0d22"
 )
 
 for entry in "${PHOTOS[@]}"; do

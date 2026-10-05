@@ -7,14 +7,14 @@ import { setCanvasPreset, setCanvasSize } from "@/editor/scene";
 import { useEditorStore, useScene } from "@/editor/store";
 import { cn } from "@/lib/cn";
 
-/** Canvas size picker, shown at the top of the library's presets. */
+/** Canvas size picker (inspector "Canvas" section). */
 export function CanvasPresetPicker() {
   const canvas = useScene((s) => s.canvas);
   const update = useEditorStore((s) => s.update);
   const commit = useEditorStore((s) => s.commit);
 
   return (
-    <div className="flex flex-col gap-2 pr-1">
+    <div className="flex flex-col gap-2">
       <div role="radiogroup" aria-label="Canvas size" className="grid grid-cols-3 gap-1.5">
         {CANVAS_PRESETS.map((preset) => (
           <PresetButton

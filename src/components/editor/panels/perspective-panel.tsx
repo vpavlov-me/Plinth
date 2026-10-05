@@ -18,7 +18,11 @@ export function PerspectivePanel() {
   const current = PERSPECTIVE_PRESETS.find((p) => p.id === instance.perspective);
 
   return (
-    <Section title="Perspective" action={<span className="text-xs text-muted">{current?.name}</span>}>
+    <Section
+      title="Perspective"
+      defaultOpen={false}
+      action={<span className="text-xs text-muted">{current?.name}</span>}
+    >
       <div role="radiogroup" aria-label="Perspective" className="grid grid-cols-5 gap-1">
         {PERSPECTIVE_PRESETS.map((preset) => {
           const selected = instance.perspective === preset.id;

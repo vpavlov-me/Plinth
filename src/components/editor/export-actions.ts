@@ -1,5 +1,6 @@
 import { downloadBlob, ExportError, renderScene } from "@/editor/export/export-image";
 import { notify } from "@/editor/notify";
+import { completeOnboarding } from "@/editor/onboarding";
 import { getScene } from "@/editor/store";
 import { useUIStore, type ExportSettings } from "@/editor/ui-store";
 
@@ -26,6 +27,7 @@ async function runExport<T>(
 export function exportScene(): Promise<void> {
   return runExport(useUIStore.getState().exportSettings, ({ blob, fileName, width, height }) => {
     downloadBlob(blob, fileName);
+    completeOnboarding();
     notify("Exported", { description: `${fileName} · ${width} × ${height}`, type: "success" });
   });
 }

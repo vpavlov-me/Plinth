@@ -1,11 +1,8 @@
 "use client";
 
-import { ImagePlus, PanelLeft, PanelRight, Redo2, Undo2 } from "lucide-react";
+import { PanelLeft, PanelRight, Redo2, Undo2 } from "lucide-react";
 import { ExportMenu } from "@/components/editor/export-menu";
-import { pickImageFile } from "@/components/editor/pick-file";
 import { IconButton } from "@/components/ui/button";
-import { importScreenshot } from "@/editor/actions";
-import { useActiveDeviceId } from "@/editor/selection";
 import { useCanRedo, useCanUndo, useEditorStore, useScene } from "@/editor/store";
 import { useUIStore } from "@/editor/ui-store";
 import { modKey } from "@/lib/platform";
@@ -16,7 +13,6 @@ export function EditorToolbar() {
   const undo = useEditorStore((s) => s.undo);
   const redo = useEditorStore((s) => s.redo);
   const canvas = useScene((s) => s.canvas);
-  const activeId = useActiveDeviceId();
   const panels = useUIStore((s) => s.panels);
   const togglePanel = useUIStore((s) => s.togglePanel);
 
@@ -42,12 +38,6 @@ export function EditorToolbar() {
       <span className="hidden pr-2 text-xs text-muted tabular-nums sm:inline" aria-live="polite">
         {canvas.width} × {canvas.height}
       </span>
-      <IconButton
-        label="Open screenshot"
-        shortcut={`${modKey()}O`}
-        icon={<ImagePlus />}
-        onClick={() => pickImageFile((file) => void importScreenshot(file, activeId))}
-      />
       <div className="mx-1 h-5 w-px bg-line" aria-hidden />
       <IconButton label="Undo" shortcut={`${modKey()}Z`} icon={<Undo2 />} disabled={!canUndo} onClick={undo} />
       <IconButton label="Redo" shortcut={`${modKey()}⇧Z`} icon={<Redo2 />} disabled={!canRedo} onClick={redo} />
