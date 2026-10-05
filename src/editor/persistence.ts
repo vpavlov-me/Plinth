@@ -35,6 +35,8 @@ import { DEFAULT_EXPORT_SETTINGS, useUIStore, type ExportSettings } from "@/edit
 
 const SCENE_KEY = "plinth.scene.v1";
 const SCENE_VERSION = 2;
+/** Most colour lights a mesh gradient keeps. */
+const MAX_BLOBS = 8;
 const SETTINGS_KEY = "plinth.settings.v1";
 const LIBRARY_KEY = "plinth.library.v1";
 const DB_NAME = "plinth";
@@ -310,10 +312,18 @@ function sanitizeBackground(bg: Record<string, unknown>): BackgroundConfig | nul
       }
       const gradient: GradientConfig = { type: "gradient", colors: bg.colors.slice(0, 4), angle: bg.angle };
       if (Array.isArray(bg.blobs)) {
-        const blobs = bg.blobs.filter(
-          (b): b is MeshBlob => isRecord(b) && [b.x, b.y, b.r].every(isNumber) && isColor(b.color),
-        );
-        if (blobs.length) gradient.blobs = blobs.slice(0, 6);
+        const blobs = bg.blobs
+          .filter((b): b is MeshBlob => isRecord(b) && [b.x, b.y, b.r].every(isNumber) && isColor(b.color))
+          .map((b) => ({
+            x: b.x,
+            y: b.y,
+            r: b.r,
+            color: b.color,
+            ...(isNumber(b.stretch) ? { stretch: Math.min(5, Math.max(0.2, b.stretch)) } : {}),
+            ...(isNumber(b.angle) ? { angle: b.angle } : {}),
+            ...(isNumber(b.core) ? { core: Math.min(0.9, Math.max(0, b.core)) } : {}),
+          }));
+        if (blobs.length) gradient.blobs = blobs.slice(0, MAX_BLOBS);
       }
       if (isNumber(bg.grain)) gradient.grain = Math.min(1, Math.max(0, bg.grain));
       return gradient;

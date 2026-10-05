@@ -155,6 +155,27 @@ describe("persistence migration", () => {
     expect(scene.devices[0]).toMatchObject({ perspective: "front", crop: { zoom: 1, x: 0.5, y: 0 } });
   });
 
+  it("keeps the shape of mesh lights and clamps them", () => {
+    const scene = createDefaultScene();
+    const stored = {
+      ...scene,
+      background: {
+        type: "gradient",
+        colors: ["#0b1cff", "#3d5bff"],
+        angle: 160,
+        blobs: [
+          { x: 0.1, y: 0.2, r: 0.5, color: "#7fb2ffff", stretch: 1.6, angle: -30, core: 0.55 },
+          { x: 0.5, y: 0.5, r: 0.3, color: "#ffffff", stretch: 99, core: 3 },
+        ],
+      },
+    };
+    const background = sanitizeScene(stored)!.background;
+    expect(background.type === "gradient" && background.blobs).toEqual([
+      { x: 0.1, y: 0.2, r: 0.5, color: "#7fb2ffff", stretch: 1.6, angle: -30, core: 0.55 },
+      { x: 0.5, y: 0.5, r: 0.3, color: "#ffffff", stretch: 5, core: 0.9 },
+    ]);
+  });
+
   it("round-trips a multi-device composition and clamps bad crop values", () => {
     const scene = applyLayout(withScreenshot(), "fan", sizeOf);
     const stored = JSON.parse(JSON.stringify(scene)) as Scene;

@@ -12,12 +12,14 @@ export function gradientCss(gradient: Pick<GradientConfig, "colors" | "angle" | 
   const h = aspect >= 1 ? 1 / aspect : 1;
   const layers = gradient.blobs.map((b) => {
     const solid = b.color.slice(0, 7);
-    // CSS stops are relative to the distance to the farthest corner.
-    const fx = Math.max(b.x, 1 - b.x) * w;
-    const fy = Math.max(b.y, 1 - b.y) * h;
-    const reach = Math.hypot(fx, fy);
-    const stop = (fraction: number) => `${Math.round(((b.r * Math.max(w, h)) / reach) * fraction * 100)}%`;
-    return `radial-gradient(circle at ${b.x * 100}% ${b.y * 100}%, ${b.color} 0%, ${solid}88 ${stop(0.55)}, ${solid}00 ${stop(1)})`;
+    // Ellipse radii as a share of the box (CSS can't turn them; fine for previews).
+    const radius = b.r * Math.max(w, h);
+    const stretch = b.stretch ?? 1;
+    const rx = Math.round(((radius * stretch) / w) * 100);
+    const ry = Math.round((radius / h) * 100);
+    const core = Math.round(Math.max(0, Math.min(0.9, b.core ?? 0)) * 100);
+    const mid = Math.round(core + (100 - core) * 0.55);
+    return `radial-gradient(ellipse ${rx}% ${ry}% at ${b.x * 100}% ${b.y * 100}%, ${b.color} 0%, ${b.color} ${core}%, ${solid}88 ${mid}%, ${solid}00 100%)`;
   });
   return [...layers, base].join(", ");
 }

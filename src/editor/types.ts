@@ -24,6 +24,12 @@ export type MeshBlob = {
   r: number;
   /** Hex colour, optionally with alpha (#rrggbbaa). */
   color: string;
+  /** Width / height of the light; 1 = round, 2 = twice as wide (organic, "bloom" shapes). */
+  stretch?: number;
+  /** Degrees, clockwise; turns a stretched light. */
+  angle?: number;
+  /** 0–1: share of the radius that stays solid before fading. 0 = soft glow, 0.7 = crisp, liquid shape. */
+  core?: number;
 };
 
 export type GradientConfig = {

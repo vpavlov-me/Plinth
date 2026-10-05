@@ -42,7 +42,8 @@ production site counts visits with Yandex Metrica.
   Arrow keys nudge the device (`⇧` for 10 px).
 - **Background**: Solid, Gradient, Image or None. Each tab shows built-in options plus the user's own: pick a colour,
   build a two-colour gradient, or upload an image with the "+" tile. Built-in gradients include mesh gradients (soft
-  colour lights with film grain), a signature set drawn from the palettes of the built-in artworks. The personal library is stored locally and kept
+  colour lights with film grain), five signature gradients (Liquid Blue, Liquid Mint, Blue Hour, Pink Orange, Sky Indigo) built from layered
+  colour lights that can be stretched, turned and given a crisp edge. The personal library is stored locally and kept
   across sessions; hover a personal tile to remove it. The Image tab also offers six built-in artworks from museum collections
   (see [Background images](#background-images)).
 - **Shadow**: None / Soft / Medium / Strong.
