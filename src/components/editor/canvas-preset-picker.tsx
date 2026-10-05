@@ -14,7 +14,7 @@ export function CanvasPresetPicker() {
   const commit = useEditorStore((s) => s.commit);
 
   return (
-    <div className="flex flex-col gap-2 px-3">
+    <div className="flex flex-col gap-2 pr-1">
       <div role="radiogroup" aria-label="Canvas size" className="grid grid-cols-3 gap-1.5">
         {CANVAS_PRESETS.map((preset) => (
           <PresetButton

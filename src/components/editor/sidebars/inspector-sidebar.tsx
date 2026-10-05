@@ -8,7 +8,7 @@ export function InspectorSidebar() {
   return (
     <aside
       aria-label="Properties"
-      className="flex w-[300px] shrink-0 scrollbar-thin flex-col overflow-y-auto rounded-2xl bg-panel shadow-panel"
+      className="flex h-full w-[300px] shrink-0 scrollbar-thin flex-col overflow-y-auto rounded-2xl bg-panel shadow-panel"
     >
       <DevicePanel />
       <BackgroundPanel />

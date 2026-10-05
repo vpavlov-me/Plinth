@@ -44,6 +44,7 @@ test("main workflow: upload → device → canvas → background → move → ex
   await expect(page.getByText("portrait.png")).toBeVisible();
   await expect(page.getByRole("heading", { name: "Drop a screenshot" })).toBeHidden();
 
+  await page.getByRole("button", { name: /^Tablets/ }).click();
   await page.getByRole("button", { name: "Tablet Pro 13″", exact: true }).click();
   await expect(page.getByLabel("Device model")).toHaveValue("tablet-pro-13");
 
@@ -51,7 +52,7 @@ test("main workflow: upload → device → canvas → background → move → ex
   expect(await canvasSize(page)).toContain("1200 by 1200");
 
   await page.getByRole("button", { name: "Solid" }).click();
-  await page.getByRole("button", { name: "#bfdbfe" }).click();
+  await page.getByRole("button", { name: "#cdd9ec" }).click();
 
   const canvas = page.locator("canvas").first();
   const box = (await canvas.boundingBox())!;
@@ -171,6 +172,7 @@ test("picks a built-in background image and exports it", async ({ page }) => {
 });
 
 test("uploads a custom device frame and detects its screen", async ({ page }) => {
+  await page.getByRole("button", { name: /^Your frames/ }).click();
   const chooser = page.waitForEvent("filechooser");
   await page.getByRole("button", { name: "Upload a device frame" }).click();
   await (await chooser).setFiles(join(FIXTURE_DIR, "frame.png"));

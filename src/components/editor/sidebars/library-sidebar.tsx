@@ -1,10 +1,13 @@
 "use client";
 
 /* eslint-disable @next/next/no-img-element -- static SVG previews and local object URLs */
-import { Plus, ScanLine, X } from "lucide-react";
-import { linearGradientCss } from "@/components/editor/css-background";
+import { Collapsible } from "@base-ui/react/collapsible";
+import { ChevronDown, FolderClosed, FolderOpen, Plus, ScanLine, X } from "lucide-react";
+import { useId, useState, type ReactNode } from "react";
+import { gradientCss } from "@/components/editor/css-background";
 import { CanvasPresetPicker } from "@/components/editor/canvas-preset-picker";
 import { pickImageFile } from "@/components/editor/pick-file";
+import { COLLAPSE_CHEVRON, COLLAPSE_PANEL } from "@/components/ui/collapse";
 import { Tooltip } from "@/components/ui/tooltip";
 import { importDeviceFrame } from "@/editor/actions";
 import { useAsset } from "@/editor/assets";
@@ -18,32 +21,99 @@ import { useDevice, useEditorStore, useScene } from "@/editor/store";
 import type { BackgroundConfig, DeviceDefinition } from "@/editor/types";
 import { cn } from "@/lib/cn";
 
-/** Two equal halves — devices and presets — each with its own scroll. */
+/**
+ * Two halves — devices and presets — each with its own scroll. A collapsed
+ * half shrinks to its header and the other one smoothly takes the space.
+ */
 export function LibrarySidebar() {
+  const [open, setOpen] = useState({ devices: true, presets: true });
   return (
     <aside
       aria-label="Library"
-      className="hidden w-[248px] shrink-0 flex-col overflow-hidden rounded-2xl bg-panel shadow-panel xl:flex"
+      className="flex h-full w-[248px] flex-col overflow-hidden rounded-2xl bg-panel shadow-panel"
     >
-      <DeviceLibrary />
+      <LibraryHalf title="Devices" open={open.devices} onToggle={() => setOpen((o) => ({ ...o, devices: !o.devices }))}>
+        <DeviceLibrary />
+      </LibraryHalf>
       <div className="h-px shrink-0 bg-line" aria-hidden />
-      <PresetLibrary />
+      <LibraryHalf title="Presets" open={open.presets} onToggle={() => setOpen((o) => ({ ...o, presets: !o.presets }))}>
+        <PresetLibrary />
+      </LibraryHalf>
     </aside>
   );
 }
 
-function SidebarHeading({ children }: { children: React.ReactNode }) {
+function LibraryHalf({
+  title,
+  open,
+  onToggle,
+  children,
+}: {
+  title: string;
+  open: boolean;
+  onToggle: () => void;
+  children: ReactNode;
+}) {
+  const id = useId();
   return (
-    <h2 className="sticky top-0 z-10 bg-panel px-4 pt-3.5 pb-1.5 text-2xs font-semibold tracking-wide text-subtle uppercase">
-      {children}
-    </h2>
+    <section
+      aria-label={title}
+      className="flex min-h-11 basis-0 flex-col overflow-hidden transition-[flex-grow] duration-300 ease-out motion-reduce:transition-none"
+      style={{ flexGrow: open ? 1 : 0.0001 }}
+    >
+      <h2 className="shrink-0 px-4 pt-3 pb-1">
+        <button
+          type="button"
+          aria-expanded={open}
+          aria-controls={id}
+          onClick={onToggle}
+          {...(open ? { "data-panel-open": "" } : {})}
+          className="group flex h-6 cursor-default items-center gap-1.5 text-2xs font-semibold tracking-wide text-subtle uppercase transition-colors hover:text-muted"
+        >
+          {title}
+          <ChevronDown className={COLLAPSE_CHEVRON} />
+        </button>
+      </h2>
+      <div
+        id={id}
+        inert={!open}
+        className={cn(
+          "min-h-0 flex-1 scrollbar-thin overflow-y-auto pb-3 transition-opacity duration-300",
+          open ? "opacity-100" : "opacity-0",
+        )}
+      >
+        {children}
+      </div>
+    </section>
   );
 }
 
-const HALF = "min-h-0 flex-1 basis-0 overflow-y-auto scrollbar-thin pb-3";
-
-function GroupHeading({ children }: { children: React.ReactNode }) {
-  return <h3 className="px-4 pt-3 pb-1.5 text-2xs font-medium text-muted">{children}</h3>;
+/** A folder in the library tree: icon, name, count and an animated body. */
+function Folder({
+  label,
+  count,
+  defaultOpen,
+  children,
+}: {
+  label: string;
+  count?: number;
+  defaultOpen: boolean;
+  children: ReactNode;
+}) {
+  return (
+    <Collapsible.Root defaultOpen={defaultOpen} render={<div role="group" aria-label={label} />} className="px-2">
+      <Collapsible.Trigger className="group flex h-8 w-full cursor-default items-center gap-2 rounded-md px-2 text-left text-xs text-muted transition-colors hover:bg-hover hover:text-ink data-[panel-open]:text-ink">
+        <FolderClosed className="size-3.5 shrink-0 text-subtle group-data-[panel-open]:hidden" />
+        <FolderOpen className="hidden size-3.5 shrink-0 text-subtle group-data-[panel-open]:block" />
+        <span className="truncate font-medium">{label}</span>
+        {count !== undefined ? <span className="text-2xs text-subtle tabular-nums">{count}</span> : null}
+        <ChevronDown className={COLLAPSE_CHEVRON} />
+      </Collapsible.Trigger>
+      <Collapsible.Panel className={COLLAPSE_PANEL}>
+        <div className="ml-[15px] border-l border-line pt-1 pb-2 pl-2">{children}</div>
+      </Collapsible.Panel>
+    </Collapsible.Root>
+  );
 }
 
 /* -------------------------------------------------------------------------- */
@@ -64,12 +134,15 @@ function DeviceLibrary() {
   const select = useSelectDevice();
 
   return (
-    <section aria-label="Devices" className={HALF}>
-      <SidebarHeading>Devices</SidebarHeading>
-      {DEVICE_GROUPS.map((group) => (
-        <div key={group.label} role="group" aria-label={group.label}>
-          <GroupHeading>{group.label}</GroupHeading>
-          <div className="grid grid-cols-2 gap-1.5 px-3">
+    <div className="flex flex-col gap-0.5">
+      {DEVICE_GROUPS.map((group, index) => (
+        <Folder
+          key={group.label}
+          label={group.label}
+          count={group.devices.length}
+          defaultOpen={group.devices.some((d) => d.id === active?.deviceId) || (index === 0 && !active)}
+        >
+          <div className="grid grid-cols-2 gap-1">
             {group.devices.map((device) => (
               <DeviceTile
                 key={device.id}
@@ -79,10 +152,10 @@ function DeviceLibrary() {
               />
             ))}
           </div>
-        </div>
+        </Folder>
       ))}
       <CustomFrames selectedId={active?.deviceId ?? null} onSelect={select} />
-    </section>
+    </div>
   );
 }
 
@@ -132,9 +205,12 @@ function CustomFrames({ selectedId, onSelect }: { selectedId: string | null; onS
   const activeId = useActiveDeviceId();
 
   return (
-    <div role="group" aria-label="Your frames">
-      <GroupHeading>Your frames</GroupHeading>
-      <div className="grid grid-cols-2 gap-1.5 px-3">
+    <Folder
+      label="Your frames"
+      count={frames.length}
+      defaultOpen={frames.some((f) => customDeviceId(f.assetId) === selectedId)}
+    >
+      <div className="grid grid-cols-2 gap-1">
         <Tooltip label="PNG or WebP with a transparent screen, e.g. official bezels you downloaded">
           <button
             type="button"
@@ -156,7 +232,7 @@ function CustomFrames({ selectedId, onSelect }: { selectedId: string | null; onS
           />
         ))}
       </div>
-    </div>
+    </Folder>
   );
 }
 
@@ -216,38 +292,38 @@ function PresetLibrary() {
   const update = useEditorStore((s) => s.update);
   const currentBackground = useScene((s) => s.background);
   return (
-    <section aria-label="Presets" className={HALF}>
-      <SidebarHeading>Presets</SidebarHeading>
-      <div role="group" aria-label="Canvas">
-        <GroupHeading>Canvas</GroupHeading>
+    <div className="flex flex-col gap-0.5">
+      <Folder label="Canvas" defaultOpen>
         <CanvasPresetPicker />
-      </div>
-      {SCENE_PRESET_GROUPS.map((group) => (
-        <div key={group.id} role="group" aria-label={group.label}>
-          <GroupHeading>{group.label}</GroupHeading>
-          <ul className="flex flex-col gap-0.5 px-2">
-            {SCENE_PRESETS.filter((p) => p.group === group.id).map((preset) => (
-              <li key={preset.id}>
-                <button
-                  type="button"
-                  onClick={() => update((scene, sizeOf) => applyScenePreset(scene, preset, sizeOf))}
-                  className="flex w-full cursor-default items-center gap-3 rounded-lg px-2 py-1.5 text-left transition-colors hover:bg-hover"
-                >
-                  <PresetThumb
-                    background={preset.background ?? currentBackground}
-                    ratio={preset.canvas.width / preset.canvas.height}
-                  />
-                  <span className="min-w-0">
-                    <span className="block truncate text-xs font-medium text-ink">{preset.name}</span>
-                    <span className="block truncate text-2xs text-muted tabular-nums">{preset.description}</span>
-                  </span>
-                </button>
-              </li>
-            ))}
-          </ul>
-        </div>
-      ))}
-    </section>
+      </Folder>
+      {SCENE_PRESET_GROUPS.map((group) => {
+        const presets = SCENE_PRESETS.filter((p) => p.group === group.id);
+        return (
+          <Folder key={group.id} label={group.label} count={presets.length} defaultOpen={group.id === "social"}>
+            <ul className="flex flex-col gap-0.5">
+              {presets.map((preset) => (
+                <li key={preset.id}>
+                  <button
+                    type="button"
+                    onClick={() => update((scene, sizeOf) => applyScenePreset(scene, preset, sizeOf))}
+                    className="flex w-full cursor-default items-center gap-3 rounded-lg px-2 py-1.5 text-left transition-colors hover:bg-hover"
+                  >
+                    <PresetThumb
+                      background={preset.background ?? currentBackground}
+                      ratio={preset.canvas.width / preset.canvas.height}
+                    />
+                    <span className="min-w-0">
+                      <span className="block truncate text-xs font-medium text-ink">{preset.name}</span>
+                      <span className="block truncate text-2xs text-muted tabular-nums">{preset.description}</span>
+                    </span>
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </Folder>
+        );
+      })}
+    </div>
   );
 }
 
@@ -266,6 +342,6 @@ function PresetThumb({ background, ratio }: { background: BackgroundConfig; rati
 
 function cssBackground(background: BackgroundConfig): string {
   if (background.type === "solid") return background.color;
-  if (background.type === "gradient") return linearGradientCss(background);
+  if (background.type === "gradient") return gradientCss(background);
   return "#3a3a40";
 }

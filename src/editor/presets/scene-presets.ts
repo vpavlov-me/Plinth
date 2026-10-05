@@ -1,4 +1,4 @@
-import { GRADIENT_PRESETS } from "@/editor/presets/background-presets";
+import { cloneGradient, GRADIENT_PRESETS } from "@/editor/presets/background-presets";
 import { SHADOW_PRESETS } from "@/editor/presets/shadow-presets";
 import type { BackgroundConfig, CanvasConfig, DeviceInstance } from "@/editor/types";
 
@@ -25,7 +25,7 @@ export const SCENE_PRESET_GROUPS: { id: ScenePreset["group"]; label: string }[] 
 
 const gradient = (id: string): BackgroundConfig => {
   const preset = GRADIENT_PRESETS.find((p) => p.id === id) ?? GRADIENT_PRESETS[0]!;
-  return { ...preset.gradient, colors: [...preset.gradient.colors] };
+  return cloneGradient(preset.gradient);
 };
 
 const CENTERED = { x: 0.5, y: 0.5, scale: 1, rotation: 0 };
@@ -59,7 +59,7 @@ export const SCENE_PRESETS: ScenePreset[] = [
     description: "1270 × 760 gallery",
     group: "showcase",
     canvas: { width: 1270, height: 760, preset: "custom" },
-    background: gradient("peach"),
+    background: gradient("candy"),
     device: { ...CENTERED, shadow: SHADOW_PRESETS.medium },
   },
   {
@@ -68,7 +68,7 @@ export const SCENE_PRESETS: ScenePreset[] = [
     description: "1290 × 2796 phone",
     group: "showcase",
     canvas: { width: 1290, height: 2796, preset: "custom" },
-    background: gradient("lagoon"),
+    background: gradient("ocean"),
     device: { deviceId: "phone-pro", x: 0.5, y: 0.56, scale: 0.86, rotation: 0, shadow: SHADOW_PRESETS.medium },
   },
   {
@@ -77,7 +77,7 @@ export const SCENE_PRESETS: ScenePreset[] = [
     description: "1024 × 500 graphic",
     group: "showcase",
     canvas: { width: 1024, height: 500, preset: "custom" },
-    background: gradient("meadow"),
+    background: gradient("mint"),
     device: { ...CENTERED, shadow: SHADOW_PRESETS.soft },
   },
   {
@@ -95,7 +95,7 @@ export const SCENE_PRESETS: ScenePreset[] = [
     description: "1920 × 1080 dark slide",
     group: "showcase",
     canvas: { width: 1920, height: 1080, preset: "landscape" },
-    background: gradient("ink"),
+    background: gradient("aurora"),
     device: { ...CENTERED, shadow: SHADOW_PRESETS.strong },
   },
 ];

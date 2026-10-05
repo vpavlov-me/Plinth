@@ -10,6 +10,7 @@ import { Workspace } from "@/components/editor/workspace";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { useUIStore } from "@/editor/ui-store";
+import { cn } from "@/lib/cn";
 
 export function EditorShell() {
   usePersistence();
@@ -22,9 +23,13 @@ export function EditorShell() {
         <div className="workspace-bg hidden h-dvh flex-col md:flex">
           <EditorToolbar />
           <div className="flex min-h-0 flex-1 gap-3 px-3 pb-3">
-            {panels.library ? <LibrarySidebar /> : null}
+            <SlidingPanel open={panels.library} width={248} side="left" className="hidden xl:block">
+              <LibrarySidebar />
+            </SlidingPanel>
             <Workspace />
-            {panels.inspector ? <InspectorSidebar /> : null}
+            <SlidingPanel open={panels.inspector} width={300} side="right">
+              <InspectorSidebar />
+            </SlidingPanel>
           </div>
         </div>
         <NarrowScreenNotice />
@@ -45,6 +50,47 @@ function NarrowScreenNotice() {
         The mockup editor is designed for desktop and tablet. Open this page on a wider window to turn screenshots into
         polished device mockups.
       </p>
+    </div>
+  );
+}
+
+/**
+ * Animates a floating panel in and out by collapsing its width (and the
+ * adjacent gap). The workspace re-fits the canvas continuously meanwhile.
+ */
+function SlidingPanel({
+  open,
+  width,
+  side,
+  className,
+  children,
+}: {
+  open: boolean;
+  width: number;
+  side: "left" | "right";
+  className?: string;
+  children: React.ReactNode;
+}) {
+  const gap = 12;
+  return (
+    <div
+      inert={!open}
+      className={cn(
+        "shrink-0 transition-[width,margin,opacity,visibility] duration-300 ease-out motion-reduce:transition-none",
+        !open && "invisible opacity-0",
+        className,
+      )}
+      style={{
+        width: open ? width : 0,
+        [side === "left" ? "marginRight" : "marginLeft"]: open ? 0 : -gap,
+        // Clip the sliding content but let the panel's soft shadow show.
+        overflow: "clip",
+        overflowClipMargin: 32,
+      }}
+    >
+      <div className={cn("h-full", side === "right" && "flex justify-end")} style={{ width }}>
+        {children}
+      </div>
     </div>
   );
 }

@@ -25,7 +25,8 @@ Everything runs locally in the browser. There are no accounts, no uploads and no
   to 90°), and Scale / Horizontal / Vertical field sliders in the inspector (double-click a slider to reset it).
   Arrow keys nudge the device (`⇧` for 10 px).
 - **Background**: Solid, Gradient, Image or None. Each tab shows built-in options plus the user's own: pick a colour,
-  build a two-colour gradient, or upload an image with the "+" tile. The personal library is stored locally and kept
+  build a two-colour gradient, or upload an image with the "+" tile. Built-in gradients include mesh gradients (soft
+  colour lights with film grain). The personal library is stored locally and kept
   across sessions; hover a personal tile to remove it. The Image tab also offers ten built-in soft, blurred backgrounds
   (see [Background images](#background-images)).
 - **Shadow**: None / Soft / Medium / Strong.
@@ -33,8 +34,10 @@ Everything runs locally in the browser. There are no accounts, no uploads and no
   Threads, Dribbble, Behance, Open Graph) that resize the canvas and re-fit the device, plus showcase scenes
   (Product Hunt, App Store, Google Play feature graphic, portfolio hero, presentation) that also set a background.
 - **Export**: PNG at 1×/2×/3×, JPG with a quality setting, transparent PNG, and copying to the clipboard (`⌘E` downloads).
-- **Layout**: floating library (left: devices and presets, each half scrolls independently) and properties panel
-  (right: Device, Background, Shadow — each section collapses). Hide/show the panels from the toolbar or with `[` / `]`.
+- **Layout**: floating library (left: Devices and Presets, each half scrolls independently and collapses; groups are
+  folders) and properties panel (right: Device, Background, Shadow — each section collapses). Hide/show the panels from
+  the toolbar or with `[` / `]`. All expanding, collapsing and panel transitions are animated (and respect
+  "reduce motion").
 - **Undo/redo**: `⌘Z`, `⌘⇧Z` (or `Ctrl+Y`). A drag or slider movement counts as one step.
 - **Persistence**: the project is restored after a reload. Scene settings go to `localStorage` and images go to
   IndexedDB.

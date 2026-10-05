@@ -3,6 +3,7 @@
 import { Collapsible } from "@base-ui/react/collapsible";
 import { ChevronDown } from "lucide-react";
 import type { ReactNode } from "react";
+import { COLLAPSE_CHEVRON, COLLAPSE_PANEL } from "@/components/ui/collapse";
 
 type Props = {
   title: string;
@@ -12,7 +13,7 @@ type Props = {
   children: ReactNode;
 };
 
-/** Inspector section with a header that collapses and expands its controls. */
+/** Inspector section whose header smoothly collapses and expands its controls. */
 export function Section({ title, action, defaultOpen = true, children }: Props) {
   return (
     <Collapsible.Root
@@ -21,13 +22,15 @@ export function Section({ title, action, defaultOpen = true, children }: Props) 
       className="border-b border-line px-4 py-3 last:border-b-0"
     >
       <header className="flex h-7 items-center justify-between gap-2">
-        <Collapsible.Trigger className="group -ml-1 flex h-7 flex-1 cursor-default items-center gap-1.5 rounded-md px-1 text-left text-xs font-semibold text-ink hover:text-ink/80">
-          <ChevronDown className="size-3.5 text-muted transition-transform group-data-[panel-closed]:-rotate-90" />
+        <Collapsible.Trigger className="group flex h-7 cursor-default items-center gap-1.5 rounded-md text-left text-xs font-semibold text-ink transition-colors hover:text-ink/75">
           {title}
+          <ChevronDown className={COLLAPSE_CHEVRON} />
         </Collapsible.Trigger>
         {action}
       </header>
-      <Collapsible.Panel className="flex flex-col gap-3 pt-2.5">{children}</Collapsible.Panel>
+      <Collapsible.Panel className={COLLAPSE_PANEL}>
+        <div className="flex flex-col gap-3 pt-2.5 pb-1.5">{children}</div>
+      </Collapsible.Panel>
     </Collapsible.Root>
   );
 }

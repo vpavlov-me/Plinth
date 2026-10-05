@@ -1,6 +1,6 @@
 import { DEFAULT_DEVICE_ID, getDevice, getVariant } from "@/editor/devices/definitions";
 import { resolveDeviceGeometry, type Size } from "@/editor/geometry";
-import { DEFAULT_GRADIENT } from "@/editor/presets/background-presets";
+import { cloneGradient, DEFAULT_GRADIENT } from "@/editor/presets/background-presets";
 import { clampCanvasDimension, getCanvasPreset, originalCanvasSize } from "@/editor/presets/canvas-presets";
 import type { ScenePreset } from "@/editor/presets/scene-presets";
 import { DEFAULT_SHADOW } from "@/editor/presets/shadow-presets";
@@ -35,7 +35,7 @@ export function createDeviceInstance(
 export function createDefaultScene(): Scene {
   return {
     canvas: { width: 1920, height: 1080, preset: "landscape" },
-    background: { ...DEFAULT_GRADIENT, colors: [...DEFAULT_GRADIENT.colors] },
+    background: cloneGradient(DEFAULT_GRADIENT),
     devices: [createDeviceInstance()],
   };
 }

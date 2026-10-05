@@ -32,7 +32,10 @@ const prepend = <T>(list: T[], item: T, same: (a: T, b: T) => boolean) =>
   [item, ...list.filter((existing) => !same(existing, item))].slice(0, LIBRARY_LIMIT);
 
 export const sameGradient = (a: GradientConfig, b: GradientConfig) =>
-  a.angle === b.angle && a.colors.join() === b.colors.join();
+  a.angle === b.angle &&
+  a.colors.join() === b.colors.join() &&
+  JSON.stringify(a.blobs ?? []) === JSON.stringify(b.blobs ?? []) &&
+  (a.grain ?? 0) === (b.grain ?? 0);
 
 export const useLibraryStore = create<LibraryState>((set) => ({
   colors: [],

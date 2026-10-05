@@ -1,8 +1,9 @@
-import { Image as KonvaImage, Rect } from "react-konva";
+import { Group, Image as KonvaImage, Rect } from "react-konva";
 import { useImage } from "@/editor/assets";
 import { useBackgroundImageUrl } from "@/editor/background-image";
 import { fitRect } from "@/editor/geometry";
-import type { BackgroundConfig, BackgroundImageSource, CanvasConfig, GradientConfig } from "@/editor/types";
+import { getNoiseTexture } from "@/editor/rendering/noise";
+import type { BackgroundConfig, BackgroundImageSource, CanvasConfig, GradientConfig, MeshBlob } from "@/editor/types";
 
 type Props = { background: BackgroundConfig; canvas: CanvasConfig };
 
@@ -12,14 +13,50 @@ export function BackgroundNode({ background, canvas }: Props) {
     case "solid":
       return <Rect width={width} height={height} fill={background.color} listening={false} />;
     case "gradient":
-      return (
-        <Rect width={width} height={height} listening={false} {...linearGradientProps(background, width, height)} />
-      );
+      return <GradientNode gradient={background} width={width} height={height} />;
     case "image":
       return <BackgroundImage source={background.source} width={width} height={height} />;
     case "transparent":
       return null;
   }
+}
+
+/** Linear base, optional soft colour lights ("mesh") and optional film grain. */
+function GradientNode({ gradient, width, height }: { gradient: GradientConfig; width: number; height: number }) {
+  const grain = gradient.grain ?? 0;
+  return (
+    <Group listening={false}>
+      <Rect width={width} height={height} listening={false} {...linearGradientProps(gradient, width, height)} />
+      {gradient.blobs?.map((blob, index) => (
+        <Rect key={index} width={width} height={height} listening={false} {...blobProps(blob, width, height)} />
+      ))}
+      {grain > 0 ? (
+        <Rect
+          width={width}
+          height={height}
+          listening={false}
+          // Konva types the pattern as an <img>, but any CanvasImageSource works (createPattern).
+          fillPatternImage={getNoiseTexture() as unknown as HTMLImageElement}
+          fillPatternRepeat="repeat"
+          opacity={grain}
+          globalCompositeOperation="overlay"
+        />
+      ) : null}
+    </Group>
+  );
+}
+
+/** Radial light that fades to the same colour at zero alpha (no grey fringe). */
+export function blobProps(blob: MeshBlob, width: number, height: number) {
+  const center = { x: blob.x * width, y: blob.y * height };
+  const solid = blob.color.slice(0, 7);
+  return {
+    fillRadialGradientStartPoint: center,
+    fillRadialGradientEndPoint: center,
+    fillRadialGradientStartRadius: 0,
+    fillRadialGradientEndRadius: blob.r * Math.max(width, height),
+    fillRadialGradientColorStops: [0, blob.color, 0.55, `${solid}88`, 1, `${solid}00`],
+  };
 }
 
 function BackgroundImage({ source, width, height }: { source: BackgroundImageSource; width: number; height: number }) {

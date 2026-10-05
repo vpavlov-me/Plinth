@@ -6,7 +6,15 @@ import { CANVAS_PRESETS, clampCanvasDimension } from "@/editor/presets/canvas-pr
 import { getPhotoPreset } from "@/editor/presets/photo-presets";
 import { SHADOW_PRESETS } from "@/editor/presets/shadow-presets";
 import { createDefaultScene, sceneAssetIds } from "@/editor/scene";
-import type { BackgroundConfig, DeviceInstance, GradientConfig, ImageAsset, Scene, ShadowConfig } from "@/editor/types";
+import type {
+  BackgroundConfig,
+  DeviceInstance,
+  GradientConfig,
+  ImageAsset,
+  MeshBlob,
+  Scene,
+  ShadowConfig,
+} from "@/editor/types";
 import { DEFAULT_EXPORT_SETTINGS, type ExportSettings } from "@/editor/ui-store";
 
 /**
@@ -268,10 +276,20 @@ function sanitizeBackground(bg: Record<string, unknown>): BackgroundConfig | nul
   switch (bg.type) {
     case "solid":
       return isColor(bg.color) ? { type: "solid", color: bg.color } : null;
-    case "gradient":
-      return Array.isArray(bg.colors) && bg.colors.length >= 2 && bg.colors.every(isColor) && isNumber(bg.angle)
-        ? { type: "gradient", colors: bg.colors.slice(0, 4), angle: bg.angle }
-        : null;
+    case "gradient": {
+      if (!Array.isArray(bg.colors) || bg.colors.length < 2 || !bg.colors.every(isColor) || !isNumber(bg.angle)) {
+        return null;
+      }
+      const gradient: GradientConfig = { type: "gradient", colors: bg.colors.slice(0, 4), angle: bg.angle };
+      if (Array.isArray(bg.blobs)) {
+        const blobs = bg.blobs.filter(
+          (b): b is MeshBlob => isRecord(b) && [b.x, b.y, b.r].every(isNumber) && isColor(b.color),
+        );
+        if (blobs.length) gradient.blobs = blobs.slice(0, 6);
+      }
+      if (isNumber(bg.grain)) gradient.grain = Math.min(1, Math.max(0, bg.grain));
+      return gradient;
+    }
     case "image": {
       // Legacy format: { assetId, fit }.
       if (isString(bg.assetId)) return { type: "image", source: { kind: "upload", assetId: bg.assetId } };

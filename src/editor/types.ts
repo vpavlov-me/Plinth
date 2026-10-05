@@ -15,11 +15,27 @@ export type CanvasConfig = {
   preset: CanvasPresetId;
 };
 
+/** A soft colour light placed over a gradient ("mesh" look). */
+export type MeshBlob = {
+  /** Centre as a fraction of the canvas (0–1). */
+  x: number;
+  y: number;
+  /** Radius as a fraction of the canvas' longer side. */
+  r: number;
+  /** Hex colour, optionally with alpha (#rrggbbaa). */
+  color: string;
+};
+
 export type GradientConfig = {
   type: "gradient";
+  /** Linear base gradient. */
   colors: string[];
   /** Degrees, CSS convention: 0 = bottom → top, 90 = left → right. */
   angle: number;
+  /** Optional soft colour lights drawn over the base. */
+  blobs?: MeshBlob[];
+  /** Film-grain strength, 0–1. */
+  grain?: number;
 };
 
 export type BackgroundConfig =

@@ -4,7 +4,7 @@
 import { Popover } from "@base-ui/react/popover";
 import { Plus, X } from "lucide-react";
 import { useEffect, useRef, useState, type ReactNode } from "react";
-import { linearGradientCss } from "@/components/editor/css-background";
+import { gradientCss } from "@/components/editor/css-background";
 import { pickImageFile } from "@/components/editor/pick-file";
 import { Button } from "@/components/ui/button";
 import { ColorField } from "@/components/ui/color-field";
@@ -14,7 +14,7 @@ import { Tooltip } from "@/components/ui/tooltip";
 import { importBackgroundImage } from "@/editor/actions";
 import { getAsset, useAsset } from "@/editor/assets";
 import { sameGradient, useLibraryStore } from "@/editor/library";
-import { DEFAULT_GRADIENT, GRADIENT_PRESETS, SOLID_SWATCHES } from "@/editor/presets/background-presets";
+import { cloneGradient, DEFAULT_GRADIENT, GRADIENT_PRESETS, SOLID_SWATCHES } from "@/editor/presets/background-presets";
 import { PHOTO_PRESETS, photoThumbSrc } from "@/editor/presets/photo-presets";
 import { useEditorStore, useScene } from "@/editor/store";
 import type { BackgroundConfig, BackgroundImageSource, BackgroundType, GradientConfig } from "@/editor/types";
@@ -38,7 +38,7 @@ export function BackgroundPanel() {
     const remembered = memory.current[type];
     if (remembered && (remembered.type !== "image" || isAvailable(remembered.source))) return set(remembered);
     if (type === "solid") return set({ type: "solid", color: "#f4f4f5" });
-    if (type === "gradient") return set({ ...DEFAULT_GRADIENT, colors: [...DEFAULT_GRADIENT.colors] });
+    if (type === "gradient") return set(cloneGradient(DEFAULT_GRADIENT));
     if (type === "transparent") return set({ type: "transparent" });
     const firstPhoto = PHOTO_PRESETS[0];
     const firstUpload = useLibraryStore.getState().images[0];
@@ -133,9 +133,10 @@ function Tile({ label, selected, onSelect, onRemove, className, style, children 
 const ADD_TILE =
   "flex w-full cursor-default items-center justify-center rounded-lg border border-dashed border-line-strong text-muted transition-colors hover:border-muted hover:text-ink";
 
-function TileGrid({ label, columns, children }: { label: string; columns: 3 | 6; children: ReactNode }) {
+/** Small square tiles, seven per row, for colours, gradients and images alike. */
+function TileGrid({ label, children }: { label: string; children: ReactNode }) {
   return (
-    <div role="group" aria-label={label} className={cn("grid gap-2", columns === 6 ? "grid-cols-6" : "grid-cols-3")}>
+    <div role="group" aria-label={label} className="grid grid-cols-7 gap-1.5">
       {children}
     </div>
   );
@@ -172,7 +173,7 @@ function SolidTiles({
   }, [addColor, onCommit]);
 
   return (
-    <TileGrid label="Colours" columns={6}>
+    <TileGrid label="Colours">
       <Tooltip label="Add your colour">
         <label className={cn(ADD_TILE, "relative aspect-square")}>
           <Plus className="size-4" />
@@ -221,7 +222,7 @@ function GradientTiles({ gradient, onPick }: { gradient: GradientConfig; onPick:
   const isSaved = saved.some((g) => sameGradient(g, gradient));
 
   return (
-    <TileGrid label="Gradients" columns={6}>
+    <TileGrid label="Gradients">
       <AddGradientTile onAdd={onPick} />
       {saved.map((g, index) => (
         <Tile
@@ -231,7 +232,7 @@ function GradientTiles({ gradient, onPick }: { gradient: GradientConfig; onPick:
           onSelect={() => onPick({ ...g, colors: [...g.colors] })}
           onRemove={() => removeGradient(index)}
           className="aspect-square"
-          style={{ background: linearGradientCss(g) }}
+          style={{ background: gradientCss(g) }}
         />
       ))}
       {GRADIENT_PRESETS.map((preset) => (
@@ -239,9 +240,9 @@ function GradientTiles({ gradient, onPick }: { gradient: GradientConfig; onPick:
           key={preset.id}
           label={preset.name}
           selected={!isSaved && sameGradient(preset.gradient, gradient)}
-          onSelect={() => onPick({ ...preset.gradient, colors: [...preset.gradient.colors] })}
+          onSelect={() => onPick(cloneGradient(preset.gradient))}
           className="aspect-square"
-          style={{ background: linearGradientCss(preset.gradient) }}
+          style={{ background: gradientCss(preset.gradient) }}
         />
       ))}
     </TileGrid>
@@ -267,7 +268,7 @@ function AddGradientTile({ onAdd }: { onAdd: (g: GradientConfig) => void }) {
         <Popover.Positioner side="left" align="start" sideOffset={12}>
           <Popover.Popup className="z-40 flex w-56 flex-col gap-3 rounded-xl border border-line bg-panel p-3 shadow-popover outline-none">
             <Popover.Title className="text-xs font-semibold text-ink">New gradient</Popover.Title>
-            <div className="h-16 rounded-lg" style={{ background: linearGradientCss(draft) }} />
+            <div className="h-16 rounded-lg" style={{ background: gradientCss(draft) }} />
             <ColorField
               label="From"
               value={colors[0]}
@@ -312,13 +313,13 @@ function ImageTiles({
   const removeImage = useLibraryStore((s) => s.removeImage);
 
   return (
-    <TileGrid label="Images" columns={3}>
+    <TileGrid label="Images">
       <Tooltip label="Upload your image">
         <button
           type="button"
           aria-label="Upload your image"
           onClick={() => pickImageFile((file) => void importBackgroundImage(file))}
-          className={cn(ADD_TILE, "aspect-[4/3]")}
+          className={cn(ADD_TILE, "aspect-square")}
         >
           <Plus className="size-4" />
         </button>
@@ -339,7 +340,7 @@ function ImageTiles({
               label={photo.name}
               selected={source.kind === "photo" && source.photoId === photo.id}
               onSelect={() => onPick({ kind: "photo", photoId: photo.id })}
-              className="aspect-[4/3]"
+              className="aspect-square"
             >
               <img src={photoThumbSrc(photo.id)} alt="" className="size-full object-cover" draggable={false} />
             </Tile>
@@ -364,7 +365,7 @@ function UploadTile({
   const asset = useAsset(assetId);
   if (!asset) return null;
   return (
-    <Tile label={asset.name} selected={selected} onSelect={onSelect} onRemove={onRemove} className="aspect-[4/3]">
+    <Tile label={asset.name} selected={selected} onSelect={onSelect} onRemove={onRemove} className="aspect-square">
       <img src={asset.url} alt="" className="size-full object-cover" draggable={false} />
     </Tile>
   );
