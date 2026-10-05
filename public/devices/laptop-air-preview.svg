@@ -3,7 +3,8 @@
 <linearGradient id="deck" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#7a7f87"/><stop offset="0.18" stop-color="#4b525c"/><stop offset="0.55" stop-color="#323a46"/><stop offset="1" stop-color="#1c2027"/></linearGradient>
 <linearGradient id="deckx" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#000" stop-opacity="0.25"/><stop offset="0.04" stop-color="#000" stop-opacity="0"/><stop offset="0.96" stop-color="#000" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity="0.25"/></linearGradient>
 <linearGradient id="hinge" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#000" stop-opacity="0.7"/><stop offset="1" stop-color="#000" stop-opacity="0"/></linearGradient>
-<linearGradient id="lidedge" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#1c2027"/><stop offset="0.012" stop-color="#8e9399"/><stop offset="0.03" stop-color="#323a46"/><stop offset="0.5" stop-color="#575d67"/><stop offset="0.97" stop-color="#323a46"/><stop offset="0.988" stop-color="#8e9399"/><stop offset="1" stop-color="#1c2027"/></linearGradient></defs>
+<linearGradient id="lidedge" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#1c2027"/><stop offset="0.012" stop-color="#8e9399"/><stop offset="0.03" stop-color="#323a46"/><stop offset="0.5" stop-color="#575d67"/><stop offset="0.97" stop-color="#323a46"/><stop offset="0.988" stop-color="#8e9399"/><stop offset="1" stop-color="#1c2027"/></linearGradient>
+<linearGradient id="barrel" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#0a0a0b"/><stop offset="0.45" stop-color="#2c2c30"/><stop offset="1" stop-color="#0a0a0b"/></linearGradient></defs>
 <path fill="#d9dde5" d="M236.5,58H2756.5A20,20 0 0 1 2776.5,78V1722H216.5V78A20,20 0 0 1 236.5,58Z"/>
 <path fill-rule="evenodd" fill="url(#lidedge)" d="M216.5,0H2776.5A56,56 0 0 1 2832.5,56V1794A10,10 0 0 1 2822.5,1804H170.5A10,10 0 0 1 160.5,1794V56A56,56 0 0 1 216.5,0ZM216.5,9H2776.5A47,47 0 0 1 2823.5,56V1794A1,1 0 0 1 2822.5,1795H170.5A1,1 0 0 1 169.5,1794V56A47,47 0 0 1 216.5,9Z"/>
 <path fill-rule="evenodd" fill="#050506" d="M216.5,9H2776.5A47,47 0 0 1 2823.5,56V1794A1,1 0 0 1 2822.5,1795H170.5A1,1 0 0 1 169.5,1794V56A47,47 0 0 1 216.5,9ZM236.5,58H2756.5A20,20 0 0 1 2776.5,78V1722H216.5V78A20,20 0 0 1 236.5,58Z"/>
@@ -15,6 +16,10 @@
 <path fill="url(#deck)" d="M8,1798H2985A8,8 0 0 1 2993,1806V1830A32,32 0 0 1 2961,1862H32A32,32 0 0 1 0,1830V1806A8,8 0 0 1 8,1798Z"/>
 <path fill="url(#deckx)" d="M8,1798H2985A8,8 0 0 1 2993,1806V1830A32,32 0 0 1 2961,1862H32A32,32 0 0 1 0,1830V1806A8,8 0 0 1 8,1798Z"/>
 <path fill="url(#hinge)" d="M190.5,1798H2802.5V1814H190.5V1798Z"/>
+<path fill="url(#barrel)" d="M325.82,1794H2667.18A5,5 0 0 1 2672.18,1799V1799A5,5 0 0 1 2667.18,1804H325.82A5,5 0 0 1 320.82,1799V1799A5,5 0 0 1 325.82,1794Z"/>
+<ellipse cx="179.58" cy="1860.5" rx="89.79" ry="2.5" fill="#000" fill-opacity="0.35"/>
+<ellipse cx="2813.42" cy="1860.5" rx="89.79" ry="2.5" fill="#000" fill-opacity="0.35"/>
+<path fill="none" stroke="#000" stroke-opacity="0.35" stroke-width="2" d="M57.6,1861 H2935.4"/>
 <path fill="#232931" d="M1272.03,1798H1720.98V1808.24A10.24,10.24 0 0 1 1710.74,1818.48H1282.27A10.24,10.24 0 0 1 1272.03,1808.24V1798Z"/>
 <path stroke="#fff" stroke-opacity="0.45" stroke-width="2" d="M12,1799.5 H2981"/>
 </svg>

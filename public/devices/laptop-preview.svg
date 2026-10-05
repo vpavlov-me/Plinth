@@ -3,7 +3,8 @@
 <linearGradient id="deck" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#828386"/><stop offset="0.18" stop-color="#56575b"/><stop offset="0.55" stop-color="#3f4045"/><stop offset="1" stop-color="#232326"/></linearGradient>
 <linearGradient id="deckx" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#000" stop-opacity="0.25"/><stop offset="0.04" stop-color="#000" stop-opacity="0"/><stop offset="0.96" stop-color="#000" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity="0.25"/></linearGradient>
 <linearGradient id="hinge" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#000" stop-opacity="0.7"/><stop offset="1" stop-color="#000" stop-opacity="0"/></linearGradient>
-<linearGradient id="lidedge" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#232326"/><stop offset="0.012" stop-color="#959699"/><stop offset="0.03" stop-color="#3f4045"/><stop offset="0.5" stop-color="#626266"/><stop offset="0.97" stop-color="#3f4045"/><stop offset="0.988" stop-color="#959699"/><stop offset="1" stop-color="#232326"/></linearGradient></defs>
+<linearGradient id="lidedge" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#232326"/><stop offset="0.012" stop-color="#959699"/><stop offset="0.03" stop-color="#3f4045"/><stop offset="0.5" stop-color="#626266"/><stop offset="0.97" stop-color="#3f4045"/><stop offset="0.988" stop-color="#959699"/><stop offset="1" stop-color="#232326"/></linearGradient>
+<linearGradient id="barrel" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#0a0a0b"/><stop offset="0.45" stop-color="#2c2c30"/><stop offset="1" stop-color="#0a0a0b"/></linearGradient></defs>
 <path fill="#d9dde5" d="M184.5,92H3064.5V1892H184.5V92Z"/>
 <path fill-rule="evenodd" fill="url(#lidedge)" d="M160.5,0H3088.5A40,40 0 0 1 3128.5,40V2006A10,10 0 0 1 3118.5,2016H130.5A10,10 0 0 1 120.5,2006V40A40,40 0 0 1 160.5,0ZM160.5,8H3088.5A32,32 0 0 1 3120.5,40V2006A2,2 0 0 1 3118.5,2008H130.5A2,2 0 0 1 128.5,2006V40A32,32 0 0 1 160.5,8Z"/>
 <path fill-rule="evenodd" fill="#050506" d="M160.5,8H3088.5A32,32 0 0 1 3120.5,40V2006A2,2 0 0 1 3118.5,2008H130.5A2,2 0 0 1 128.5,2006V40A32,32 0 0 1 160.5,8ZM184.5,92H3064.5V1892H184.5V92Z"/>
@@ -14,6 +15,10 @@
 <path fill="url(#deck)" d="M8,2010H3241A8,8 0 0 1 3249,2018V2052A42,42 0 0 1 3207,2094H42A42,42 0 0 1 0,2052V2018A8,8 0 0 1 8,2010Z"/>
 <path fill="url(#deckx)" d="M8,2010H3241A8,8 0 0 1 3249,2018V2052A42,42 0 0 1 3207,2094H42A42,42 0 0 1 0,2052V2018A8,8 0 0 1 8,2010Z"/>
 <path fill="url(#hinge)" d="M150.5,2010H3098.5V2026H150.5V2010Z"/>
+<path fill="url(#barrel)" d="M305.98,2006H2943.02A5,5 0 0 1 2948.02,2011V2011A5,5 0 0 1 2943.02,2016H305.98A5,5 0 0 1 300.98,2011V2011A5,5 0 0 1 305.98,2006Z"/>
+<ellipse cx="194.94" cy="2092.5" rx="97.47" ry="2.5" fill="#000" fill-opacity="0.35"/>
+<ellipse cx="3054.06" cy="2092.5" rx="97.47" ry="2.5" fill="#000" fill-opacity="0.35"/>
+<path fill="none" stroke="#000" stroke-opacity="0.35" stroke-width="2" d="M75.6,2093 H3173.4"/>
 <path fill="#2c2d30" d="M1380.83,2010H1868.18V2023.44A13.44,13.44 0 0 1 1854.74,2036.88H1394.27A13.44,13.44 0 0 1 1380.83,2023.44V2010Z"/>
 <path stroke="#fff" stroke-opacity="0.45" stroke-width="2" d="M12,2011.5 H3237"/>
 </svg>

@@ -8,6 +8,8 @@
 <path fill="url(#standg)" d="M1720,3160H2980V3890H1720V3160Z"/>
 <path fill="url(#neckshade)" d="M1720,3160H2980V3890H1720V3160Z"/>
 <path fill="url(#standg)" d="M1606,3886H3094A6,6 0 0 1 3100,3892V3912A22,22 0 0 1 3078,3934H1622A22,22 0 0 1 1600,3912V3892A6,6 0 0 1 1606,3886Z"/>
+<path stroke="#ffffff" stroke-opacity="0.45" stroke-width="2" d="M1610,3891 H3090"/>
+<path stroke="#000" stroke-opacity="0.3" stroke-width="2" d="M1624,3933 H3076"/>
 <path fill-rule="evenodd" fill="url(#chin)" d="M90,0H4610A90,90 0 0 1 4700,90V3080A90,90 0 0 1 4610,3170H90A90,90 0 0 1 0,3080V90A90,90 0 0 1 90,0ZM110,110H4590V2630H110V110Z"/>
 <path fill-rule="evenodd" fill="#eef0f3" d="M90,0H4610A90,90 0 0 1 4700,90V2740H0V90A90,90 0 0 1 90,0ZM110,110H4590V2630H110V110Z"/>
 <path stroke="#000" stroke-opacity="0.12" stroke-width="2" d="M0,2740 H4700"/>

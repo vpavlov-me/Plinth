@@ -119,13 +119,18 @@ function lens(cx, cy, r) {
 
 function button(x, y, w, h, color, side) {
   const id = `btn${Math.round(x)}${Math.round(y)}`;
+  // The outer face catches the light; the side towards the body falls into shade.
+  const outer = side === "left" ? x + 1.5 : x + w - 1.5;
   return {
     def: linear(id, [
-      [0, side === "left" ? shade(color, -0.35) : shade(color, 0.25)],
-      [0.5, color],
-      [1, side === "left" ? shade(color, 0.25) : shade(color, -0.35)],
+      [0, side === "left" ? shade(color, -0.3) : shade(color, 0.2)],
+      [0.55, color],
+      [1, side === "left" ? shade(color, 0.2) : shade(color, -0.3)],
     ]),
-    body: `<path fill="url(#${id})" d="${rrect(x, y, w, h, Math.min(w, 6))}"/>`,
+    body: [
+      `<path fill="url(#${id})" d="${rrect(x, y, w, h, Math.min(w / 2, 5))}"/>`,
+      `<path stroke="#ffffff" stroke-opacity="0.35" stroke-width="1.5" stroke-linecap="round" d="M${r2(outer)},${r2(y + 6)} V${r2(y + h - 6)}"/>`,
+    ].join(""),
   };
 }
 
@@ -196,18 +201,52 @@ function handheld(spec) {
         }
       }
       out.push(`<path fill="none" stroke="#000" stroke-opacity="0.45" stroke-width="2" d="${path(inset(body, 1))}"/>`);
-      const front = variant.front ?? "#060607";
-      out.push(`<path fill-rule="evenodd" fill="${front}" d="${path(glass)}${path(screen)}"/>`);
+      // Polished chamfer running around the band.
       out.push(
-        `<path fill="none" stroke="#ffffff" stroke-opacity="0.22" stroke-width="2" d="${path(inset(glass, 1))}"/>`,
+        `<path fill="none" stroke="#ffffff" stroke-opacity="0.2" stroke-width="1.5" d="${path(inset(body, Math.max(3, band * 0.4)))}"/>`,
+      );
+      const front = variant.front ?? "#060607";
+      const darkFront = front === "#060607" || front === "#08090a";
+      if (darkFront) {
+        defs.push(
+          linear(
+            "glassdepth",
+            [
+              [0, shade(front, 0.06)],
+              [0.05, front],
+              [1, front],
+            ],
+            "y",
+          ),
+        );
+      }
+      out.push(
+        `<path fill-rule="evenodd" fill="${darkFront ? "url(#glassdepth)" : front}" d="${path(glass)}${path(screen)}"/>`,
+      );
+      // Where the glass meets the band: a dark seam, then a thin lit edge.
+      out.push(`<path fill="none" stroke="#000" stroke-opacity="0.55" stroke-width="2.5" d="${path(glass)}"/>`);
+      out.push(
+        `<path fill="none" stroke="#ffffff" stroke-opacity="0.18" stroke-width="1.5" d="${path(inset(glass, 1.5))}"/>`,
       );
       out.push(screenEdge(screen));
       out.push(glare(screen));
+      if (spec.earpiece !== false && kindHasEarpiece(spec.cutout)) {
+        // Earpiece slit in the thin top bezel.
+        const w = Math.min(160, screen.w * 0.12);
+        const top = glass.y + (screen.y - glass.y) / 2 - 2.5;
+        out.push(`<path fill="#1d1e22" d="${rrect(screen.x + screen.w / 2 - w / 2, top, w, 5, 2.5)}"/>`);
+        out.push(
+          `<path stroke="#ffffff" stroke-opacity="0.12" stroke-width="1" d="M${r2(screen.x + screen.w / 2 - w / 2 + 3)},${r2(top + 4.5)} H${r2(screen.x + screen.w / 2 + w / 2 - 3)}"/>`,
+        );
+      }
       out.push(...cutout(spec.cutout, screen, body, { bt, bb, band, front }));
       return svg(width, height, defs, out);
     },
   };
 }
+
+/** Phones with an island or punch-hole camera get an earpiece slit in the top bezel. */
+const kindHasEarpiece = (kind) => kind?.type === "island" || kind?.type === "punch";
 
 function cutout(kind, screen, body, { bt, bb, band, front }) {
   const cx = screen.x + screen.w / 2;
@@ -218,6 +257,8 @@ function cutout(kind, screen, body, { bt, bb, band, front }) {
       const y = screen.y + kind.top;
       return [
         `<path fill="#000" d="${rrect(cx - w / 2, y, w, h, h / 2)}"/>`,
+        `<path fill="none" stroke="#ffffff" stroke-opacity="0.07" stroke-width="2" d="${rrect(cx - w / 2 + 2, y + 2, w - 4, h - 4, h / 2 - 2)}"/>`,
+        `<circle cx="${r2(cx - w / 2 + h * 0.62)}" cy="${r2(y + h / 2)}" r="${r2(h * 0.09)}" fill="#11131a"/>`,
         lens(cx + w / 2 - h / 2, y + h / 2, h * 0.24),
       ];
     }
@@ -303,6 +344,15 @@ function laptop(spec) {
           "y",
         ),
         linear("lidedge", metalStops(metal(v.alu))),
+        linear(
+          "barrel",
+          [
+            [0, "#0a0a0b"],
+            [0.45, "#2c2c30"],
+            [1, "#0a0a0b"],
+          ],
+          "y",
+        ),
       ];
       const glass = inset(lid, spec.rim);
       const out = [previewFill(fill, screen)];
@@ -326,6 +376,17 @@ function laptop(spec) {
       out.push(`<path fill="url(#deck)" d="${path(base)}"/>`);
       out.push(`<path fill="url(#deckx)" d="${path(base)}"/>`);
       out.push(`<path fill="url(#hinge)" d="${rrect(lidX + 30, baseY, lidW - 60, 16, 0)}"/>`);
+      // Hinge barrel between lid and deck.
+      out.push(`<path fill="url(#barrel)" d="${rrect(lidX + lidW * 0.06, baseY - 4, lidW * 0.88, 10, 5)}"/>`);
+      // Feet shadows and a darker bottom edge for depth.
+      for (const fx of [baseW * 0.06, baseW * 0.94]) {
+        out.push(
+          `<ellipse cx="${r2(fx)}" cy="${r2(height - 1.5)}" rx="${r2(baseW * 0.03)}" ry="2.5" fill="#000" fill-opacity="0.35"/>`,
+        );
+      }
+      out.push(
+        `<path fill="none" stroke="#000" stroke-opacity="0.35" stroke-width="2" d="M${r2(baseH * 0.9)},${r2(height - 1)} H${r2(width - baseH * 0.9)}"/>`,
+      );
       out.push(
         `<path fill="${shade(v.alu, -0.3)}" d="${rrect(width / 2 - baseW * 0.075, baseY, baseW * 0.15, baseH * 0.32, [0, 0, 14, 14])}"/>`,
       );
@@ -392,6 +453,12 @@ function monitor(spec) {
       out.push(`<path fill="url(#standg)" d="${path(neck)}"/>`);
       out.push(`<path fill="url(#neckshade)" d="${path(neck)}"/>`);
       out.push(`<path fill="url(#standg)" d="${path(foot)}"/>`);
+      out.push(
+        `<path stroke="#ffffff" stroke-opacity="0.45" stroke-width="2" d="M${r2(foot.x + 10)},${r2(foot.y + 5)} H${r2(foot.x + foot.w - 10)}"/>`,
+      );
+      out.push(
+        `<path stroke="#000" stroke-opacity="0.3" stroke-width="2" d="M${r2(foot.x + foot.h / 2)},${r2(foot.y + foot.h - 1)} H${r2(foot.x + foot.w - foot.h / 2)}"/>`,
+      );
       out.push(
         `<path fill-rule="evenodd" fill="${spec.chin ? "url(#chin)" : "url(#rim)"}" d="${path(display)}${path(spec.chin ? screen : glassFace)}"/>`,
       );
