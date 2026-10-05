@@ -32,7 +32,9 @@ export function CanvasPresetPicker() {
             value={canvas.width}
             min={CANVAS_MIN_SIZE}
             max={CANVAS_MAX_SIZE}
-            onChange={(width) => update((scene) => setCanvasSize(scene, { width }), { transient: true })}
+            onChange={(width) =>
+              update((scene, sizeOf) => setCanvasSize(scene, { width }, sizeOf), { transient: true })
+            }
             onCommit={commit}
           />
           <NumberInput
@@ -40,7 +42,9 @@ export function CanvasPresetPicker() {
             value={canvas.height}
             min={CANVAS_MIN_SIZE}
             max={CANVAS_MAX_SIZE}
-            onChange={(height) => update((scene) => setCanvasSize(scene, { height }), { transient: true })}
+            onChange={(height) =>
+              update((scene, sizeOf) => setCanvasSize(scene, { height }, sizeOf), { transient: true })
+            }
             onCommit={commit}
           />
         </div>

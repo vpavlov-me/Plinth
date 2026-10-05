@@ -1,11 +1,11 @@
 import { cloneGradient, GRADIENT_PRESETS } from "@/editor/presets/background-presets";
 import { SHADOW_PRESETS } from "@/editor/presets/shadow-presets";
-import type { BackgroundConfig, CanvasConfig, DeviceInstance } from "@/editor/types";
+import type { BackgroundConfig, CanvasConfig, DeviceInstance, PerspectiveId, ShadowConfig } from "@/editor/types";
 
 /**
- * Scene presets configure the canvas and, optionally, the background and the
- * devices in one step. They never touch screenshots. Platform names are only
- * used to describe the target size.
+ * Scene presets configure the canvas and, optionally, the background, a
+ * layout and the device look in one step. They never touch screenshots.
+ * Platform names are only used to describe the target size.
  */
 export type ScenePreset = {
   id: string;
@@ -15,7 +15,15 @@ export type ScenePreset = {
   canvas: CanvasConfig;
   /** Omitted: the current background is kept. */
   background?: BackgroundConfig;
-  device?: Partial<Pick<DeviceInstance, "deviceId" | "x" | "y" | "scale" | "rotation" | "shadow">>;
+  /** Layout preset id; omitted: the devices keep their arrangement (a single device is centred). */
+  layout?: string;
+  /** Model for the primary device, applied before the layout. */
+  deviceId?: string;
+  /** Applied to every device. */
+  perspective?: PerspectiveId;
+  shadow?: ShadowConfig;
+  /** Placement of a single device (a showcase with room for a headline). */
+  transform?: Pick<DeviceInstance, "x" | "y" | "scale" | "rotation">;
 };
 
 export const SCENE_PRESET_GROUPS: { id: ScenePreset["group"]; label: string }[] = [
@@ -28,15 +36,12 @@ const gradient = (id: string): BackgroundConfig => {
   return cloneGradient(preset.gradient);
 };
 
-const CENTERED = { x: 0.5, y: 0.5, scale: 1, rotation: 0 };
-
 const social = (id: string, name: string, width: number, height: number): ScenePreset => ({
   id,
   name,
   description: `${width} × ${height}`,
   group: "social",
   canvas: { width, height, preset: "custom" },
-  device: CENTERED,
 });
 
 export const SCENE_PRESETS: ScenePreset[] = [
@@ -56,20 +61,26 @@ export const SCENE_PRESETS: ScenePreset[] = [
   {
     id: "product-hunt",
     name: "Product Hunt",
-    description: "1270 × 760 gallery",
+    description: "1270 × 760 · two phones",
     group: "showcase",
     canvas: { width: 1270, height: 760, preset: "custom" },
     background: gradient("candy"),
-    device: { ...CENTERED, shadow: SHADOW_PRESETS.medium },
+    layout: "duo",
+    perspective: "tilt-left",
+    shadow: SHADOW_PRESETS.medium,
   },
   {
     id: "app-store",
     name: "App Store",
-    description: "1290 × 2796 phone",
+    description: "1290 × 2796 · phone",
     group: "showcase",
     canvas: { width: 1290, height: 2796, preset: "custom" },
     background: gradient("ocean"),
-    device: { deviceId: "phone-pro", x: 0.5, y: 0.56, scale: 0.86, rotation: 0, shadow: SHADOW_PRESETS.medium },
+    layout: "solo",
+    deviceId: "phone-pro",
+    perspective: "front",
+    shadow: SHADOW_PRESETS.medium,
+    transform: { x: 0.5, y: 0.56, scale: 0.86, rotation: 0 },
   },
   {
     id: "google-play-feature",
@@ -78,16 +89,19 @@ export const SCENE_PRESETS: ScenePreset[] = [
     group: "showcase",
     canvas: { width: 1024, height: 500, preset: "custom" },
     background: gradient("mint"),
-    device: { ...CENTERED, shadow: SHADOW_PRESETS.soft },
+    layout: "solo",
+    perspective: "front",
+    shadow: SHADOW_PRESETS.soft,
   },
   {
     id: "portfolio-hero",
     name: "Portfolio hero",
-    description: "1920 × 1080 hero",
+    description: "1920 × 1080 · laptop + phone",
     group: "showcase",
     canvas: { width: 1920, height: 1080, preset: "landscape" },
-    background: { type: "solid", color: "#f4f4f5" },
-    device: { ...CENTERED, shadow: SHADOW_PRESETS.soft },
+    background: gradient("pearl"),
+    layout: "laptop-phone",
+    shadow: SHADOW_PRESETS.medium,
   },
   {
     id: "presentation",
@@ -96,6 +110,8 @@ export const SCENE_PRESETS: ScenePreset[] = [
     group: "showcase",
     canvas: { width: 1920, height: 1080, preset: "landscape" },
     background: gradient("aurora"),
-    device: { ...CENTERED, shadow: SHADOW_PRESETS.strong },
+    layout: "solo",
+    perspective: "front",
+    shadow: SHADOW_PRESETS.strong,
   },
 ];

@@ -1,5 +1,5 @@
 import { traceRoundedRect } from "@/editor/geometry";
-import type { RoundedRect } from "@/editor/types";
+import type { Rect, RoundedRect } from "@/editor/types";
 
 /** Shadows are blurred, so a modest resolution is plenty. */
 const MAX_SIDE = 1024;
@@ -41,8 +41,12 @@ export function getFrameSilhouette(frame: HTMLImageElement, screen: RoundedRect)
   return canvas;
 }
 
-export function getSilhouette(image: HTMLImageElement, screen: RoundedRect): HTMLCanvasElement {
-  const key = JSON.stringify(screen);
+/**
+ * `imageRect` is where the (cropped) image is drawn, in the same units as
+ * `screen`; the mask covers the screen.
+ */
+export function getSilhouette(image: HTMLImageElement, screen: RoundedRect, imageRect: Rect): HTMLCanvasElement {
+  const key = JSON.stringify([screen, imageRect]);
   const cached = cache.get(image);
   if (cached?.key === key) return cached.canvas;
 
@@ -56,7 +60,7 @@ export function getSilhouette(image: HTMLImageElement, screen: RoundedRect): HTM
     ctx.beginPath();
     traceRoundedRect(ctx, { ...screen, x: 0, y: 0 });
     ctx.clip();
-    ctx.drawImage(image, 0, 0, screen.width, screen.height);
+    ctx.drawImage(image, imageRect.x - screen.x, imageRect.y - screen.y, imageRect.width, imageRect.height);
   }
   cache.set(image, { key, canvas });
   return canvas;

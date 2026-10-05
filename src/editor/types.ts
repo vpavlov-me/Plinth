@@ -61,12 +61,33 @@ export type ShadowConfig = {
   offsetY: number;
 };
 
+/**
+ * Placement of the screenshot inside the device screen, independent of the
+ * device transform. The screenshot always covers the screen; `zoom` enlarges
+ * it beyond that and `x`/`y` choose which part stays visible: 0 aligns the
+ * left/top edges, 1 the right/bottom edges. Normalised values survive canvas,
+ * device and export-resolution changes.
+ */
+export type ScreenshotCrop = {
+  /** ≥ 1; 1 = the screenshot just covers the screen. */
+  zoom: number;
+  /** 0–1 */
+  x: number;
+  /** 0–1 */
+  y: number;
+};
+
+/** Predefined 2.5D treatments; see `presets/perspective-presets.ts`. */
+export type PerspectiveId = "front" | "tilt-left" | "tilt-right" | "perspective-left" | "perspective-right";
+
 export type DeviceInstance = {
   id: string;
   deviceId: string;
   variantId?: string;
   /** Asset id of the screenshot, or null while the device is empty. */
   screenshotId: string | null;
+  crop: ScreenshotCrop;
+  perspective: PerspectiveId;
   /** Centre of the device as a fraction of the canvas size (0.5 = centred). */
   x: number;
   y: number;
@@ -80,7 +101,16 @@ export type DeviceInstance = {
 export type Scene = {
   canvas: CanvasConfig;
   background: BackgroundConfig;
+  /** Drawn in order: later devices overlap earlier ones. The first is the primary device. */
   devices: DeviceInstance[];
+  /** The layout preset last applied (see `presets/layout-presets.ts`). */
+  layout: string;
+  /**
+   * The user's screenshots in the order they were added (at most three).
+   * Layouts fill their devices from this list, so screenshots survive
+   * switching to "Solo" and back.
+   */
+  screenshots: string[];
 };
 
 /* -------------------------------------------------------------------------- */

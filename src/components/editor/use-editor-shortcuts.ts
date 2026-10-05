@@ -3,7 +3,7 @@
 import { useEffect } from "react";
 import { pickImageFile } from "@/components/editor/pick-file";
 import { exportScene } from "@/components/editor/export-actions";
-import { importScreenshot } from "@/editor/actions";
+import { importScreenshot, removeSelectedDevice } from "@/editor/actions";
 import { firstImageFile } from "@/editor/import-image";
 import { updateDevice } from "@/editor/scene";
 import { getScene, useEditorStore } from "@/editor/store";
@@ -68,7 +68,20 @@ export function useEditorShortcuts() {
         return;
       }
       if (event.key === "Escape") {
-        useUIStore.getState().select(null);
+        const ui = useUIStore.getState();
+        // First leave crop mode, then clear the selection.
+        if (ui.croppingDeviceId) ui.setCropping(null);
+        else ui.select(null);
+        return;
+      }
+      if (
+        !mod &&
+        (event.key === "Delete" || event.key === "Backspace") &&
+        useUIStore.getState().selectedDeviceId &&
+        getScene().devices.length > 1
+      ) {
+        event.preventDefault();
+        removeSelectedDevice();
         return;
       }
 

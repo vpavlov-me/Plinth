@@ -2,7 +2,10 @@ import type Konva from "konva";
 import { Shape } from "react-konva";
 import { traceRoundedRect } from "@/editor/geometry";
 import { shadowLayers } from "@/editor/presets/shadow-presets";
-import type { RoundedRect, ShadowConfig } from "@/editor/types";
+import type { Rect, RoundedRect, ShadowConfig } from "@/editor/types";
+
+/** An alpha mask that casts the shadow instead of the solid body shape. */
+export type ShadowMask = (pixelsPerUnit: number) => { image: CanvasImageSource; rect: Rect } | null;
 
 type Props = {
   body: RoundedRect[];
@@ -10,10 +13,11 @@ type Props = {
   /** Frame-to-canvas scale of the device (shadow values are canvas pixels). */
   deviceScale: number;
   /**
-   * Optional alpha mask drawn over `body[0]` instead of the solid
-   * silhouette, so transparent screenshots cast accurate shadows.
+   * Optional alpha mask drawn instead of the solid silhouette, so
+   * transparent screenshots, custom frames and perspective devices cast
+   * accurate shadows. Receives the output density (pixels per local unit).
    */
-  mask?: CanvasImageSource | null;
+  mask?: ShadowMask | null;
 };
 
 /**
@@ -36,6 +40,7 @@ export function ShadowNode({ body, shadow, deviceScale, mask }: Props) {
     // Device pixels per frame unit, then per canvas pixel.
     const pixelsPerUnit = Math.sqrt(Math.abs(matrix.a * matrix.d - matrix.b * matrix.c));
     const pixelsPerCanvasPx = pixelsPerUnit / deviceScale;
+    const maskImage = mask ? mask(pixelsPerUnit) : null;
 
     let maxX = -Infinity;
     for (const rect of body) {
@@ -58,9 +63,9 @@ export function ShadowNode({ body, shadow, deviceScale, mask }: Props) {
       ctx.shadowBlur = blur;
       ctx.shadowOffsetX = shift + layer.offsetX * pixelsPerCanvasPx;
       ctx.shadowOffsetY = layer.offsetY * pixelsPerCanvasPx;
-      const maskRect = body[0];
-      if (mask && maskRect) {
-        ctx.drawImage(mask, maskRect.x, maskRect.y, maskRect.width, maskRect.height);
+      if (maskImage) {
+        const { rect } = maskImage;
+        ctx.drawImage(maskImage.image, rect.x, rect.y, rect.width, rect.height);
       } else {
         ctx.fillStyle = "#000";
         ctx.beginPath();

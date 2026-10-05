@@ -2,6 +2,7 @@
 
 import { useEffect } from "react";
 import { loadImage, useAssetStore } from "@/editor/assets";
+import { prunePalettes } from "@/editor/color-match";
 import { DEVICES } from "@/editor/devices/definitions";
 import { historyValues } from "@/editor/history";
 import { useLibraryStore } from "@/editor/library";
@@ -39,9 +40,10 @@ export function usePersistence() {
         registerCustomFrames(useLibraryStore.getState().frames);
         return loadScene();
       })
-      .then((scene) => {
+      .then(({ scene, selectedDeviceId }) => {
         if (disposed) return;
         useEditorStore.getState().load(scene);
+        useUIStore.getState().select(selectedDeviceId);
         useUIStore.getState().setHydrated();
 
         unsubscribers.push(
@@ -57,6 +59,7 @@ export function usePersistence() {
           }),
           useUIStore.subscribe((state, previous) => {
             if (state.exportSettings !== previous.exportSettings) saveSettings(state.exportSettings);
+            if (state.selectedDeviceId !== previous.selectedDeviceId) scheduleSave(getScene());
           }),
         );
       });
@@ -72,4 +75,5 @@ export function usePersistence() {
 function pruneAssets() {
   const keep = historyValues(useEditorStore.getState().history).flatMap(sceneAssetIds);
   useAssetStore.getState().prune([...keep, ...libraryAssetIds()]);
+  prunePalettes(new Set(Object.keys(useAssetStore.getState().assets)));
 }

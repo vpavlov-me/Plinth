@@ -3,9 +3,11 @@ import { hasDevice } from "@/editor/devices/definitions";
 import type { CustomFrame } from "@/editor/custom-frames";
 import { useLibraryStore, type LibraryData } from "@/editor/library";
 import { CANVAS_PRESETS, clampCanvasDimension } from "@/editor/presets/canvas-presets";
+import { DEFAULT_LAYOUT_ID, LAYOUT_PRESETS } from "@/editor/presets/layout-presets";
+import { isPerspectiveId } from "@/editor/presets/perspective-presets";
 import { getPhotoPreset } from "@/editor/presets/photo-presets";
 import { SHADOW_PRESETS } from "@/editor/presets/shadow-presets";
-import { createDefaultScene, sceneAssetIds } from "@/editor/scene";
+import { createDefaultScene, DEFAULT_CROP, MAX_CROP_ZOOM, MAX_SCREENSHOTS, sceneAssetIds } from "@/editor/scene";
 import type {
   BackgroundConfig,
   DeviceInstance,
@@ -13,18 +15,26 @@ import type {
   ImageAsset,
   MeshBlob,
   Scene,
+  ScreenshotCrop,
   ShadowConfig,
 } from "@/editor/types";
-import { DEFAULT_EXPORT_SETTINGS, type ExportSettings } from "@/editor/ui-store";
+import { DEFAULT_EXPORT_SETTINGS, useUIStore, type ExportSettings } from "@/editor/ui-store";
 
 /**
  * Local persistence.
  * - Scene configuration and settings: localStorage (small JSON).
  * - Image blobs: IndexedDB (localStorage is far too small for screenshots).
  * Nothing is ever uploaded.
+ *
+ * Scene format versions (the key stays `plinth.scene.v1`):
+ * - 1: single-device era. Devices have no `crop`/`perspective`, scenes no `layout`.
+ * - 2: adds per-device `crop` and `perspective`, the scene `layout` and the
+ *   selected device. Version 1 data migrates through `sanitizeScene`, which
+ *   fills the new fields with their defaults.
  */
 
 const SCENE_KEY = "plinth.scene.v1";
+const SCENE_VERSION = 2;
 const SETTINGS_KEY = "plinth.settings.v1";
 const LIBRARY_KEY = "plinth.library.v1";
 const DB_NAME = "plinth";
@@ -105,7 +115,8 @@ export function scheduleSave(scene: Scene): void {
   window.clearTimeout(saveTimer);
   saveTimer = window.setTimeout(() => {
     try {
-      localStorage.setItem(SCENE_KEY, JSON.stringify({ version: 1, scene }));
+      const selectedDeviceId = useUIStore.getState().selectedDeviceId;
+      localStorage.setItem(SCENE_KEY, JSON.stringify({ version: SCENE_VERSION, scene, selectedDeviceId }));
     } catch {
       // Storage full or disabled: the editor keeps working without persistence.
     }
@@ -167,16 +178,22 @@ export async function loadLibrary(): Promise<void> {
   });
 }
 
-/** Restores the last scene. Missing images are dropped from the scene. */
-export async function loadScene(): Promise<Scene> {
+/** Restores the last scene and selected device. Missing images are dropped from the scene. */
+export async function loadScene(): Promise<{ scene: Scene; selectedDeviceId: string | null }> {
   let scene: Scene | null = null;
+  let selectedDeviceId: string | null = null;
   try {
     const raw = localStorage.getItem(SCENE_KEY);
-    scene = raw ? sanitizeScene((JSON.parse(raw) as { scene?: unknown }).scene) : null;
+    const parsed = raw ? (JSON.parse(raw) as { scene?: unknown; selectedDeviceId?: unknown }) : null;
+    scene = parsed ? sanitizeScene(parsed.scene) : null;
+    if (scene && isString(parsed?.selectedDeviceId)) {
+      const id = parsed.selectedDeviceId;
+      selectedDeviceId = scene.devices.some((d) => d.id === id) ? id : null;
+    }
   } catch {
     scene = null;
   }
-  if (!scene) return createDefaultScene();
+  if (!scene) return { scene: createDefaultScene(), selectedDeviceId: null };
 
   // Assets may already be loaded (e.g. by the library).
   const restored = new Set<string>(sceneAssetIds(scene).filter((id) => getAsset(id)));
@@ -192,7 +209,7 @@ export async function loadScene(): Promise<Scene> {
     // IndexedDB unavailable: keep the configuration, drop the images.
   }
 
-  return {
+  const restoredScene: Scene = {
     ...scene,
     background:
       scene.background.type === "image" &&
@@ -201,9 +218,11 @@ export async function loadScene(): Promise<Scene> {
         ? createDefaultScene().background
         : scene.background,
     devices: scene.devices.map((d) =>
-      d.screenshotId && !restored.has(d.screenshotId) ? { ...d, screenshotId: null } : d,
+      d.screenshotId && !restored.has(d.screenshotId) ? { ...d, screenshotId: null, crop: { ...DEFAULT_CROP } } : d,
     ),
+    screenshots: scene.screenshots.filter((id) => restored.has(id)),
   };
+  return { scene: restoredScene, selectedDeviceId };
 }
 
 export function loadSettings(): ExportSettings {
@@ -269,6 +288,15 @@ export function sanitizeScene(value: unknown): Scene | null {
     canvas: { preset, width: clampCanvasDimension(canvas.width), height: clampCanvasDimension(canvas.height) },
     background,
     devices,
+    layout: LAYOUT_PRESETS.some((l) => l.id === value.layout) ? (value.layout as string) : DEFAULT_LAYOUT_ID,
+    // Version 1 has no list: start from the screenshots on the devices.
+    screenshots: [
+      ...new Set(
+        Array.isArray(value.screenshots)
+          ? value.screenshots.filter(isString)
+          : devices.flatMap((d) => (d.screenshotId ? [d.screenshotId] : [])),
+      ),
+    ].slice(0, MAX_SCREENSHOTS),
   };
 }
 
@@ -318,11 +346,23 @@ function sanitizeDevice(value: unknown): DeviceInstance | null {
     deviceId: value.deviceId,
     variantId: isString(value.variantId) ? value.variantId : undefined,
     screenshotId: isString(value.screenshotId) ? value.screenshotId : null,
+    crop: sanitizeCrop(value.crop),
+    perspective: isPerspectiveId(value.perspective) ? value.perspective : "front",
     x: value.x as number,
     y: value.y as number,
     scale: Math.max(0.05, value.scale as number),
     rotation: value.rotation as number,
     shadow: sanitizeShadow(value.shadow),
+  };
+}
+
+function sanitizeCrop(value: unknown): ScreenshotCrop {
+  if (!isRecord(value) || ![value.zoom, value.x, value.y].every(isNumber)) return { ...DEFAULT_CROP };
+  const clamp01 = (v: number) => Math.min(1, Math.max(0, v));
+  return {
+    zoom: Math.min(MAX_CROP_ZOOM, Math.max(1, value.zoom as number)),
+    x: clamp01(value.x as number),
+    y: clamp01(value.y as number),
   };
 }
 

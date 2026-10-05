@@ -42,7 +42,7 @@ describe("scene operations", () => {
   });
 
   it("clamps custom sizes", () => {
-    const scene = setCanvasSize(createDefaultScene(), { width: 99999, height: 3 });
+    const scene = setCanvasSize(createDefaultScene(), { width: 99999, height: 3 }, sizeOf);
     expect(scene.canvas).toEqual({ preset: "custom", width: 8000, height: 100 });
   });
 

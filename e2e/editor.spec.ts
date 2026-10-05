@@ -37,6 +37,9 @@ async function exportImage(page: Page, format: "PNG" | "JPG", scale: 1 | 2 | 3) 
   return path;
 }
 
+/** The inspector's Device section (the Screenshot section has sliders with the same names). */
+const deviceSection = (page: Page) => page.getByRole("region", { name: "Device", exact: true });
+
 const canvasSize = (page: Page) => page.getByRole("img", { name: /Mockup canvas/ }).getAttribute("aria-label");
 
 test("main workflow: upload → device → canvas → background → move → export 2x PNG", async ({ page }) => {
@@ -60,7 +63,7 @@ test("main workflow: upload → device → canvas → background → move → ex
   await page.mouse.down();
   await page.mouse.move(box.x + box.width / 2 + 80, box.y + box.height / 2, { steps: 10 });
   await page.mouse.up();
-  await expect(page.getByRole("slider", { name: "Horizontal" })).not.toHaveValue("0");
+  await expect(deviceSection(page).getByRole("slider", { name: "Horizontal" })).not.toHaveValue("0");
 
   const file = await exportImage(page, "PNG", 2);
   expect(pngSize(file)).toMatchObject({ width: 2400, height: 2400 });
@@ -111,19 +114,19 @@ test("every canvas preset, frameless, scale and undo/redo", async ({ page }) => 
   expect(await canvasSize(page)).not.toContain("1080 by 1920");
 
   await page.getByLabel("Device model").selectOption("none");
-  const scale = page.getByRole("slider", { name: "Scale" });
+  const scale = deviceSection(page).getByRole("slider", { name: "Scale" });
   await scale.focus();
   await page.keyboard.press("ArrowRight");
   await page.keyboard.press("ArrowRight");
-  await expect(page.getByText("102%", { exact: true })).toBeVisible();
+  await expect(deviceSection(page).getByText("102%", { exact: true })).toBeVisible();
 
   await page.keyboard.press("ControlOrMeta+z");
   await page.keyboard.press("ControlOrMeta+z");
-  await expect(page.getByText("100%", { exact: true })).toBeVisible();
+  await expect(deviceSection(page).getByText("100%", { exact: true })).toBeVisible();
   await page.keyboard.press("ControlOrMeta+Shift+z");
-  await expect(page.getByText("101%", { exact: true })).toBeVisible();
+  await expect(deviceSection(page).getByText("101%", { exact: true })).toBeVisible();
   await page.keyboard.press("ControlOrMeta+Shift+z");
-  await expect(page.getByText("102%", { exact: true })).toBeVisible();
+  await expect(deviceSection(page).getByText("102%", { exact: true })).toBeVisible();
 });
 
 test("restores the project after reload", async ({ page }) => {
@@ -162,11 +165,14 @@ test("picks a built-in background image and exports it", async ({ page }) => {
   await openScreenshot(page, "landscape.png");
   await page.getByRole("radio", { name: /Wide/ }).click();
   await page.getByRole("button", { name: "Image", exact: true }).click();
-  await expect(page.getByRole("button", { name: "Morning haze", exact: true })).toHaveAttribute("aria-pressed", "true");
+  await expect(page.getByRole("button", { name: "Lake painting", exact: true })).toHaveAttribute(
+    "aria-pressed",
+    "true",
+  );
 
-  const night = page.getByRole("button", { name: "Night bokeh", exact: true });
-  await night.click();
-  await expect(night).toHaveAttribute("aria-pressed", "true");
+  const dunes = page.getByRole("button", { name: "Sand dunes", exact: true });
+  await dunes.click();
+  await expect(dunes).toHaveAttribute("aria-pressed", "true");
 
   expect(pngSize(await exportImage(page, "PNG", 1))).toMatchObject({ width: 1920, height: 1080 });
 });
@@ -211,4 +217,126 @@ test("hides and shows the side panels and collapses sections", async ({ page }) 
   await expect(page.getByRole("button", { name: "Medium", exact: true })).toBeHidden();
   await shadow.click();
   await expect(page.getByRole("button", { name: "Medium", exact: true })).toBeVisible();
+});
+
+/* -------------------------------------------------------------------------- */
+/* Layouts, crop, perspective, match colors                                   */
+/* -------------------------------------------------------------------------- */
+
+const canvasCenter = async (page: Page) => {
+  const box = (await page.locator("canvas").first().boundingBox())!;
+  return { x: box.x + box.width / 2, y: box.y + box.height / 2 };
+};
+
+test("multi-device: Duo → select second device → move → export", async ({ page }) => {
+  await openScreenshot(page, "portrait.png");
+  await page.getByRole("button", { name: "Duo", exact: true }).click();
+  await expect(page.getByRole("button", { name: "Duo", exact: true })).toHaveAttribute("aria-pressed", "true");
+
+  const second = page.getByRole("button", { name: "Device 2", exact: true });
+  await second.click();
+  await expect(second).toHaveAttribute("aria-pressed", "true");
+  const horizontal = deviceSection(page).getByRole("slider", { name: "Horizontal" });
+  const before = await horizontal.inputValue();
+  await horizontal.focus();
+  for (let i = 0; i < 20; i++) await page.keyboard.press("ArrowRight");
+  await expect(horizontal).not.toHaveValue(before);
+
+  // Device 1 kept its position.
+  await page.getByRole("button", { name: "Device 1", exact: true }).click();
+  await expect(deviceSection(page).getByRole("slider", { name: "Horizontal" })).not.toHaveValue("0");
+
+  expect(pngSize(await exportImage(page, "PNG", 2))).toMatchObject({ width: 3840, height: 2160 });
+
+  // A secondary device can be removed; the last one stays.
+  await page.getByRole("button", { name: "Remove device" }).click();
+  await expect(page.getByRole("button", { name: "Device 2", exact: true })).toBeHidden();
+  await expect(page.getByRole("button", { name: "Remove device" })).toBeHidden();
+});
+
+test("crop: zoom and reposition the screenshot inside the screen, then export", async ({ page }) => {
+  await openScreenshot(page, "portrait.png");
+  await page.getByRole("button", { name: "Adjust on canvas" }).click();
+  await expect(page.getByRole("button", { name: "Done" })).toBeVisible();
+
+  const center = await canvasCenter(page);
+  await page.mouse.move(center.x, center.y);
+  await page.mouse.wheel(0, -400);
+  const zoom = page.getByRole("slider", { name: "Zoom" });
+  await expect(zoom).not.toHaveValue("100");
+
+  await page.mouse.down();
+  await page.mouse.move(center.x - 20, center.y - 60, { steps: 8 });
+  await page.mouse.up();
+  await expect(
+    page.getByRole("region", { name: "Screenshot" }).getByRole("slider", { name: "Vertical" }),
+  ).not.toHaveValue("0");
+  // Panning moved the screenshot, not the device.
+  await expect(deviceSection(page).getByRole("slider", { name: "Horizontal" })).toHaveValue("0");
+
+  await page.keyboard.press("Escape");
+  await expect(page.getByRole("button", { name: "Adjust on canvas" })).toBeVisible();
+  expect(pngSize(await exportImage(page, "PNG", 2))).toMatchObject({ width: 3840, height: 2160 });
+
+  // The whole crop is one undo step.
+  await page.keyboard.press("ControlOrMeta+z");
+  await expect(page.getByRole("region", { name: "Screenshot" }).getByRole("slider", { name: "Vertical" })).toHaveValue(
+    "0",
+  );
+});
+
+test("perspective: Perspective Right exports at every scale and as JPG", async ({ page }) => {
+  await openScreenshot(page, "portrait.png");
+  const right = page.getByRole("radio", { name: "Perspective Right" });
+  await right.click();
+  await expect(right).toHaveAttribute("aria-checked", "true");
+  for (const scale of [1, 3] as const) {
+    expect(pngSize(await exportImage(page, "PNG", scale))).toMatchObject({ width: 1920 * scale, height: 1080 * scale });
+  }
+  const jpg = readFileSync(await exportImage(page, "JPG", 2));
+  expect([...jpg.subarray(0, 3)]).toEqual([0xff, 0xd8, 0xff]);
+  await page.getByRole("button", { name: "None" }).first().click();
+  expect(pngSize(await exportImage(page, "PNG", 1)).colorType).toBe(6);
+});
+
+test("match colors: one click applies a background; undo and redo restore it", async ({ page }) => {
+  await openScreenshot(page, "landscape.png");
+  const pearl = page.getByRole("button", { name: "Pearl", exact: true });
+  await expect(pearl).toHaveAttribute("aria-pressed", "true");
+
+  await page.getByRole("button", { name: "Match colors", exact: true }).click();
+  await expect(pearl).toHaveAttribute("aria-pressed", "false");
+
+  await page.keyboard.press("ControlOrMeta+z");
+  await expect(pearl).toHaveAttribute("aria-pressed", "true");
+  await page.keyboard.press("ControlOrMeta+Shift+z");
+  await expect(pearl).toHaveAttribute("aria-pressed", "false");
+
+  await page.getByRole("button", { name: "Match colors: Dark" }).click();
+  expect(pngSize(await exportImage(page, "PNG", 1))).toMatchObject({ width: 1920, height: 1080 });
+});
+
+test("persistence: a multi-device composition is restored after reload", async ({ page }) => {
+  await openScreenshot(page, "portrait.png");
+  await page.getByRole("button", { name: "Fan", exact: true }).click();
+  await page.getByRole("button", { name: "Device 3", exact: true }).click();
+  await page.getByRole("radio", { name: "Tilt Left" }).click();
+  await page.waitForTimeout(800);
+  await page.reload();
+  await expect(page.getByRole("button", { name: "Fan", exact: true })).toHaveAttribute("aria-pressed", "true");
+  await expect(page.getByRole("button", { name: "Device 3", exact: true })).toHaveAttribute("aria-pressed", "true");
+  await expect(page.getByRole("radio", { name: "Tilt Left" })).toHaveAttribute("aria-checked", "true");
+  await expect(page.getByText("portrait.png")).toBeVisible();
+});
+
+test("showcase presets use layouts", async ({ page }) => {
+  await openScreenshot(page, "portrait.png");
+  await page.getByRole("button", { name: /^Showcase/ }).click();
+  await page.getByRole("button", { name: /^Portfolio hero/ }).click();
+  await expect(page.getByRole("button", { name: "Laptop + Phone", exact: true })).toHaveAttribute(
+    "aria-pressed",
+    "true",
+  );
+  expect(await canvasSize(page)).toContain("1920 by 1080");
+  expect(pngSize(await exportImage(page, "PNG", 1))).toMatchObject({ width: 1920, height: 1080 });
 });

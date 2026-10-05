@@ -16,6 +16,7 @@ type Props = {
   onChange: (value: number) => void;
   /** Fires once when the interaction ends. */
   onCommit: () => void;
+  disabled?: boolean;
 };
 
 /**
@@ -33,6 +34,7 @@ export function SliderField({
   format = String,
   onChange,
   onCommit,
+  disabled = false,
 }: Props) {
   return (
     <Slider.Root
@@ -42,12 +44,13 @@ export function SliderField({
       step={step}
       onValueChange={(next) => onChange(next)}
       onValueCommitted={() => onCommit()}
-      className="relative"
+      disabled={disabled}
+      className="relative data-[disabled]:opacity-40"
     >
       <Slider.Control
         className="group relative h-8 w-full cursor-ew-resize touch-none overflow-hidden rounded-lg bg-field select-none"
         onDoubleClick={() => {
-          if (defaultValue === undefined || defaultValue === value) return;
+          if (disabled || defaultValue === undefined || defaultValue === value) return;
           onChange(defaultValue);
           onCommit();
         }}

@@ -1,11 +1,14 @@
+import { getPerspectivePreset, projectRect } from "@/editor/presets/perspective-presets";
 import type {
   CanvasConfig,
   CornerRadius,
   DeviceDefinition,
   DeviceInstance,
+  PerspectiveId,
   Rect,
   ResolvedDeviceGeometry,
   RoundedRect,
+  ScreenshotCrop,
 } from "@/editor/types";
 
 /** Fraction of the canvas kept free on each side when a device is fitted. */
@@ -116,14 +119,6 @@ export function relativeTransform(
   };
 }
 
-/** "Cover" placement of an image inside a box, aligned to the top edge. */
-export function coverTopRect(image: Size, box: Rect): Rect {
-  const scale = Math.max(box.width / image.width, box.height / image.height);
-  const width = image.width * scale;
-  const height = image.height * scale;
-  return { x: box.x + (box.width - width) / 2, y: box.y, width, height };
-}
-
 export function fitRect(image: Size, box: Size, mode: "cover" | "contain"): Rect {
   const scale =
     mode === "cover"
@@ -166,4 +161,79 @@ export function normalizeRotation(degrees: number): number {
   let r = ((degrees % 360) + 360) % 360;
   if (r > 180) r -= 360;
   return Math.round(r * 100) / 100;
+}
+
+/**
+ * Corners of a device as drawn: the frame rectangle, or its projection when
+ * a perspective preset is active, turned by `rotation` around the centre and
+ * scaled by `scale` (output units per frame unit), relative to the centre.
+ */
+export function deviceOutline(
+  geometry: Size,
+  perspective: PerspectiveId,
+  rotation: number,
+  scale: number,
+): { x: number; y: number }[] {
+  const local =
+    perspective === "front"
+      ? [
+          { x: 0, y: 0 },
+          { x: geometry.width, y: 0 },
+          { x: geometry.width, y: geometry.height },
+          { x: 0, y: geometry.height },
+        ]
+      : projectRect(geometry.width, geometry.height, getPerspectivePreset(perspective)).corners;
+  const radians = (rotation * Math.PI) / 180;
+  const [sin, cos] = [Math.sin(radians), Math.cos(radians)];
+  return local.map((p) => {
+    const x = (p.x - geometry.width / 2) * scale;
+    const y = (p.y - geometry.height / 2) * scale;
+    return { x: x * cos - y * sin, y: x * sin + y * cos };
+  });
+}
+
+export function boundsOf(points: { x: number; y: number }[]): Rect {
+  const xs = points.map((p) => p.x);
+  const ys = points.map((p) => p.y);
+  const x = Math.min(...xs);
+  const y = Math.min(...ys);
+  return { x, y, width: Math.max(...xs) - x, height: Math.max(...ys) - y };
+}
+
+/**
+ * Where the screenshot is drawn inside the screen: it covers the screen,
+ * `crop.zoom` enlarges it, and `crop.x`/`crop.y` pick the visible part
+ * (0 = left/top edge, 1 = right/bottom edge).
+ */
+export function croppedImageRect(image: Size, screen: Rect, crop: ScreenshotCrop): Rect {
+  const scale = Math.max(screen.width / image.width, screen.height / image.height) * Math.max(1, crop.zoom);
+  const width = image.width * scale;
+  const height = image.height * scale;
+  return {
+    x: screen.x + (screen.width - width) * clamp(crop.x, 0, 1),
+    y: screen.y + (screen.height - height) * clamp(crop.y, 0, 1),
+    width,
+    height,
+  };
+}
+
+/**
+ * Moves the cropped screenshot by `dx`/`dy` (screen units). Axes where the
+ * screenshot doesn't overflow the screen can't move.
+ */
+export function panCrop(crop: ScreenshotCrop, image: Size, screen: Rect, dx: number, dy: number): ScreenshotCrop {
+  const rect = croppedImageRect(image, screen, crop);
+  const overflowX = screen.width - rect.width;
+  const overflowY = screen.height - rect.height;
+  return {
+    ...crop,
+    x: Math.abs(overflowX) > 1e-6 ? clamp(clamp(crop.x, 0, 1) + dx / overflowX, 0, 1) : crop.x,
+    y: Math.abs(overflowY) > 1e-6 ? clamp(clamp(crop.y, 0, 1) + dy / overflowY, 0, 1) : crop.y,
+  };
+}
+
+/** True when the screenshot overflows the screen horizontally / vertically and can be panned. */
+export function cropOverflow(crop: ScreenshotCrop, image: Size, screen: Rect): { x: boolean; y: boolean } {
+  const rect = croppedImageRect(image, screen, crop);
+  return { x: rect.width - screen.width > 0.5, y: rect.height - screen.height > 0.5 };
 }

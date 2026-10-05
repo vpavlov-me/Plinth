@@ -111,3 +111,9 @@ export function firstImageFile(data: DataTransfer | null): File | null {
   }
   return data.files[0] ?? null;
 }
+
+/** Every image file in a DataTransfer (multi-file drop), in order. */
+export function imageFiles(data: DataTransfer | null): File[] {
+  if (!data) return [];
+  return Array.from(data.files).filter((file) => file.type.startsWith("image/") || detectType(file));
+}

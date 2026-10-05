@@ -3,8 +3,8 @@
 import dynamic from "next/dynamic";
 import { useEffect, useRef, useState } from "react";
 import { EmptyState } from "@/components/editor/empty-state";
-import { importScreenshot } from "@/editor/actions";
-import { firstImageFile } from "@/editor/import-image";
+import { importScreenshot, importScreenshots } from "@/editor/actions";
+import { firstImageFile, imageFiles } from "@/editor/import-image";
 import { useActiveDeviceId } from "@/editor/selection";
 import { useDevice, useScene } from "@/editor/store";
 import { useUIStore } from "@/editor/ui-store";
@@ -75,7 +75,12 @@ export function Workspace() {
         event.preventDefault();
         dragDepth.current = 0;
         setDragging(false);
-        const file = firstImageFile(event.dataTransfer);
+        const files = imageFiles(event.dataTransfer);
+        if (files.length > 1) {
+          void importScreenshots(files, activeId);
+          return;
+        }
+        const file = files[0] ?? firstImageFile(event.dataTransfer);
         if (file) void importScreenshot(file, activeId);
       }}
     >
@@ -100,7 +105,7 @@ export function Workspace() {
       {dragging ? (
         <div className="pointer-events-none absolute inset-3 flex items-center justify-center rounded-2xl border-2 border-dashed border-accent bg-accent/8">
           <span className="rounded-lg bg-accent px-3 py-1.5 text-[13px] font-medium text-accent-ink">
-            Drop to add screenshot
+            Drop to add screenshots
           </span>
         </div>
       ) : null}

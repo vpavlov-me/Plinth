@@ -3,12 +3,15 @@
 import type Konva from "konva";
 import { useEffect, useRef, useState } from "react";
 import { Layer, Line, Stage, Transformer } from "react-konva";
-import { relativeTransform } from "@/editor/geometry";
+import { getAsset } from "@/editor/assets";
+import { getDevice } from "@/editor/devices/definitions";
+import { clamp, panCrop, relativeTransform } from "@/editor/geometry";
 import { BackgroundNode } from "@/editor/rendering/background-node";
+import { screenArea } from "@/editor/rendering/device-artwork";
 import { DeviceNode } from "@/editor/rendering/device-node";
 import { useDeviceLayout } from "@/editor/rendering/use-device-layout";
-import { updateDevice } from "@/editor/scene";
-import { useEditorStore, useScene } from "@/editor/store";
+import { MAX_CROP_ZOOM, updateDevice } from "@/editor/scene";
+import { getScene, useEditorStore, useScene } from "@/editor/store";
 import type { CanvasConfig, DeviceInstance } from "@/editor/types";
 import { useUIStore } from "@/editor/ui-store";
 
@@ -28,6 +31,7 @@ export default function CanvasStage({ viewScale }: { viewScale: number }) {
   const background = useScene((s) => s.background);
   const devices = useScene((s) => s.devices);
   const selectedId = useUIStore((s) => s.selectedDeviceId);
+  const croppingId = useUIStore((s) => s.croppingDeviceId);
   const select = useUIStore((s) => s.select);
   const transformerRef = useRef<Konva.Transformer>(null);
   const stageRef = useRef<Konva.Stage>(null);
@@ -38,10 +42,11 @@ export default function CanvasStage({ viewScale }: { viewScale: number }) {
     const transformer = transformerRef.current;
     const stage = stageRef.current;
     if (!transformer || !stage) return;
-    const node = selectedId ? stage.findOne<Konva.Group>(`#${selectedId}`) : undefined;
+    // No transform handles while the screenshot (not the device) is edited.
+    const node = selectedId && selectedId !== croppingId ? stage.findOne<Konva.Group>(`#${selectedId}`) : undefined;
     transformer.nodes(node ? [node] : []);
     transformer.getLayer()?.batchDraw();
-  }, [selectedId, devices]);
+  }, [selectedId, croppingId, devices]);
 
   const width = Math.max(1, Math.round(canvas.width * viewScale));
   const height = Math.max(1, Math.round(canvas.height * viewScale));
@@ -67,6 +72,7 @@ export default function CanvasStage({ viewScale }: { viewScale: number }) {
             instance={instance}
             canvas={canvas}
             viewScale={viewScale}
+            cropping={croppingId === instance.id}
             onSelect={() => select(instance.id)}
             onGuides={(next) =>
               setGuides((prev) =>
@@ -121,13 +127,17 @@ type DeviceProps = {
   instance: DeviceInstance;
   canvas: CanvasConfig;
   viewScale: number;
+  cropping: boolean;
   onSelect: () => void;
   onGuides: (guides: Guides) => void;
 };
 
-function InteractiveDevice({ instance, canvas, viewScale, onSelect, onGuides }: DeviceProps) {
+function InteractiveDevice({ instance, canvas, viewScale, cropping, onSelect, onGuides }: DeviceProps) {
   const { geometry, transform } = useDeviceLayout(instance, canvas);
   const update = useEditorStore((s) => s.update);
+  const commit = useEditorStore((s) => s.commit);
+  const setCropping = useUIStore((s) => s.setCropping);
+  const zoomCommit = useRef<number | undefined>(undefined);
 
   const commitNode = (node: Konva.Node) => {
     const next = relativeTransform(
@@ -138,14 +148,68 @@ function InteractiveDevice({ instance, canvas, viewScale, onSelect, onGuides }: 
     update((scene) => updateDevice(scene, instance.id, next));
   };
 
+  /** Converts a canvas-space movement into the device's local (frame) units. */
+  const toLocal = (dx: number, dy: number) => {
+    const radians = (-transform.rotation * Math.PI) / 180;
+    const [sin, cos] = [Math.sin(radians), Math.cos(radians)];
+    return { x: (dx * cos - dy * sin) / transform.scale, y: (dx * sin + dy * cos) / transform.scale };
+  };
+
+  // Crop mode: dragging pans the screenshot (one undo step per drag).
+  const startPan = (event: Konva.KonvaEventObject<PointerEvent>) => {
+    const asset = getAsset(instance.screenshotId);
+    const stage = event.target.getStage();
+    if (!asset || !stage) return;
+    event.cancelBubble = true;
+    const area = screenArea({ device: getDevice(instance.deviceId), geometry });
+    const scale = stage.scaleX();
+    const start = { x: event.evt.clientX, y: event.evt.clientY };
+    const startCrop = instance.crop;
+    const move = (e: PointerEvent) => {
+      const local = toLocal((e.clientX - start.x) / scale, (e.clientY - start.y) / scale);
+      update((scene) => updateDevice(scene, instance.id, { crop: panCrop(startCrop, asset, area, local.x, local.y) }), {
+        transient: true,
+      });
+    };
+    const end = () => {
+      window.removeEventListener("pointermove", move);
+      window.removeEventListener("pointerup", end);
+      window.removeEventListener("pointercancel", end);
+      commit();
+    };
+    window.addEventListener("pointermove", move);
+    window.addEventListener("pointerup", end);
+    window.addEventListener("pointercancel", end);
+  };
+
+  // Crop mode: the wheel zooms the screenshot; a burst of wheel events is one undo step.
+  const zoom = (event: Konva.KonvaEventObject<WheelEvent>) => {
+    event.evt.preventDefault();
+    const current = getScene().devices.find((d) => d.id === instance.id);
+    if (!current) return;
+    const factor = Math.exp(-event.evt.deltaY * 0.0015);
+    const next = clamp(current.crop.zoom * factor, 1, MAX_CROP_ZOOM);
+    update((scene) => updateDevice(scene, instance.id, { crop: { ...current.crop, zoom: next } }), { transient: true });
+    window.clearTimeout(zoomCommit.current);
+    zoomCommit.current = window.setTimeout(commit, 300);
+  };
+
   return (
     <DeviceNode
       instance={instance}
       geometry={geometry}
       transform={transform}
-      draggable
-      onPointerDown={onSelect}
-      onMouseEnter={(event) => setCursor(event.target, "move")}
+      draggable={!cropping}
+      cropping={cropping}
+      onPointerDown={(event) => {
+        onSelect();
+        if (cropping) startPan(event);
+      }}
+      onDblClick={() => {
+        if (instance.screenshotId) setCropping(cropping ? null : instance.id);
+      }}
+      onWheel={cropping ? zoom : undefined}
+      onMouseEnter={(event) => setCursor(event.target, cropping ? "grab" : "move")}
       onMouseLeave={(event) => setCursor(event.target, "")}
       onDragMove={(event) => {
         const node = event.target;

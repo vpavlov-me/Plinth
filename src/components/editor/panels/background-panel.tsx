@@ -2,7 +2,7 @@
 
 /* eslint-disable @next/next/no-img-element -- local previews and static thumbnails */
 import { Popover } from "@base-ui/react/popover";
-import { Plus, X } from "lucide-react";
+import { Plus, Sparkles, X } from "lucide-react";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { gradientCss } from "@/components/editor/css-background";
 import { pickImageFile } from "@/components/editor/pick-file";
@@ -11,8 +11,10 @@ import { ColorField } from "@/components/ui/color-field";
 import { Section } from "@/components/ui/section";
 import { Segmented } from "@/components/ui/segmented";
 import { Tooltip } from "@/components/ui/tooltip";
-import { importBackgroundImage } from "@/editor/actions";
-import { getAsset, useAsset } from "@/editor/assets";
+import { importBackgroundImage, matchBackgroundColors } from "@/editor/actions";
+import { getAsset, getCachedImage, useAsset, useImage } from "@/editor/assets";
+import { MATCH_VARIANTS, matchedBackground, screenshotPalette } from "@/editor/color-match";
+import { useActiveDeviceId } from "@/editor/selection";
 import { sameGradient, useLibraryStore } from "@/editor/library";
 import { cloneGradient, DEFAULT_GRADIENT, GRADIENT_PRESETS, SOLID_SWATCHES } from "@/editor/presets/background-presets";
 import { PHOTO_PRESETS, photoThumbSrc } from "@/editor/presets/photo-presets";
@@ -49,6 +51,7 @@ export function BackgroundPanel() {
 
   return (
     <Section title="Background">
+      <MatchColors />
       <Segmented<BackgroundType>
         label="Background type"
         value={background.type}
@@ -75,6 +78,49 @@ export function BackgroundPanel() {
         <p className="text-xs leading-5 text-muted">Exports as a transparent PNG. JPG exports use white.</p>
       ) : null}
     </Section>
+  );
+}
+
+/**
+ * One click builds a background from the screenshot's colours; the small
+ * tiles offer the Soft / Vivid / Dark variations.
+ */
+function MatchColors() {
+  const activeId = useActiveDeviceId();
+  const assetId = useScene((scene) => {
+    const active = scene.devices.find((d) => d.id === activeId && d.screenshotId);
+    return (active ?? scene.devices.find((d) => d.screenshotId))?.screenshotId ?? null;
+  });
+  const asset = useAsset(assetId);
+  // Re-renders once the screenshot is decoded.
+  const image = useImage(asset?.url) ?? (asset ? getCachedImage(asset.url) : null);
+  const palette = asset && image ? screenshotPalette(asset.id, image) : null;
+
+  return (
+    <div className="flex items-center gap-1.5">
+      <Button
+        className="flex-1"
+        disabled={!palette}
+        onClick={() => matchBackgroundColors("soft", activeId)}
+        title={palette ? "Build a background from the screenshot’s colours" : "Add a screenshot to match its colours"}
+      >
+        <Sparkles className="size-4" />
+        Match colors
+      </Button>
+      {palette
+        ? MATCH_VARIANTS.map((variant) => (
+            <Tooltip key={variant.id} label={`Match colors · ${variant.name}`}>
+              <button
+                type="button"
+                aria-label={`Match colors: ${variant.name}`}
+                onClick={() => matchBackgroundColors(variant.id, activeId)}
+                className="size-8 shrink-0 cursor-default rounded-lg shadow-[inset_0_0_0_1px_rgb(255_255_255/0.08)] transition hover:brightness-110"
+                style={{ background: gradientCss(matchedBackground(palette, variant.id)) }}
+              />
+            </Tooltip>
+          ))
+        : null}
+    </div>
   );
 }
 

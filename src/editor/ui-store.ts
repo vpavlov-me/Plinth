@@ -15,6 +15,8 @@ export const DEFAULT_EXPORT_SETTINGS: ExportSettings = { format: "png", scale: 2
 type UIState = {
   /** Instance id of the selected device, or null. */
   selectedDeviceId: string | null;
+  /** Instance id of the device whose screenshot is being cropped, or null. */
+  croppingDeviceId: string | null;
   exportSettings: ExportSettings;
   exporting: boolean;
   /** True once the persisted project has been restored. */
@@ -24,7 +26,9 @@ type UIState = {
   /** Visibility of the floating side panels. */
   panels: { library: boolean; inspector: boolean };
   togglePanel: (panel: "library" | "inspector") => void;
+  /** Selects a device; leaves crop mode unless it stays on the same device. */
   select: (id: string | null) => void;
+  setCropping: (id: string | null) => void;
   setExportSettings: (patch: Partial<ExportSettings>) => void;
   setExporting: (exporting: boolean) => void;
   setImporting: (importing: boolean) => void;
@@ -33,13 +37,20 @@ type UIState = {
 
 export const useUIStore = create<UIState>((set) => ({
   selectedDeviceId: null,
+  croppingDeviceId: null,
   exportSettings: DEFAULT_EXPORT_SETTINGS,
   exporting: false,
   hydrated: false,
   importing: false,
   panels: { library: true, inspector: true },
   togglePanel: (panel) => set((state) => ({ panels: { ...state.panels, [panel]: !state.panels[panel] } })),
-  select: (selectedDeviceId) => set({ selectedDeviceId }),
+  select: (selectedDeviceId) =>
+    set((state) => ({
+      selectedDeviceId,
+      croppingDeviceId: state.croppingDeviceId === selectedDeviceId ? state.croppingDeviceId : null,
+    })),
+  setCropping: (croppingDeviceId) =>
+    set((state) => ({ croppingDeviceId, selectedDeviceId: croppingDeviceId ?? state.selectedDeviceId })),
   setExportSettings: (patch) => set((state) => ({ exportSettings: { ...state.exportSettings, ...patch } })),
   setExporting: (exporting) => set({ exporting }),
   setImporting: (importing) => set({ importing }),

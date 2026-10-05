@@ -16,6 +16,17 @@ production site counts visits with Yandex Metrica.
   14″ Windows-style), desktops (24″ all-in-one, 27″ display), a watch, a spatial glass window, four window styles
   (Safari-, Chromium-style and minimal browser, app window) and no frame. A screenshot that would be badly cropped by
   the current device switches to a better-fitting one.
+- **Layouts**: Solo, Duo, Stack, Fan, Laptop + Phone and Phone + Tablet arrange several devices in one click. The
+  composition is fitted to the canvas, the current screenshot fills every device, and screenshots you have added are
+  handed out in the order you added them (mixed layouts put each one on the device whose screen fits it best). Click a
+  device — or use the Device 1/2/3 switcher in the inspector — to edit, move, scale, rotate or replace it on its own;
+  `⌫` removes a secondary device. Dropping two or three screenshots at once opens Duo or Fan with one per device.
+- **Perspective**: Front, Tilt Left, Tilt Right, Perspective Left and Perspective Right, per device. Presets only — no
+  angles or cameras — and they export at full resolution with matching shadows.
+- **Screenshot crop**: zoom (100–400 %) and position the screenshot inside the screen with the Screenshot section, or
+  double-click a device (or "Adjust on canvas") to drag and scroll-zoom it directly; `Esc` finishes.
+- **Match colors**: builds a mesh-gradient background from the screenshot's own colours, locally and deterministically.
+  One click applies "Soft"; "Vivid" and "Dark" variations sit next to it.
 - **Your own frames**: upload any PNG/WebP device frame with a transparent screen (for example official bezels you
   downloaded under their licence). The screen opening is detected automatically, the shadow follows the frame's shape,
   and the frame is kept in your local library — it never leaves your browser.
@@ -32,16 +43,18 @@ production site counts visits with Yandex Metrica.
   (see [Background images](#background-images)).
 - **Shadow**: None / Soft / Medium / Strong.
 - **Presets**: social sizes (Instagram post/portrait/story, X, LinkedIn, Facebook, Pinterest, YouTube thumbnail,
-  Threads, Dribbble, Behance, Open Graph) that resize the canvas and re-fit the device, plus showcase scenes
-  (Product Hunt, App Store, Google Play feature graphic, portfolio hero, presentation) that also set a background.
+  Threads, Dribbble, Behance, Open Graph) that resize the canvas and re-fit the devices, plus showcase scenes that also
+  set a background, a layout and a look: Product Hunt (two tilted phones), App Store (front-facing phone with room for a
+  headline), Google Play feature graphic, Portfolio hero (laptop + phone) and Presentation.
 - **Export**: PNG at 1×/2×/3×, JPG with a quality setting, transparent PNG, and copying to the clipboard (`⌘E` downloads).
-- **Layout**: floating library (left: Devices and Presets, each half scrolls independently and collapses; groups are
-  folders) and properties panel (right: Device, Background, Shadow — each section collapses). Hide/show the panels from
+- **Panels**: floating library (left: Devices, Layouts and Presets, each part scrolls independently and collapses; groups
+  are folders) and properties panel (right: Device, Screenshot, Perspective, Background, Shadow — each section
+  collapses). Hide/show the panels from
   the toolbar or with `[` / `]`. All expanding, collapsing and panel transitions are animated (and respect
   "reduce motion").
 - **Undo/redo**: `⌘Z`, `⌘⇧Z` (or `Ctrl+Y`). A drag or slider movement counts as one step.
-- **Persistence**: the project is restored after a reload. Scene settings go to `localStorage` and images go to
-  IndexedDB.
+- **Persistence**: the project — including every device, its crop and perspective, the layout and the selected device —
+  is restored after a reload. Scene settings go to `localStorage` and images go to IndexedDB.
 
 ## Stack
 
@@ -74,19 +87,21 @@ src/
     ui/                       Small primitives on top of Base UI (button, tooltip, slider, number field, …)
     editor/                   Editor shell, toolbar, workspace, export menu, shortcuts, persistence hook
       canvas-stage.tsx        Interactive Konva stage (drag, transformer, snapping guides)
-      sidebars/, panels/      Library (devices, presets) and inspector panels (canvas, background, device, shadow)
+      sidebars/, panels/      Library (devices, layouts, presets) and inspector panels (device, screenshot,
+                              perspective, background, shadow)
   editor/                     Framework-light core
     types.ts                  Scene model and device definition types
     scene.ts                  Pure scene operations (immutable)
     history.ts                Undo/redo with transient (coalesced) updates
     store.ts / ui-store.ts    Zustand stores: document + history, and UI-only state
-    geometry.ts               Device geometry resolution, fitting and transforms
+    geometry.ts               Device geometry resolution, fitting, transforms, outlines and crop math
+    color-match.ts            Palette extraction and "Match colors" backgrounds
     assets.ts                 Image asset registry (object URLs) + decoded image cache
     import-image.ts           Validation, decoding and downscaling of imported images
     persistence.ts            localStorage + IndexedDB, with validation of stored data
     devices/definitions.ts    Device library (data only)
-    presets/                  Canvas, background, shadow and scene presets
-    rendering/                Konva nodes shared by the editor and the exporter
+    presets/                  Canvas, background, shadow, layout, perspective and scene presets
+    rendering/                Konva nodes shared by the editor and the exporter, device drawing, perspective renderer
     export/export-image.ts    Offscreen, exact-size export
 scripts/generate-device-assets.mjs   Generates the placeholder frame artwork
 public/devices/                      Frame artwork
@@ -97,16 +112,52 @@ public/devices/                      Frame artwork
 The editor uses a constrained, typed scene rather than a generic list of objects:
 
 ```ts
-type Scene = { canvas: CanvasConfig; background: BackgroundConfig; devices: DeviceInstance[] };
+type Scene = {
+  canvas: CanvasConfig;
+  background: BackgroundConfig;
+  devices: DeviceInstance[]; // drawing order; the first is the primary device
+  layout: string; // layout preset last applied
+  screenshots: string[]; // the user's screenshots in the order they were added (≤ 3)
+};
+type DeviceInstance = {
+  id: string;
+  deviceId: string;
+  variantId?: string;
+  screenshotId: string | null;
+  crop: { zoom: number; x: number; y: number }; // screenshot inside the screen
+  perspective: "front" | "tilt-left" | "tilt-right" | "perspective-left" | "perspective-right";
+  x: number;
+  y: number;
+  scale: number;
+  rotation: number; // device transform
+  shadow: ShadowConfig;
+};
 ```
 
-- `devices` is an array. The UI currently edits one device, but rendering, history, persistence and presets already
-  handle several, which leaves room for future layouts (duo, stack, laptop + phone).
 - Device transforms are **relative**: `x`/`y` are fractions of the canvas, and `scale` is relative to the automatic
-  "fit" size (`1` = fitted with padding). Canvas changes and device swaps keep the composition without extra logic.
+  "fit" size (`1` = fitted with padding). Canvas changes keep a single device's composition without extra logic;
+  several devices are re-fitted as a group so their proportions to each other survive.
+- The **crop** is separate from the device transform and normalised: the screenshot always covers the screen, `zoom`
+  (≥ 1) enlarges it and `x`/`y` (0–1) choose the visible part (0 = left/top edge). The default `{ 1, 0.5, 0 }` is the
+  classic "cover, top-aligned" placement. It survives canvas, device and export-resolution changes.
+- There is no generic layer list: z-order is the order of `devices`, and the UI never exposes it.
 - Images are referenced by asset id. Blobs live in the asset registry as object URLs and never pass through React
   state as base64. Assets that can no longer be reached through the undo history are revoked automatically.
 - Shadow values are in canvas pixels.
+
+### Layouts
+
+`presets/layout-presets.ts` describes each layout as data: slots with a preferred category (phone, tablet, laptop), a
+centre and size in abstract composition units, a rotation, a perspective and which screenshot the slot shows. Applying
+a layout (`applyLayout` in `scene.ts`, one undo step) reuses devices whose category matches, adds missing ones with the
+model already used in the scene for that category, assigns screenshots, then fits the whole composition to the canvas.
+Adding a layout is a new entry in that file; the library tile is drawn from the same data.
+
+### Persistence and migrations
+
+The scene is stored as `{ version, scene, selectedDeviceId }` under `plinth.scene.v1`. Version 2 added `crop`,
+`perspective`, `layout`, `screenshots` and the selected device. `sanitizeScene` validates every field and fills
+missing ones with defaults, so version 1 projects open unchanged (one device, Front, default crop).
 
 ### Rendering
 
@@ -116,14 +167,21 @@ Stage
 └── Layer: Devices
     └── Group (per device, positioned by its centre)
         ├── Shadow       silhouette shadow only (see shadow-node.tsx)
-        ├── Screen       fill + screenshot, clipped to the screen shape
-        └── Frame        artwork, optionally drawn as 3 slices (stretchable devices)
+        └── Artwork      screen fill + cropped screenshot (clipped) + frame artwork
 ```
 
+- `rendering/device-artwork.ts` is the single drawing routine for a device (screen, crop, frame slices). The editor,
+  the exporter and the perspective renderer all call it, so they can't drift apart.
+- **Perspective** presets turn the device in 3D and project it with a fixed camera
+  (`presets/perspective-presets.ts`). Canvas 2D can't draw projective transforms, so the flat artwork is rendered into
+  an offscreen canvas and projected by a tiny WebGL2 program as one textured quad with perspective-correct, mipmapped
+  sampling. It renders at the device's real output density (read from the context transform), so 3× exports are
+  rendered at 3×; results are cached per density. The projected image also casts the shadow. Without WebGL the device
+  falls back to Front.
 - Screenshots are drawn with `imageSmoothingQuality = "high"` so downscaled text stays clean.
 - Shadows are drawn without their silhouette by using an offset trick. They are computed from the live transform, so
   they look the same on screen, on retina displays and in exports, and transparent screenshots never show a solid shape
-  behind them. Frameless screenshots cast an alpha-aware shadow.
+  behind them. Frameless screenshots, custom frames and perspective devices cast alpha-aware shadows.
 - **Export** mounts the same components into an offscreen stage and renders with `pixelRatio = scale`. The output is
   always exactly `width × scale` by `height × scale`, never contains editor UI, and is independent of the current zoom.
   Sizes above 16384 px per side or 100 MP are refused with a clear message. Frame artwork is SVG, so it stays sharp at
@@ -154,7 +212,7 @@ and writes their geometry to `src/editor/devices/catalog.json`, which `definitio
 
 Layout modes:
 
-- `fixed`: the screen has a fixed size. The screenshot covers it, aligned to the top.
+- `fixed`: the screen has a fixed size. The screenshot covers it (by default aligned to the top; see the crop).
 - `stretch-y` (windows): the screen height follows the screenshot's aspect ratio, clamped to
   `minScreenHeight`/`maxScreenHeight`. The artwork is drawn in three slices, and the band between `start` and `end`
   (artwork y-coordinates) is stretched, so it must be vertically uniform.
@@ -197,11 +255,11 @@ add a photo, add it to both `PHOTO_PRESETS` and `scripts/fetch-backgrounds.sh` a
 
 ## Current limitations
 
-- One device per scene in the UI. The model supports several, but layouts (duo, stack, …) aren't exposed yet.
-- Placeholder device frames: they're clean and generic, not photorealistic.
-- Screenshots are placed with "cover" and top alignment inside fixed screens. There's no manual crop or pan inside the
-  screen yet.
+- Built-in frames are clean, generic illustrations, not photorealistic renders.
 - Browser windows clamp very tall (full-page) screenshots to 2.5× the width and crop the rest.
+- Perspective needs WebGL2; without it devices are drawn front-facing.
+- Layouts hold at most three devices, and switching to a layout with fewer devices drops the extra ones (their
+  screenshots stay available for the next layout).
 - No zoom or pan in the workspace. The canvas always fits the window.
 - Copy-to-clipboard depends on browser support for `ClipboardItem` (Chromium and Safari; Firefox is limited).
 - Screens narrower than 768 px get an informational notice instead of the editor.

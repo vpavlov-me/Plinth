@@ -132,6 +132,9 @@ export async function renderScene(scene: Scene, settings: ExportSettings): Promi
     return { blob, width, height, fileName: `mockup-${width}x${height}.${extension}` };
   } finally {
     root.unmount();
+    // Perspective renders at export resolution are large; the editor re-renders its own on demand.
+    const { clearPerspectiveCache } = await import("@/editor/rendering/perspective-render");
+    clearPerspectiveCache();
     if (output) {
       // Release the backing store right away instead of waiting for GC.
       output.width = 0;

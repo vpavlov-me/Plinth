@@ -1,21 +1,20 @@
 "use client";
 
-/* eslint-disable @next/next/no-img-element -- local object URL preview */
-import { ChevronDown, ImagePlus, RotateCcw, Trash2 } from "lucide-react";
-import { pickImageFile } from "@/components/editor/pick-file";
+import { ChevronDown, RotateCcw, Trash2 } from "lucide-react";
 import { Button, IconButton } from "@/components/ui/button";
 import { Section } from "@/components/ui/section";
+import { Segmented } from "@/components/ui/segmented";
 import { SliderField } from "@/components/ui/slider-field";
 import { Tooltip } from "@/components/ui/tooltip";
-import { importScreenshot } from "@/editor/actions";
-import { useAsset } from "@/editor/assets";
+import { removeSelectedDevice } from "@/editor/actions";
 import { customDeviceId } from "@/editor/custom-frames";
 import { DEVICE_GROUPS, getDevice } from "@/editor/devices/definitions";
 import { useLibraryStore } from "@/editor/library";
-import { changeDeviceModel, resetDeviceTransform, setScreenshot, updateDevice } from "@/editor/scene";
+import { changeDeviceModel, resetDeviceTransform, updateDevice } from "@/editor/scene";
 import { useActiveDeviceId } from "@/editor/selection";
 import { useDevice, useEditorStore, useScene } from "@/editor/store";
 import type { DeviceInstance } from "@/editor/types";
+import { useUIStore } from "@/editor/ui-store";
 import { cn } from "@/lib/cn";
 
 export function DevicePanel() {
@@ -25,7 +24,10 @@ export function DevicePanel() {
   const update = useEditorStore((s) => s.update);
   const commit = useEditorStore((s) => s.commit);
   const frames = useLibraryStore((s) => s.frames);
+  const deviceIds = useScene((s) => s.devices.map((d) => d.id).join(" "));
+  const select = useUIStore((s) => s.select);
   if (!instance) return null;
+  const ids = deviceIds.split(" ");
 
   const device = getDevice(instance.deviceId);
   const patch = (values: Partial<DeviceInstance>, transient = false) =>
@@ -35,18 +37,30 @@ export function DevicePanel() {
     <Section
       title="Device"
       action={
-        <Button
-          size="sm"
-          variant="secondary"
-          className="-mr-1"
-          disabled={instance.x === 0.5 && instance.y === 0.5 && instance.scale === 1 && instance.rotation === 0}
-          onClick={() => update((scene) => resetDeviceTransform(scene, instance.id))}
-        >
-          <RotateCcw className="size-3.5" />
-          Reset
-        </Button>
+        <div className="-mr-1 flex items-center gap-1">
+          {ids.length > 1 ? (
+            <IconButton label="Remove device" shortcut="⌫" icon={<Trash2 />} onClick={removeSelectedDevice} />
+          ) : null}
+          <Button
+            size="sm"
+            variant="secondary"
+            disabled={instance.x === 0.5 && instance.y === 0.5 && instance.scale === 1 && instance.rotation === 0}
+            onClick={() => update((scene) => resetDeviceTransform(scene, instance.id))}
+          >
+            <RotateCcw className="size-3.5" />
+            Reset
+          </Button>
+        </div>
       }
     >
+      {ids.length > 1 ? (
+        <Segmented
+          label="Edited device"
+          value={instance.id}
+          onChange={(id) => select(id)}
+          options={ids.map((id, index) => ({ value: id, label: `Device ${index + 1}` }))}
+        />
+      ) : null}
       <div className="relative">
         <label htmlFor="device-model" className="sr-only">
           Device model
@@ -104,8 +118,6 @@ export function DevicePanel() {
         </div>
       ) : null}
 
-      <ScreenshotRow instance={instance} />
-
       <SliderField
         label="Scale"
         value={Math.round(instance.scale * 100)}
@@ -137,39 +149,5 @@ export function DevicePanel() {
         onCommit={commit}
       />
     </Section>
-  );
-}
-
-function ScreenshotRow({ instance }: { instance: DeviceInstance }) {
-  const asset = useAsset(instance.screenshotId);
-  const update = useEditorStore((s) => s.update);
-  const replace = () => pickImageFile((file) => void importScreenshot(file, instance.id));
-
-  if (!asset) {
-    return (
-      <Button onClick={replace}>
-        <ImagePlus className="size-4" />
-        Add screenshot
-      </Button>
-    );
-  }
-  return (
-    <div className="flex items-center gap-2.5">
-      <div className="checkerboard size-10 shrink-0 overflow-hidden rounded-md shadow-[inset_0_0_0_1px_rgb(0_0_0/0.1)]">
-        <img src={asset.url} alt="" className="size-full object-cover object-top" />
-      </div>
-      <div className="min-w-0 flex-1">
-        <p className="truncate text-xs text-ink">{asset.name}</p>
-        <p className="text-2xs text-muted tabular-nums">
-          {asset.width} × {asset.height}
-        </p>
-      </div>
-      <IconButton label="Replace screenshot" icon={<ImagePlus />} onClick={replace} />
-      <IconButton
-        label="Remove screenshot"
-        icon={<Trash2 />}
-        onClick={() => update((scene, sizeOf) => setScreenshot(scene, instance.id, null, sizeOf))}
-      />
-    </div>
   );
 }

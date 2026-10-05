@@ -9,10 +9,12 @@ import { CanvasPresetPicker } from "@/components/editor/canvas-preset-picker";
 import { pickImageFile } from "@/components/editor/pick-file";
 import { COLLAPSE_CHEVRON, COLLAPSE_PANEL, COLLAPSE_TRIGGER } from "@/components/ui/collapse";
 import { Tooltip } from "@/components/ui/tooltip";
-import { importDeviceFrame } from "@/editor/actions";
+import { applyLayoutPreset, importDeviceFrame } from "@/editor/actions";
 import { useAsset } from "@/editor/assets";
 import { customDeviceId, type CustomFrame } from "@/editor/custom-frames";
 import { DEVICE_GROUPS } from "@/editor/devices/definitions";
+import { boundsOf, deviceOutline } from "@/editor/geometry";
+import { LAYOUT_PRESETS, type LayoutPreset } from "@/editor/presets/layout-presets";
 import { useLibraryStore } from "@/editor/library";
 import { SCENE_PRESET_GROUPS, SCENE_PRESETS } from "@/editor/presets/scene-presets";
 import { applyScenePreset, changeDeviceModel } from "@/editor/scene";
@@ -22,11 +24,11 @@ import type { BackgroundConfig, DeviceDefinition } from "@/editor/types";
 import { cn } from "@/lib/cn";
 
 /**
- * Two halves — devices and presets — each with its own scroll. A collapsed
- * half shrinks to its header and the other one smoothly takes the space.
+ * Three parts — devices, layouts and presets — each with its own scroll. A
+ * collapsed part shrinks to its header and the others smoothly take the space.
  */
 export function LibrarySidebar() {
-  const [open, setOpen] = useState({ devices: true, presets: true });
+  const [open, setOpen] = useState({ devices: true, layouts: true, presets: true });
   return (
     <aside
       aria-label="Library"
@@ -34,6 +36,14 @@ export function LibrarySidebar() {
     >
       <LibraryHalf title="Devices" open={open.devices} onToggle={() => setOpen((o) => ({ ...o, devices: !o.devices }))}>
         <DeviceLibrary />
+      </LibraryHalf>
+      <LibraryHalf
+        title="Layouts"
+        open={open.layouts}
+        grow={0.55}
+        onToggle={() => setOpen((o) => ({ ...o, layouts: !o.layouts }))}
+      >
+        <LayoutLibrary />
       </LibraryHalf>
       <LibraryHalf title="Presets" open={open.presets} onToggle={() => setOpen((o) => ({ ...o, presets: !o.presets }))}>
         <PresetLibrary />
@@ -45,11 +55,14 @@ export function LibrarySidebar() {
 function LibraryHalf({
   title,
   open,
+  grow = 1,
   onToggle,
   children,
 }: {
   title: string;
   open: boolean;
+  /** Share of the free height while open. */
+  grow?: number;
   onToggle: () => void;
   children: ReactNode;
 }) {
@@ -58,7 +71,7 @@ function LibraryHalf({
     <section
       aria-label={title}
       className="flex min-h-11 basis-0 flex-col overflow-hidden transition-[flex-grow] duration-300 ease-out motion-reduce:transition-none"
-      style={{ flexGrow: open ? 1 : 0.0001 }}
+      style={{ flexGrow: open ? grow : 0.0001 }}
     >
       <h2 className="flex shrink-0 items-center px-4 pt-3 pb-1">
         <button
@@ -99,8 +112,10 @@ function Folder({
   defaultOpen: boolean;
   children: ReactNode;
 }) {
+  // Only the initial state matters; later changes (another device selected) must not reset folders.
+  const [initiallyOpen] = useState(defaultOpen);
   return (
-    <Collapsible.Root defaultOpen={defaultOpen} render={<div role="group" aria-label={label} />} className="px-2">
+    <Collapsible.Root defaultOpen={initiallyOpen} render={<div role="group" aria-label={label} />} className="px-2">
       <Collapsible.Trigger className={cn(COLLAPSE_TRIGGER, "w-full gap-2 px-2 hover:bg-hover")}>
         <FolderClosed className="size-3.5 shrink-0 text-subtle group-data-[panel-open]:hidden" />
         <FolderOpen className="hidden size-3.5 shrink-0 text-subtle group-data-[panel-open]:block" />
@@ -280,6 +295,76 @@ function CustomFrameTile({
         <X className="size-3" />
       </button>
     </div>
+  );
+}
+
+/* -------------------------------------------------------------------------- */
+/* Layouts                                                                    */
+/* -------------------------------------------------------------------------- */
+
+function LayoutLibrary() {
+  const current = useScene((s) => s.layout);
+  return (
+    <div className="grid grid-cols-3 gap-1 px-2">
+      {LAYOUT_PRESETS.map((layout) => (
+        <button
+          key={layout.id}
+          type="button"
+          aria-pressed={current === layout.id}
+          onClick={() => applyLayoutPreset(layout.id)}
+          className={cn(
+            "group flex min-w-0 cursor-default flex-col items-center gap-1 rounded-lg border px-1 pt-1.5 pb-1 transition-colors",
+            current === layout.id ? "border-accent bg-accent-soft" : "border-transparent hover:bg-hover",
+          )}
+        >
+          <LayoutPreview layout={layout} />
+          <span
+            className={cn(
+              "w-full truncate text-center text-2xs leading-tight font-medium",
+              current === layout.id ? "text-accent" : "text-muted group-hover:text-ink",
+            )}
+          >
+            {layout.name}
+          </span>
+        </button>
+      ))}
+    </div>
+  );
+}
+
+/** Typical proportions per slot category, used only to draw layout previews. */
+const PREVIEW_SHAPES = {
+  phone: { width: 0.49, height: 1 },
+  tablet: { width: 0.75, height: 1 },
+  laptop: { width: 1, height: 0.62 },
+};
+
+/** Schematic preview drawn from the layout data itself (no images). */
+function LayoutPreview({ layout }: { layout: LayoutPreset }) {
+  const shapes = layout.slots.map((slot) => {
+    const shape = PREVIEW_SHAPES[slot.category ?? "phone"];
+    return deviceOutline(shape, slot.perspective, slot.rotation, slot.size / Math.max(shape.width, shape.height)).map(
+      (p) => ({ x: p.x + slot.x, y: p.y + slot.y }),
+    );
+  });
+  const bounds = boundsOf(shapes.flat());
+  const pad = Math.max(bounds.width, bounds.height) * 0.08;
+  return (
+    <svg
+      viewBox={`${bounds.x - pad} ${bounds.y - pad} ${bounds.width + pad * 2} ${bounds.height + pad * 2}`}
+      className="h-9 w-full"
+      aria-hidden
+    >
+      {shapes.map((points, i) => (
+        <polygon
+          key={i}
+          points={points.map((p) => `${p.x.toFixed(3)},${p.y.toFixed(3)}`).join(" ")}
+          className="fill-[#3a3d46] stroke-[#9aa0ad]"
+          strokeWidth={Math.max(bounds.width, bounds.height) * 0.025}
+          strokeLinejoin="round"
+        />
+      ))}
+    </svg>
   );
 }
 
