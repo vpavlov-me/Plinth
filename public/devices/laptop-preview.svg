@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="3120" height="1910" viewBox="0 0 3120 1910">
+<path fill="#dfe3ea" d="M298,64H2822A18,18 0 0 1 2840,82V1728H280V82A18,18 0 0 1 298,64Z"/>
+<defs>
+<linearGradient id="deck" x1="0" y1="0" x2="0" y2="1">
+  <stop offset="0" stop-color="#55555b"/>
+  <stop offset="0.3" stop-color="#3d3d42"/>
+  <stop offset="1" stop-color="#232326"/>
+</linearGradient>
+<linearGradient id="hinge" x1="0" y1="0" x2="0" y2="1">
+  <stop offset="0" stop-color="#000" stop-opacity="0.55"/>
+  <stop offset="1" stop-color="#000" stop-opacity="0"/>
+</linearGradient>
+</defs>
+<path fill-rule="evenodd" fill="#3a3a3f" d="M284,0H2836A64,64 0 0 1 2900,64V1814H220V64A64,64 0 0 1 284,0ZM284,8H2836A56,56 0 0 1 2892,64V1806H228V64A56,56 0 0 1 284,8Z"/>
+<path fill-rule="evenodd" fill="#0b0b0d" d="M284,8H2836A56,56 0 0 1 2892,64V1806H228V64A56,56 0 0 1 284,8ZM298,64H2822A18,18 0 0 1 2840,82V1728H280V82A18,18 0 0 1 298,64Z"/>
+<circle cx="1560" cy="32" r="8" fill="#1b1f26"/>
+<path fill="url(#deck)" d="M10,1814H3110A10,10 0 0 1 3120,1824V1846A64,64 0 0 1 3056,1910H64A64,64 0 0 1 0,1846V1824A10,10 0 0 1 10,1814Z"/>
+<path fill="url(#hinge)" d="M260,1814H2860V1836H260V1814Z"/>
+<path fill="#2a2a2e" d="M1330,1814H1790V1816A22,22 0 0 1 1768,1838H1352A22,22 0 0 1 1330,1816V1814Z"/>
+<path fill="none" stroke="#ffffff" stroke-opacity="0.25" stroke-width="2" d="M14,1816 H3106"/>
+</svg>
