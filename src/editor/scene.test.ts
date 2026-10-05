@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { getDevice } from "@/editor/devices/definitions";
 import { sanitizeScene } from "@/editor/persistence";
 import { SCENE_PRESETS } from "@/editor/presets/scene-presets";
 import {
@@ -31,9 +32,12 @@ describe("scene operations", () => {
     const id = scene.devices[0]!.id;
     scene = setScreenshot(scene, id, "shot", sizeOf);
     scene = setCanvasPreset(scene, "original", sizeOf);
-    // Phone screen is 1179 wide, so the screenshot is at native size.
-    expect(scene.canvas.width).toBe(Math.round(1343 / 0.82));
-    const laptop = changeDeviceModel(scene, id, "laptop", sizeOf);
+    // The default phone's screen is 1206 wide, so the 1179 px screenshot is
+    // shown at (nearly) native size.
+    const { frame, screen } = getDevice("phone-pro");
+    const native = Math.max(1179 / screen.width, 2556 / screen.height);
+    expect(scene.canvas.width).toBe(Math.round((frame.width * native) / 0.82));
+    const laptop = changeDeviceModel(scene, id, "laptop-air", sizeOf);
     expect(laptop.canvas.width).not.toBe(scene.canvas.width);
   });
 

@@ -1,0 +1,1330 @@
+[
+  {
+    "id": "phone-pro",
+    "name": "Phone Pro 6.3″",
+    "category": "phone",
+    "frame": {
+      "width": 1346,
+      "height": 2738
+    },
+    "screen": {
+      "x": 70,
+      "y": 58,
+      "width": 1206,
+      "height": 2622,
+      "radius": 172
+    },
+    "body": [
+      {
+        "x": 13,
+        "y": 1,
+        "width": 1320,
+        "height": 2736,
+        "radius": 229
+      }
+    ],
+    "screenFill": "#000000",
+    "layout": {
+      "type": "fixed"
+    },
+    "variants": [
+      {
+        "id": "black",
+        "name": "Black",
+        "swatch": "#3b3a38",
+        "frameSrc": "/devices/phone-pro-black.svg"
+      },
+      {
+        "id": "white",
+        "name": "White",
+        "swatch": "#e3e1dc",
+        "frameSrc": "/devices/phone-pro-white.svg"
+      },
+      {
+        "id": "natural",
+        "name": "Natural",
+        "swatch": "#bab4a9",
+        "frameSrc": "/devices/phone-pro-natural.svg"
+      },
+      {
+        "id": "desert",
+        "name": "Desert",
+        "swatch": "#bfa48f",
+        "frameSrc": "/devices/phone-pro-desert.svg"
+      }
+    ],
+    "previewSrc": "/devices/phone-pro-preview.svg"
+  },
+  {
+    "id": "phone-pro-max",
+    "name": "Phone Pro Max 6.9″",
+    "category": "phone",
+    "frame": {
+      "width": 1466,
+      "height": 2990
+    },
+    "screen": {
+      "x": 73,
+      "y": 61,
+      "width": 1320,
+      "height": 2868,
+      "radius": 186
+    },
+    "body": [
+      {
+        "x": 13,
+        "y": 1,
+        "width": 1440,
+        "height": 2988,
+        "radius": 246
+      }
+    ],
+    "screenFill": "#000000",
+    "layout": {
+      "type": "fixed"
+    },
+    "variants": [
+      {
+        "id": "black",
+        "name": "Black",
+        "swatch": "#3b3a38",
+        "frameSrc": "/devices/phone-pro-max-black.svg"
+      },
+      {
+        "id": "white",
+        "name": "White",
+        "swatch": "#e3e1dc",
+        "frameSrc": "/devices/phone-pro-max-white.svg"
+      },
+      {
+        "id": "natural",
+        "name": "Natural",
+        "swatch": "#bab4a9",
+        "frameSrc": "/devices/phone-pro-max-natural.svg"
+      },
+      {
+        "id": "desert",
+        "name": "Desert",
+        "swatch": "#bfa48f",
+        "frameSrc": "/devices/phone-pro-max-desert.svg"
+      }
+    ],
+    "previewSrc": "/devices/phone-pro-max-preview.svg"
+  },
+  {
+    "id": "phone",
+    "name": "Phone 6.1″",
+    "category": "phone",
+    "frame": {
+      "width": 1339,
+      "height": 2692
+    },
+    "screen": {
+      "x": 80,
+      "y": 68,
+      "width": 1179,
+      "height": 2556,
+      "radius": 166
+    },
+    "body": [
+      {
+        "x": 13,
+        "y": 1,
+        "width": 1313,
+        "height": 2690,
+        "radius": 233
+      }
+    ],
+    "screenFill": "#000000",
+    "layout": {
+      "type": "fixed"
+    },
+    "variants": [
+      {
+        "id": "black",
+        "name": "Black",
+        "swatch": "#2e2f33",
+        "frameSrc": "/devices/phone-black.svg"
+      },
+      {
+        "id": "white",
+        "name": "White",
+        "swatch": "#eceae6",
+        "frameSrc": "/devices/phone-white.svg"
+      },
+      {
+        "id": "pink",
+        "name": "Pink",
+        "swatch": "#e9b9c9",
+        "frameSrc": "/devices/phone-pink.svg"
+      },
+      {
+        "id": "teal",
+        "name": "Teal",
+        "swatch": "#a9cfc8",
+        "frameSrc": "/devices/phone-teal.svg"
+      },
+      {
+        "id": "blue",
+        "name": "Blue",
+        "swatch": "#8c9fe0",
+        "frameSrc": "/devices/phone-blue.svg"
+      }
+    ],
+    "previewSrc": "/devices/phone-preview.svg"
+  },
+  {
+    "id": "phone-compact",
+    "name": "Phone Compact (home button)",
+    "category": "phone",
+    "frame": {
+      "width": 890,
+      "height": 1778
+    },
+    "screen": {
+      "x": 70,
+      "y": 222,
+      "width": 750,
+      "height": 1334,
+      "radius": 0
+    },
+    "body": [
+      {
+        "x": 13,
+        "y": 1,
+        "width": 864,
+        "height": 1776,
+        "radius": 119
+      }
+    ],
+    "screenFill": "#000000",
+    "layout": {
+      "type": "fixed"
+    },
+    "variants": [
+      {
+        "id": "midnight",
+        "name": "Midnight",
+        "swatch": "#232a33",
+        "frameSrc": "/devices/phone-compact-midnight.svg"
+      },
+      {
+        "id": "starlight",
+        "name": "Starlight",
+        "swatch": "#f0ebe2",
+        "frameSrc": "/devices/phone-compact-starlight.svg"
+      },
+      {
+        "id": "red",
+        "name": "Red",
+        "swatch": "#b01e2a",
+        "frameSrc": "/devices/phone-compact-red.svg"
+      }
+    ],
+    "previewSrc": "/devices/phone-compact-preview.svg"
+  },
+  {
+    "id": "android-pro",
+    "name": "Android Pro 6.3″",
+    "category": "phone",
+    "frame": {
+      "width": 1428,
+      "height": 2980
+    },
+    "screen": {
+      "x": 74,
+      "y": 62,
+      "width": 1280,
+      "height": 2856,
+      "radius": 150
+    },
+    "body": [
+      {
+        "x": 13,
+        "y": 1,
+        "width": 1402,
+        "height": 2978,
+        "radius": 211
+      }
+    ],
+    "screenFill": "#000000",
+    "layout": {
+      "type": "fixed"
+    },
+    "variants": [
+      {
+        "id": "obsidian",
+        "name": "Obsidian",
+        "swatch": "#2b2d30",
+        "frameSrc": "/devices/android-pro-obsidian.svg"
+      },
+      {
+        "id": "porcelain",
+        "name": "Porcelain",
+        "swatch": "#ebe5da",
+        "frameSrc": "/devices/android-pro-porcelain.svg"
+      },
+      {
+        "id": "hazel",
+        "name": "Hazel",
+        "swatch": "#a7ad9f",
+        "frameSrc": "/devices/android-pro-hazel.svg"
+      },
+      {
+        "id": "rose",
+        "name": "Rose",
+        "swatch": "#e8c8c2",
+        "frameSrc": "/devices/android-pro-rose.svg"
+      }
+    ],
+    "previewSrc": "/devices/android-pro-preview.svg"
+  },
+  {
+    "id": "android-ultra",
+    "name": "Android Ultra 6.8″",
+    "category": "phone",
+    "frame": {
+      "width": 1576,
+      "height": 3232
+    },
+    "screen": {
+      "x": 68,
+      "y": 56,
+      "width": 1440,
+      "height": 3120,
+      "radius": 42
+    },
+    "body": [
+      {
+        "x": 13,
+        "y": 1,
+        "width": 1550,
+        "height": 3230,
+        "radius": 95
+      }
+    ],
+    "screenFill": "#000000",
+    "layout": {
+      "type": "fixed"
+    },
+    "variants": [
+      {
+        "id": "black",
+        "name": "Titanium Black",
+        "swatch": "#2f3033",
+        "frameSrc": "/devices/android-ultra-black.svg"
+      },
+      {
+        "id": "gray",
+        "name": "Titanium Gray",
+        "swatch": "#8f8e8a",
+        "frameSrc": "/devices/android-ultra-gray.svg"
+      },
+      {
+        "id": "violet",
+        "name": "Titanium Violet",
+        "swatch": "#5d5470",
+        "frameSrc": "/devices/android-ultra-violet.svg"
+      },
+      {
+        "id": "yellow",
+        "name": "Titanium Yellow",
+        "swatch": "#e8dcab",
+        "frameSrc": "/devices/android-ultra-yellow.svg"
+      }
+    ],
+    "previewSrc": "/devices/android-ultra-preview.svg"
+  },
+  {
+    "id": "android-fold",
+    "name": "Android Fold (open)",
+    "category": "phone",
+    "frame": {
+      "width": 2332,
+      "height": 1944
+    },
+    "screen": {
+      "x": 78,
+      "y": 66,
+      "width": 2176,
+      "height": 1812,
+      "radius": 46
+    },
+    "body": [
+      {
+        "x": 13,
+        "y": 1,
+        "width": 2306,
+        "height": 1942,
+        "radius": 91
+      }
+    ],
+    "screenFill": "#000000",
+    "layout": {
+      "type": "fixed"
+    },
+    "variants": [
+      {
+        "id": "navy",
+        "name": "Navy",
+        "swatch": "#2b3448",
+        "frameSrc": "/devices/android-fold-navy.svg"
+      },
+      {
+        "id": "silver",
+        "name": "Silver Shadow",
+        "swatch": "#c9cbd0",
+        "frameSrc": "/devices/android-fold-silver.svg"
+      },
+      {
+        "id": "pink",
+        "name": "Pink",
+        "swatch": "#e8c4c8",
+        "frameSrc": "/devices/android-fold-pink.svg"
+      }
+    ],
+    "previewSrc": "/devices/android-fold-preview.svg"
+  },
+  {
+    "id": "tablet-pro-13",
+    "name": "Tablet Pro 13″",
+    "category": "tablet",
+    "frame": {
+      "width": 2272,
+      "height": 2936
+    },
+    "screen": {
+      "x": 104,
+      "y": 92,
+      "width": 2064,
+      "height": 2752,
+      "radius": 64
+    },
+    "body": [
+      {
+        "x": 13,
+        "y": 1,
+        "width": 2246,
+        "height": 2934,
+        "radius": 149
+      }
+    ],
+    "screenFill": "#000000",
+    "layout": {
+      "type": "fixed"
+    },
+    "variants": [
+      {
+        "id": "graphite",
+        "name": "Space Black",
+        "swatch": "#2f3034",
+        "frameSrc": "/devices/tablet-pro-13-graphite.svg"
+      },
+      {
+        "id": "silver",
+        "name": "Silver",
+        "swatch": "#d7d8dc",
+        "frameSrc": "/devices/tablet-pro-13-silver.svg"
+      }
+    ],
+    "previewSrc": "/devices/tablet-pro-13-preview.svg"
+  },
+  {
+    "id": "tablet-pro-13-landscape",
+    "name": "Tablet Pro 13″ landscape",
+    "category": "tablet",
+    "frame": {
+      "width": 2960,
+      "height": 2248
+    },
+    "screen": {
+      "x": 104,
+      "y": 92,
+      "width": 2752,
+      "height": 2064,
+      "radius": 64
+    },
+    "body": [
+      {
+        "x": 13,
+        "y": 1,
+        "width": 2934,
+        "height": 2246,
+        "radius": 149
+      }
+    ],
+    "screenFill": "#000000",
+    "layout": {
+      "type": "fixed"
+    },
+    "variants": [
+      {
+        "id": "graphite",
+        "name": "Space Black",
+        "swatch": "#2f3034",
+        "frameSrc": "/devices/tablet-pro-13-landscape-graphite.svg"
+      },
+      {
+        "id": "silver",
+        "name": "Silver",
+        "swatch": "#d7d8dc",
+        "frameSrc": "/devices/tablet-pro-13-landscape-silver.svg"
+      }
+    ],
+    "previewSrc": "/devices/tablet-pro-13-landscape-preview.svg"
+  },
+  {
+    "id": "tablet-pro-11",
+    "name": "Tablet Pro 11″",
+    "category": "tablet",
+    "frame": {
+      "width": 1868,
+      "height": 2596
+    },
+    "screen": {
+      "x": 100,
+      "y": 88,
+      "width": 1668,
+      "height": 2420,
+      "radius": 60
+    },
+    "body": [
+      {
+        "x": 13,
+        "y": 1,
+        "width": 1842,
+        "height": 2594,
+        "radius": 141
+      }
+    ],
+    "screenFill": "#000000",
+    "layout": {
+      "type": "fixed"
+    },
+    "variants": [
+      {
+        "id": "graphite",
+        "name": "Space Black",
+        "swatch": "#2f3034",
+        "frameSrc": "/devices/tablet-pro-11-graphite.svg"
+      },
+      {
+        "id": "silver",
+        "name": "Silver",
+        "swatch": "#d7d8dc",
+        "frameSrc": "/devices/tablet-pro-11-silver.svg"
+      }
+    ],
+    "previewSrc": "/devices/tablet-pro-11-preview.svg"
+  },
+  {
+    "id": "tablet-mini",
+    "name": "Tablet Mini 8.3″",
+    "category": "tablet",
+    "frame": {
+      "width": 1704,
+      "height": 2458
+    },
+    "screen": {
+      "x": 108,
+      "y": 96,
+      "width": 1488,
+      "height": 2266,
+      "radius": 56
+    },
+    "body": [
+      {
+        "x": 13,
+        "y": 1,
+        "width": 1678,
+        "height": 2456,
+        "radius": 139
+      }
+    ],
+    "screenFill": "#000000",
+    "layout": {
+      "type": "fixed"
+    },
+    "variants": [
+      {
+        "id": "gray",
+        "name": "Space Gray",
+        "swatch": "#5c5d61",
+        "frameSrc": "/devices/tablet-mini-gray.svg"
+      },
+      {
+        "id": "starlight",
+        "name": "Starlight",
+        "swatch": "#e7e1d6",
+        "frameSrc": "/devices/tablet-mini-starlight.svg"
+      },
+      {
+        "id": "purple",
+        "name": "Purple",
+        "swatch": "#b7aad3",
+        "frameSrc": "/devices/tablet-mini-purple.svg"
+      },
+      {
+        "id": "blue",
+        "name": "Blue",
+        "swatch": "#9fb4d4",
+        "frameSrc": "/devices/tablet-mini-blue.svg"
+      }
+    ],
+    "previewSrc": "/devices/tablet-mini-preview.svg"
+  },
+  {
+    "id": "android-tablet",
+    "name": "Android Tablet 11″",
+    "category": "tablet",
+    "frame": {
+      "width": 1796,
+      "height": 2732
+    },
+    "screen": {
+      "x": 98,
+      "y": 86,
+      "width": 1600,
+      "height": 2560,
+      "radius": 40
+    },
+    "body": [
+      {
+        "x": 13,
+        "y": 1,
+        "width": 1770,
+        "height": 2730,
+        "radius": 109
+      }
+    ],
+    "screenFill": "#000000",
+    "layout": {
+      "type": "fixed"
+    },
+    "variants": [
+      {
+        "id": "graphite",
+        "name": "Graphite",
+        "swatch": "#3a3b3f",
+        "frameSrc": "/devices/android-tablet-graphite.svg"
+      },
+      {
+        "id": "beige",
+        "name": "Beige",
+        "swatch": "#e2d8c8",
+        "frameSrc": "/devices/android-tablet-beige.svg"
+      }
+    ],
+    "previewSrc": "/devices/android-tablet-preview.svg"
+  },
+  {
+    "id": "tablet-2in1",
+    "name": "2-in-1 Tablet 13″",
+    "category": "tablet",
+    "frame": {
+      "width": 3096,
+      "height": 2112
+    },
+    "screen": {
+      "x": 108,
+      "y": 96,
+      "width": 2880,
+      "height": 1920,
+      "radius": 26
+    },
+    "body": [
+      {
+        "x": 13,
+        "y": 1,
+        "width": 3070,
+        "height": 2110,
+        "radius": 69
+      }
+    ],
+    "screenFill": "#000000",
+    "layout": {
+      "type": "fixed"
+    },
+    "variants": [
+      {
+        "id": "platinum",
+        "name": "Platinum",
+        "swatch": "#c9cacd",
+        "frameSrc": "/devices/tablet-2in1-platinum.svg"
+      },
+      {
+        "id": "graphite",
+        "name": "Graphite",
+        "swatch": "#3d3e42",
+        "frameSrc": "/devices/tablet-2in1-graphite.svg"
+      }
+    ],
+    "previewSrc": "/devices/tablet-2in1-preview.svg"
+  },
+  {
+    "id": "laptop-air",
+    "name": "Laptop Air 13″",
+    "category": "laptop",
+    "frame": {
+      "width": 2993,
+      "height": 1862
+    },
+    "screen": {
+      "x": 216.5,
+      "y": 58,
+      "width": 2560,
+      "height": 1664,
+      "radius": [20, 20, 0, 0]
+    },
+    "body": [
+      {
+        "x": 161.5,
+        "y": 1,
+        "width": 2670,
+        "height": 1802,
+        "radius": [55, 55, 9, 9]
+      },
+      {
+        "x": 1,
+        "y": 1799,
+        "width": 2991,
+        "height": 62,
+        "radius": [7, 7, 56.6, 56.6]
+      }
+    ],
+    "screenFill": "#000000",
+    "layout": {
+      "type": "fixed"
+    },
+    "variants": [
+      {
+        "id": "midnight",
+        "name": "Midnight",
+        "swatch": "#2e3641",
+        "frameSrc": "/devices/laptop-air-midnight.svg"
+      },
+      {
+        "id": "starlight",
+        "name": "Starlight",
+        "swatch": "#e3ddd1",
+        "frameSrc": "/devices/laptop-air-starlight.svg"
+      },
+      {
+        "id": "silver",
+        "name": "Silver",
+        "swatch": "#d6d7da",
+        "frameSrc": "/devices/laptop-air-silver.svg"
+      },
+      {
+        "id": "gray",
+        "name": "Space Gray",
+        "swatch": "#7d7e82",
+        "frameSrc": "/devices/laptop-air-gray.svg"
+      }
+    ],
+    "previewSrc": "/devices/laptop-air-preview.svg"
+  },
+  {
+    "id": "laptop-pro-14",
+    "name": "Laptop Pro 14″",
+    "category": "laptop",
+    "frame": {
+      "width": 3485,
+      "height": 2200
+    },
+    "screen": {
+      "x": 230.5,
+      "y": 60,
+      "width": 3024,
+      "height": 1964,
+      "radius": [24, 24, 0, 0]
+    },
+    "body": [
+      {
+        "x": 173.5,
+        "y": 1,
+        "width": 3138,
+        "height": 2118,
+        "radius": [63, 63, 9, 9]
+      },
+      {
+        "x": 1,
+        "y": 2115,
+        "width": 3483,
+        "height": 84,
+        "radius": [7, 7, 76.4, 76.4]
+      }
+    ],
+    "screenFill": "#000000",
+    "layout": {
+      "type": "fixed"
+    },
+    "variants": [
+      {
+        "id": "black",
+        "name": "Space Black",
+        "swatch": "#2b2b2d",
+        "frameSrc": "/devices/laptop-pro-14-black.svg"
+      },
+      {
+        "id": "silver",
+        "name": "Silver",
+        "swatch": "#d6d7da",
+        "frameSrc": "/devices/laptop-pro-14-silver.svg"
+      }
+    ],
+    "previewSrc": "/devices/laptop-pro-14-preview.svg"
+  },
+  {
+    "id": "laptop-pro-16",
+    "name": "Laptop Pro 16″",
+    "category": "laptop",
+    "frame": {
+      "width": 3938,
+      "height": 2490
+    },
+    "screen": {
+      "x": 241,
+      "y": 64,
+      "width": 3456,
+      "height": 2234,
+      "radius": [26, 26, 0, 0]
+    },
+    "body": [
+      {
+        "x": 180,
+        "y": 1,
+        "width": 3578,
+        "height": 2400,
+        "radius": [69, 69, 9, 9]
+      },
+      {
+        "x": 1,
+        "y": 2397,
+        "width": 3936,
+        "height": 92,
+        "radius": [7, 7, 83.6, 83.6]
+      }
+    ],
+    "screenFill": "#000000",
+    "layout": {
+      "type": "fixed"
+    },
+    "variants": [
+      {
+        "id": "black",
+        "name": "Space Black",
+        "swatch": "#2b2b2d",
+        "frameSrc": "/devices/laptop-pro-16-black.svg"
+      },
+      {
+        "id": "silver",
+        "name": "Silver",
+        "swatch": "#d6d7da",
+        "frameSrc": "/devices/laptop-pro-16-silver.svg"
+      }
+    ],
+    "previewSrc": "/devices/laptop-pro-16-preview.svg"
+  },
+  {
+    "id": "laptop",
+    "name": "Laptop 14″",
+    "category": "laptop",
+    "frame": {
+      "width": 3249,
+      "height": 2094
+    },
+    "screen": {
+      "x": 184.5,
+      "y": 92,
+      "width": 2880,
+      "height": 1800,
+      "radius": [0, 0, 0, 0]
+    },
+    "body": [
+      {
+        "x": 121.5,
+        "y": 1,
+        "width": 3006,
+        "height": 2014,
+        "radius": [39, 39, 9, 9]
+      },
+      {
+        "x": 1,
+        "y": 2011,
+        "width": 3247,
+        "height": 82,
+        "radius": [7, 7, 74.6, 74.6]
+      }
+    ],
+    "screenFill": "#000000",
+    "layout": {
+      "type": "fixed"
+    },
+    "variants": [
+      {
+        "id": "graphite",
+        "name": "Graphite",
+        "swatch": "#3b3c40",
+        "frameSrc": "/devices/laptop-graphite.svg"
+      },
+      {
+        "id": "platinum",
+        "name": "Platinum",
+        "swatch": "#d5d6d9",
+        "frameSrc": "/devices/laptop-platinum.svg"
+      }
+    ],
+    "previewSrc": "/devices/laptop-preview.svg"
+  },
+  {
+    "id": "all-in-one",
+    "name": "All-in-One 24″",
+    "category": "desktop",
+    "frame": {
+      "width": 4700,
+      "height": 3934
+    },
+    "screen": {
+      "x": 110,
+      "y": 110,
+      "width": 4480,
+      "height": 2520,
+      "radius": 0
+    },
+    "body": [
+      {
+        "x": 1,
+        "y": 1,
+        "width": 4698,
+        "height": 3168,
+        "radius": 89
+      },
+      {
+        "x": 1720,
+        "y": 3160,
+        "width": 1260,
+        "height": 730,
+        "radius": 0
+      },
+      {
+        "x": 1601,
+        "y": 3887,
+        "width": 1498,
+        "height": 46,
+        "radius": [5, 5, 21, 21]
+      }
+    ],
+    "screenFill": "#000000",
+    "layout": {
+      "type": "fixed"
+    },
+    "variants": [
+      {
+        "id": "blue",
+        "name": "Blue",
+        "swatch": "#4f7fbd",
+        "frameSrc": "/devices/all-in-one-blue.svg"
+      },
+      {
+        "id": "green",
+        "name": "Green",
+        "swatch": "#4f9a76",
+        "frameSrc": "/devices/all-in-one-green.svg"
+      },
+      {
+        "id": "pink",
+        "name": "Pink",
+        "swatch": "#e0838f",
+        "frameSrc": "/devices/all-in-one-pink.svg"
+      },
+      {
+        "id": "silver",
+        "name": "Silver",
+        "swatch": "#cfd0d4",
+        "frameSrc": "/devices/all-in-one-silver.svg"
+      },
+      {
+        "id": "orange",
+        "name": "Orange",
+        "swatch": "#e9874e",
+        "frameSrc": "/devices/all-in-one-orange.svg"
+      }
+    ],
+    "previewSrc": "/devices/all-in-one-preview.svg"
+  },
+  {
+    "id": "studio-display",
+    "name": "Studio Display 27″",
+    "category": "desktop",
+    "frame": {
+      "width": 5360,
+      "height": 4030
+    },
+    "screen": {
+      "x": 120,
+      "y": 120,
+      "width": 5120,
+      "height": 2880,
+      "radius": 0
+    },
+    "body": [
+      {
+        "x": 1,
+        "y": 1,
+        "width": 5358,
+        "height": 3118,
+        "radius": 59
+      },
+      {
+        "x": 2180,
+        "y": 3110,
+        "width": 1000,
+        "height": 870,
+        "radius": 0
+      },
+      {
+        "x": 1931,
+        "y": 3977,
+        "width": 1498,
+        "height": 52,
+        "radius": [5, 5, 24, 24]
+      }
+    ],
+    "screenFill": "#000000",
+    "layout": {
+      "type": "fixed"
+    },
+    "variants": [
+      {
+        "id": "silver",
+        "name": "Silver",
+        "swatch": "#cdced2",
+        "frameSrc": "/devices/studio-display-silver.svg"
+      },
+      {
+        "id": "black",
+        "name": "Black",
+        "swatch": "#2d2e31",
+        "frameSrc": "/devices/studio-display-black.svg"
+      }
+    ],
+    "previewSrc": "/devices/studio-display-preview.svg"
+  },
+  {
+    "id": "watch",
+    "name": "Watch 46mm",
+    "category": "watch",
+    "frame": {
+      "width": 546,
+      "height": 1256
+    },
+    "screen": {
+      "x": 50,
+      "y": 380,
+      "width": 416,
+      "height": 496,
+      "radius": 112
+    },
+    "body": [
+      {
+        "x": 1,
+        "y": 331,
+        "width": 514,
+        "height": 594,
+        "radius": 167
+      },
+      {
+        "x": 57,
+        "y": 0,
+        "width": 402,
+        "height": 370,
+        "radius": [18, 18, 0, 0]
+      },
+      {
+        "x": 57,
+        "y": 886,
+        "width": 402,
+        "height": 370,
+        "radius": [0, 0, 18, 18]
+      }
+    ],
+    "screenFill": "#000000",
+    "layout": {
+      "type": "fixed"
+    },
+    "variants": [
+      {
+        "id": "midnight",
+        "name": "Jet Black",
+        "swatch": "#1d1e21",
+        "frameSrc": "/devices/watch-midnight.svg"
+      },
+      {
+        "id": "silver",
+        "name": "Silver",
+        "swatch": "#d3d4d8",
+        "frameSrc": "/devices/watch-silver.svg"
+      },
+      {
+        "id": "rose",
+        "name": "Rose Gold",
+        "swatch": "#e5c3b6",
+        "frameSrc": "/devices/watch-rose.svg"
+      },
+      {
+        "id": "blue",
+        "name": "Storm Blue",
+        "swatch": "#4b5a75",
+        "frameSrc": "/devices/watch-blue.svg"
+      }
+    ],
+    "previewSrc": "/devices/watch-preview.svg"
+  },
+  {
+    "id": "glass-window",
+    "name": "Spatial Window",
+    "category": "other",
+    "frame": {
+      "width": 1652,
+      "height": 1112
+    },
+    "screen": {
+      "x": 26,
+      "y": 26,
+      "width": 1600,
+      "height": 1000,
+      "radius": 44
+    },
+    "body": [
+      {
+        "x": 0,
+        "y": 0,
+        "width": 1652,
+        "height": 1052,
+        "radius": 70
+      }
+    ],
+    "screenFill": "#ffffff",
+    "layout": {
+      "type": "stretch-y",
+      "start": 86,
+      "end": 966,
+      "minScreenHeight": 360,
+      "maxScreenHeight": 3600
+    },
+    "variants": [
+      {
+        "id": "clear",
+        "name": "Clear",
+        "swatch": "#e8ecf2",
+        "frameSrc": "/devices/glass-window-clear.svg"
+      },
+      {
+        "id": "frosted",
+        "name": "Frosted",
+        "swatch": "#c9d1dc",
+        "frameSrc": "/devices/glass-window-frosted.svg"
+      }
+    ],
+    "previewSrc": "/devices/glass-window-preview.svg"
+  },
+  {
+    "id": "browser",
+    "name": "Browser (Safari style)",
+    "category": "browser",
+    "frame": {
+      "width": 1442,
+      "height": 953
+    },
+    "screen": {
+      "x": 1,
+      "y": 52,
+      "width": 1440,
+      "height": 900,
+      "radius": [0, 0, 13, 13]
+    },
+    "body": [
+      {
+        "x": 0,
+        "y": 0,
+        "width": 1442,
+        "height": 953,
+        "radius": 14
+      }
+    ],
+    "screenFill": "#ffffff",
+    "layout": {
+      "type": "stretch-y",
+      "start": 92,
+      "end": 913,
+      "minScreenHeight": 360,
+      "maxScreenHeight": 3600
+    },
+    "variants": [
+      {
+        "id": "light",
+        "name": "Light",
+        "swatch": "#f2f2f4",
+        "frameSrc": "/devices/browser-light.svg"
+      },
+      {
+        "id": "dark",
+        "name": "Dark",
+        "swatch": "#26262b",
+        "frameSrc": "/devices/browser-dark.svg"
+      }
+    ],
+    "previewSrc": "/devices/browser-preview.svg"
+  },
+  {
+    "id": "browser-chromium",
+    "name": "Browser (Chromium style)",
+    "category": "browser",
+    "frame": {
+      "width": 1442,
+      "height": 989
+    },
+    "screen": {
+      "x": 1,
+      "y": 88,
+      "width": 1440,
+      "height": 900,
+      "radius": [0, 0, 11, 11]
+    },
+    "body": [
+      {
+        "x": 0,
+        "y": 0,
+        "width": 1442,
+        "height": 989,
+        "radius": 12
+      }
+    ],
+    "screenFill": "#ffffff",
+    "layout": {
+      "type": "stretch-y",
+      "start": 128,
+      "end": 949,
+      "minScreenHeight": 360,
+      "maxScreenHeight": 3600
+    },
+    "variants": [
+      {
+        "id": "light",
+        "name": "Light",
+        "swatch": "#dfe3ea",
+        "frameSrc": "/devices/browser-chromium-light.svg"
+      },
+      {
+        "id": "dark",
+        "name": "Dark",
+        "swatch": "#1f2023",
+        "frameSrc": "/devices/browser-chromium-dark.svg"
+      }
+    ],
+    "previewSrc": "/devices/browser-chromium-preview.svg"
+  },
+  {
+    "id": "browser-minimal",
+    "name": "Browser (minimal)",
+    "category": "browser",
+    "frame": {
+      "width": 1462,
+      "height": 951
+    },
+    "screen": {
+      "x": 11,
+      "y": 40,
+      "width": 1440,
+      "height": 900,
+      "radius": 10
+    },
+    "body": [
+      {
+        "x": 0,
+        "y": 0,
+        "width": 1462,
+        "height": 951,
+        "radius": 18
+      }
+    ],
+    "screenFill": "#ffffff",
+    "layout": {
+      "type": "stretch-y",
+      "start": 80,
+      "end": 911,
+      "minScreenHeight": 360,
+      "maxScreenHeight": 3600
+    },
+    "variants": [
+      {
+        "id": "lavender",
+        "name": "Lavender",
+        "swatch": "#b8a6f0",
+        "frameSrc": "/devices/browser-minimal-lavender.svg"
+      },
+      {
+        "id": "sunset",
+        "name": "Sunset",
+        "swatch": "#f2a48b",
+        "frameSrc": "/devices/browser-minimal-sunset.svg"
+      },
+      {
+        "id": "midnight",
+        "name": "Midnight",
+        "swatch": "#2a2e45",
+        "frameSrc": "/devices/browser-minimal-midnight.svg"
+      }
+    ],
+    "previewSrc": "/devices/browser-minimal-preview.svg"
+  },
+  {
+    "id": "app-window",
+    "name": "App Window",
+    "category": "browser",
+    "frame": {
+      "width": 1442,
+      "height": 953
+    },
+    "screen": {
+      "x": 1,
+      "y": 52,
+      "width": 1440,
+      "height": 900,
+      "radius": [0, 0, 13, 13]
+    },
+    "body": [
+      {
+        "x": 0,
+        "y": 0,
+        "width": 1442,
+        "height": 953,
+        "radius": 14
+      }
+    ],
+    "screenFill": "#ffffff",
+    "layout": {
+      "type": "stretch-y",
+      "start": 92,
+      "end": 913,
+      "minScreenHeight": 360,
+      "maxScreenHeight": 3600
+    },
+    "variants": [
+      {
+        "id": "light",
+        "name": "Light",
+        "swatch": "#ececef",
+        "frameSrc": "/devices/app-window-light.svg"
+      },
+      {
+        "id": "dark",
+        "name": "Dark",
+        "swatch": "#2a2a2f",
+        "frameSrc": "/devices/app-window-dark.svg"
+      }
+    ],
+    "previewSrc": "/devices/app-window-preview.svg"
+  }
+]

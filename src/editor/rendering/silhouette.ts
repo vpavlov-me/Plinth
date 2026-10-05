@@ -11,6 +11,36 @@ const cache = new WeakMap<HTMLImageElement, { key: string; canvas: HTMLCanvasEle
  * alpha-aware shadows for frameless screenshots (e.g. transparent PNGs).
  * The screen rect is in image pixels (frameless screens match the image).
  */
+const frameCache = new WeakMap<HTMLImageElement, { key: string; canvas: HTMLCanvasElement }>();
+
+/**
+ * Alpha mask of a whole device: the frame artwork with its screen opening
+ * filled in. Used for user-uploaded frames, whose outline is arbitrary.
+ */
+export function getFrameSilhouette(frame: HTMLImageElement, screen: RoundedRect): HTMLCanvasElement {
+  const key = JSON.stringify(screen);
+  const cached = frameCache.get(frame);
+  if (cached?.key === key) return cached.canvas;
+
+  const width = frame.naturalWidth;
+  const height = frame.naturalHeight;
+  const scale = Math.min(1, MAX_SIDE / Math.max(width, height));
+  const canvas = document.createElement("canvas");
+  canvas.width = Math.max(1, Math.round(width * scale));
+  canvas.height = Math.max(1, Math.round(height * scale));
+  const ctx = canvas.getContext("2d");
+  if (ctx) {
+    ctx.scale(scale, scale);
+    ctx.drawImage(frame, 0, 0, width, height);
+    ctx.fillStyle = "#000";
+    ctx.beginPath();
+    traceRoundedRect(ctx, screen);
+    ctx.fill();
+  }
+  frameCache.set(frame, { key, canvas });
+  return canvas;
+}
+
 export function getSilhouette(image: HTMLImageElement, screen: RoundedRect): HTMLCanvasElement {
   const key = JSON.stringify(screen);
   const cached = cache.get(image);

@@ -5,7 +5,15 @@ import { loadImage, useAssetStore } from "@/editor/assets";
 import { DEVICES } from "@/editor/devices/definitions";
 import { historyValues } from "@/editor/history";
 import { useLibraryStore } from "@/editor/library";
-import { loadLibrary, loadScene, loadSettings, saveSettings, scheduleSave } from "@/editor/persistence";
+import { registerCustomFrames } from "@/editor/custom-frames";
+import {
+  libraryAssetIds,
+  loadLibrary,
+  loadScene,
+  loadSettings,
+  saveSettings,
+  scheduleSave,
+} from "@/editor/persistence";
 import { sceneAssetIds } from "@/editor/scene";
 import { getScene, useEditorStore } from "@/editor/store";
 import { useUIStore } from "@/editor/ui-store";
@@ -27,7 +35,10 @@ export function usePersistence() {
     useUIStore.getState().setExportSettings(loadSettings());
 
     void loadLibrary()
-      .then(() => loadScene())
+      .then(() => {
+        registerCustomFrames(useLibraryStore.getState().frames);
+        return loadScene();
+      })
       .then((scene) => {
         if (disposed) return;
         useEditorStore.getState().load(scene);
@@ -39,7 +50,8 @@ export function usePersistence() {
             if (state.history.present !== previous.history.present) scheduleSave(state.history.present);
             pruneAssets();
           }),
-          useLibraryStore.subscribe(() => {
+          useLibraryStore.subscribe((state, previous) => {
+            if (state.frames !== previous.frames) registerCustomFrames(state.frames);
             scheduleSave(getScene());
             pruneAssets();
           }),
@@ -59,5 +71,5 @@ export function usePersistence() {
 /** Releases images that neither the undo history nor the library can reach. */
 function pruneAssets() {
   const keep = historyValues(useEditorStore.getState().history).flatMap(sceneAssetIds);
-  useAssetStore.getState().prune([...keep, ...useLibraryStore.getState().images]);
+  useAssetStore.getState().prune([...keep, ...libraryAssetIds()]);
 }

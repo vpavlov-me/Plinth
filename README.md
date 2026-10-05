@@ -10,8 +10,14 @@ Everything runs locally in the browser. There are no accounts, no uploads and no
 
 - **Input**: drag & drop anywhere, file picker (`⌘O`), or paste (`⌘V`). PNG, JPG and WebP up to 50 MB. Very large
   images are downscaled to at most 8192 px / 48 MP so the editor stays responsive.
-- **Devices**: phone, tablet (portrait and landscape), laptop, browser window and no frame. Frame colours are available
-  per device. A screenshot that would be badly cropped by the current device switches to a better-fitting one.
+- **Devices**: 25 built-in devices with colour options — phones (Pro, Pro Max, standard, compact with home button,
+  Android Pro / Ultra / Fold), tablets (13″ and 11″ pro, mini, Android, 2-in-1), laptops (Air 13″, Pro 14″/16″,
+  14″ Windows-style), desktops (24″ all-in-one, 27″ display), a watch, a spatial glass window, four window styles
+  (Safari-, Chromium-style and minimal browser, app window) and no frame. A screenshot that would be badly cropped by
+  the current device switches to a better-fitting one.
+- **Your own frames**: upload any PNG/WebP device frame with a transparent screen (for example official bezels you
+  downloaded under their licence). The screen opening is detected automatically, the shadow follows the frame's shape,
+  and the frame is kept in your local library — it never leaves your browser.
 - **Canvas**: Original (screenshot at native resolution), 1:1, 4:5, 16:9, 9:16 and custom sizes (100–8000 px).
   Changing the canvas keeps the composition.
 - **Composition**: drag on the canvas (snaps to the centre lines), corner handles to scale, the rotation handle (snaps
@@ -22,7 +28,9 @@ Everything runs locally in the browser. There are no accounts, no uploads and no
   across sessions; hover a personal tile to remove it. The Image tab also offers ten built-in soft, blurred backgrounds
   (see [Background images](#background-images)).
 - **Shadow**: None / Soft / Medium / Strong.
-- **Presets**: one-click scenes (Product Hunt, LinkedIn, App Store, Portfolio Hero, Instagram, Presentation).
+- **Presets**: social sizes (Instagram post/portrait/story, X, LinkedIn, Facebook, Pinterest, YouTube thumbnail,
+  Threads, Dribbble, Behance, Open Graph) that resize the canvas and re-fit the device, plus showcase scenes
+  (Product Hunt, App Store, Google Play feature graphic, portfolio hero, presentation) that also set a background.
 - **Export**: PNG at 1×/2×/3×, JPG with a quality setting, transparent PNG, and copying to the clipboard (`⌘E` downloads).
 - **Undo/redo**: `⌘Z`, `⌘⇧Z` (or `Ctrl+Y`). A drag or slider movement counts as one step.
 - **Persistence**: the project is restored after a reload. Scene settings go to `localStorage` and images go to
@@ -116,21 +124,22 @@ Stage
 
 ## Device definitions
 
-A device is pure data in `src/editor/devices/definitions.ts`:
+Built-in devices are generated: `scripts/generate-device-assets.mjs` draws every frame as SVG into `public/devices/`
+and writes their geometry to `src/editor/devices/catalog.json`, which `definitions.ts` loads. Run
+`npm run devices:generate` after changing the script. An entry looks like this:
 
-```ts
+```jsonc
 {
-  id: "phone",
-  name: "Phone",
-  category: "phone",                 // phone | tablet | desktop | browser | none
-  frame: { width: 1343, height: 2700 },                           // artwork size
-  screen: { x: 82, y: 72, width: 1179, height: 2556, radius: 160 }, // in artwork coordinates
-  body: [{ x: 11, y: 1, width: 1321, height: 2698, radius: 231 }],  // silhouette for the shadow
-  screenFill: "#000000",            // behind the screenshot / empty screen
-  layout: { type: "fixed" },
-  variants: [{ id: "graphite", name: "Graphite", swatch: "#2c2c30", frameSrc: "/devices/phone-graphite.svg" }],
-  frameSrc: "/devices/phone-graphite.svg",
-  previewSrc: "/devices/phone-preview.svg",
+  "id": "phone-pro",
+  "name": "Phone Pro 6.3″",
+  "category": "phone", // phone | tablet | laptop | desktop | watch | browser | other
+  "frame": { "width": 1346, "height": 2738 }, // artwork size
+  "screen": { "x": 70, "y": 58, "width": 1206, "height": 2622, "radius": 172 }, // artwork coordinates
+  "body": [{ "x": 13, "y": 1, "width": 1320, "height": 2736, "radius": 229 }], // silhouette for the shadow
+  "screenFill": "#000000", // behind the screenshot / empty screen
+  "layout": { "type": "fixed" },
+  "variants": [{ "id": "black", "name": "Black", "swatch": "#3b3a38", "frameSrc": "/devices/phone-pro-black.svg" }],
+  "previewSrc": "/devices/phone-pro-preview.svg",
 }
 ```
 
@@ -139,10 +148,16 @@ A device is pure data in `src/editor/devices/definitions.ts`:
 Layout modes:
 
 - `fixed`: the screen has a fixed size. The screenshot covers it, aligned to the top.
-- `stretch-y` (browser): the screen height follows the screenshot's aspect ratio, clamped to
+- `stretch-y` (windows): the screen height follows the screenshot's aspect ratio, clamped to
   `minScreenHeight`/`maxScreenHeight`. The artwork is drawn in three slices, and the band between `start` and `end`
   (artwork y-coordinates) is stretched, so it must be vertically uniform.
 - `screenshot` (no frame): the screen is the screenshot itself, with corners rounded by `radiusRatio`.
+
+### Licensing
+
+All built-in artwork is original and brand-free: no logos, and devices use generic names ("Phone Pro 6.3″",
+"Laptop Air 13″") rather than trademarked product names. Official manufacturer bezels are not bundled because their
+licences don't allow redistribution in a third-party tool; users can load them themselves through "Upload frame".
 
 ### Device asset format
 
@@ -157,12 +172,11 @@ Layout modes:
 ### Adding a new device
 
 1. Add the artwork (one file per colour variant) to `public/devices/`.
-2. Add a definition to `DEVICES` in `src/editor/devices/definitions.ts`, with the screen and body geometry measured in
-   artwork pixels.
+2. Either describe it in `scripts/generate-device-assets.mjs` (builders exist for handhelds, laptops, monitors, watches
+   and windows) and run `npm run devices:generate`, or add an entry with hand-measured geometry to `catalog.json`.
 3. That's it. The library, inspector, renderer, exporter and persistence pick it up automatically.
 
-The current frames are original, brand-free placeholders generated by `npm run devices:generate`. Replace them with
-higher-fidelity artwork of the same dimensions, or update the geometry to match new artwork.
+Artwork can be replaced by higher-fidelity files of the same dimensions without touching any code.
 
 ## Background images
 

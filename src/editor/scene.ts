@@ -121,7 +121,11 @@ export function applyScenePreset(scene: Scene, preset: ScenePreset, sizeOf: Asse
     };
   });
   return syncOriginalCanvas(
-    { canvas: { ...preset.canvas }, background: structuredClone(preset.background), devices },
+    {
+      canvas: { ...preset.canvas },
+      background: preset.background ? structuredClone(preset.background) : scene.background,
+      devices,
+    },
     sizeOf,
   );
 }
@@ -129,6 +133,8 @@ export function applyScenePreset(scene: Scene, preset: ScenePreset, sizeOf: Asse
 /** All asset ids referenced by a scene. */
 export function sceneAssetIds(scene: Scene): string[] {
   const ids = scene.devices.flatMap((d) => (d.screenshotId ? [d.screenshotId] : []));
+  // User-uploaded frames are assets too ("custom:<assetId>").
+  for (const d of scene.devices) if (d.deviceId.startsWith("custom:")) ids.push(d.deviceId.slice("custom:".length));
   const { background } = scene;
   if (background.type === "image" && background.source.kind === "upload") ids.push(background.source.assetId);
   return ids;

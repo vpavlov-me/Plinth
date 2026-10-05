@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="4700" height="3934" viewBox="0 0 4700 3934">
+<defs><linearGradient id="glare" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ffffff" stop-opacity="0.07"/><stop offset="0.42" stop-color="#ffffff" stop-opacity="0.015"/><stop offset="0.43" stop-color="#ffffff" stop-opacity="0"/><stop offset="1" stop-color="#ffffff" stop-opacity="0"/></linearGradient>
+<linearGradient id="standg" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#486387"/><stop offset="0.15" stop-color="#7da2d4"/><stop offset="0.5" stop-color="#6f98cf"/><stop offset="0.85" stop-color="#7da2d4"/><stop offset="1" stop-color="#486387"/></linearGradient>
+<linearGradient id="neckshade" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#000" stop-opacity="0.45"/><stop offset="0.25" stop-color="#000" stop-opacity="0"/></linearGradient>
+<linearGradient id="chin" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#799fd0"/><stop offset="1" stop-color="#5079ae"/></linearGradient>
+<linearGradient id="rim" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#3b5a81"/><stop offset="0.012" stop-color="#94b3da"/><stop offset="0.03" stop-color="#5b8ac6"/><stop offset="0.5" stop-color="#799fd0"/><stop offset="0.97" stop-color="#5b8ac6"/><stop offset="0.988" stop-color="#94b3da"/><stop offset="1" stop-color="#3b5a81"/></linearGradient></defs>
+<path fill="#d9dde5" d="M110,110H4590V2630H110V110Z"/>
+<path fill="url(#standg)" d="M1720,3160H2980V3890H1720V3160Z"/>
+<path fill="url(#neckshade)" d="M1720,3160H2980V3890H1720V3160Z"/>
+<path fill="url(#standg)" d="M1606,3886H3094A6,6 0 0 1 3100,3892V3912A22,22 0 0 1 3078,3934H1622A22,22 0 0 1 1600,3912V3892A6,6 0 0 1 1606,3886Z"/>
+<path fill-rule="evenodd" fill="url(#chin)" d="M90,0H4610A90,90 0 0 1 4700,90V3080A90,90 0 0 1 4610,3170H90A90,90 0 0 1 0,3080V90A90,90 0 0 1 90,0ZM110,110H4590V2630H110V110Z"/>
+<path fill-rule="evenodd" fill="#eef0f3" d="M90,0H4610A90,90 0 0 1 4700,90V2740H0V90A90,90 0 0 1 90,0ZM110,110H4590V2630H110V110Z"/>
+<path stroke="#000" stroke-opacity="0.12" stroke-width="2" d="M0,2740 H4700"/>
+<path fill="none" stroke="#000" stroke-opacity="0.3" stroke-width="3" d="M90,1.5H4610A88.5,88.5 0 0 1 4698.5,90V3080A88.5,88.5 0 0 1 4610,3168.5H90A88.5,88.5 0 0 1 1.5,3080V90A88.5,88.5 0 0 1 90,1.5Z"/>
+<path fill="none" stroke="#000" stroke-opacity="0.55" stroke-width="3" d="M110,110H4590V2630H110V110Z"/>
+<path fill="url(#glare)" d="M110,110H4590V2630H110V110Z"/>
+<circle cx="2350" cy="55" r="9" fill="#07080b"/><circle cx="2350" cy="55" r="5.58" fill="#141a26"/><circle cx="2350" cy="55" r="3.06" fill="#1e2a40"/><circle cx="2347.75" cy="52.75" r="1.26" fill="#ffffff" fill-opacity="0.35"/>
+</svg>

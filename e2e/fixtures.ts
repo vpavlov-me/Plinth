@@ -32,6 +32,14 @@ export async function createFixtures(browser: Browser): Promise<void> {
     true,
   );
   await shot("large.jpg", 6000, 9000, `<div style="height:100vh;background:linear-gradient(#ffd,#adf)"></div>`);
+  // A 600×1000 device frame whose screen (60,60 → 540,940, radius 40) is transparent.
+  await shot(
+    "frame.png",
+    600,
+    1000,
+    `<svg width="600" height="1000" style="display:block"><path fill-rule="evenodd" fill="#222" d="M80,0 H520 A80,80 0 0 1 600,80 V920 A80,80 0 0 1 520,1000 H80 A80,80 0 0 1 0,920 V80 A80,80 0 0 1 80,0 Z M100,60 H500 A40,40 0 0 1 540,100 V900 A40,40 0 0 1 500,940 H100 A40,40 0 0 1 60,900 V100 A40,40 0 0 1 100,60 Z"/></svg>`,
+    true,
+  );
   writeFileSync(join(FIXTURE_DIR, "invalid.png"), "definitely not an image");
   await page.close();
 }

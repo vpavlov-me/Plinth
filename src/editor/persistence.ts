@@ -1,6 +1,7 @@
 import { getAsset, loadImage, useAssetStore } from "@/editor/assets";
-import { DEVICES } from "@/editor/devices/definitions";
-import { useLibraryStore } from "@/editor/library";
+import { hasDevice } from "@/editor/devices/definitions";
+import type { CustomFrame } from "@/editor/custom-frames";
+import { useLibraryStore, type LibraryData } from "@/editor/library";
 import { CANVAS_PRESETS, clampCanvasDimension } from "@/editor/presets/canvas-presets";
 import { getPhotoPreset } from "@/editor/presets/photo-presets";
 import { SHADOW_PRESETS } from "@/editor/presets/shadow-presets";
@@ -104,12 +105,17 @@ export function scheduleSave(scene: Scene): void {
     try {
       localStorage.setItem(
         LIBRARY_KEY,
-        JSON.stringify({ colors: library.colors, gradients: library.gradients, images: library.images }),
+        JSON.stringify({
+          colors: library.colors,
+          gradients: library.gradients,
+          images: library.images,
+          frames: library.frames,
+        }),
       );
     } catch {
       // ignore
     }
-    syncStoredAssets([...sceneAssetIds(scene), ...library.images]).catch(() => {
+    syncStoredAssets([...sceneAssetIds(scene), ...libraryAssetIds()]).catch(() => {
       // Screenshots are persisted best-effort (private mode, quota, …).
     });
   }, 400);
@@ -117,11 +123,7 @@ export function scheduleSave(scene: Scene): void {
 
 /** Restores the user's background library (colours, gradients, uploaded images). */
 export async function loadLibrary(): Promise<void> {
-  let data: { colors: string[]; gradients: GradientConfig[]; images: string[] } = {
-    colors: [],
-    gradients: [],
-    images: [],
-  };
+  let data: LibraryData = { colors: [], gradients: [], images: [], frames: [] };
   try {
     const parsed = JSON.parse(localStorage.getItem(LIBRARY_KEY) ?? "null") as Record<string, unknown> | null;
     if (isRecord(parsed)) {
@@ -133,23 +135,28 @@ export async function loadLibrary(): Promise<void> {
               .filter((g): g is GradientConfig => g?.type === "gradient")
           : [],
         images: Array.isArray(parsed.images) ? parsed.images.filter(isString) : [],
+        frames: Array.isArray(parsed.frames) ? parsed.frames.filter(isCustomFrame) : [],
       };
     }
   } catch {
     // Corrupt data: start with an empty library.
   }
-  const images: string[] = [];
-  for (const id of data.images) {
+  const restored = new Set<string>();
+  for (const id of new Set([...data.images, ...data.frames.map((f) => f.assetId)])) {
     try {
       const asset = await restoreAsset(id);
       if (!asset) continue;
       useAssetStore.getState().add(asset);
-      images.push(id);
+      restored.add(id);
     } catch {
       break; // IndexedDB unavailable
     }
   }
-  useLibraryStore.getState().load({ ...data, images });
+  useLibraryStore.getState().load({
+    ...data,
+    images: data.images.filter((id) => restored.has(id)),
+    frames: data.frames.filter((f) => restored.has(f.assetId)),
+  });
 }
 
 /** Restores the last scene. Missing images are dropped from the scene. */
@@ -223,6 +230,18 @@ const isString = (v: unknown): v is string => typeof v === "string";
 const isRecord = (v: unknown): v is Record<string, unknown> => typeof v === "object" && v !== null;
 const isColor = (v: unknown): v is string => isString(v) && /^#[0-9a-f]{3,8}$/i.test(v);
 
+function isCustomFrame(v: unknown): v is CustomFrame {
+  if (!isRecord(v) || !isString(v.assetId) || !isString(v.name) || !isRecord(v.screen)) return false;
+  const { x, y, width, height, radius } = v.screen;
+  return [x, y, width, height, radius].every(isNumber);
+}
+
+/** Asset ids the user's library keeps alive. */
+export function libraryAssetIds(): string[] {
+  const { images, frames } = useLibraryStore.getState();
+  return [...images, ...frames.map((f) => f.assetId)];
+}
+
 /** Validates persisted data; returns null when it can't be trusted. */
 export function sanitizeScene(value: unknown): Scene | null {
   if (!isRecord(value) || !isRecord(value.canvas) || !isRecord(value.background) || !Array.isArray(value.devices)) {
@@ -274,7 +293,7 @@ function sanitizeBackground(bg: Record<string, unknown>): BackgroundConfig | nul
 
 function sanitizeDevice(value: unknown): DeviceInstance | null {
   if (!isRecord(value) || !isString(value.id) || !isString(value.deviceId)) return null;
-  if (!DEVICES.some((d) => d.id === value.deviceId)) return null;
+  if (!hasDevice(value.deviceId)) return null;
   if (![value.x, value.y, value.scale, value.rotation].every(isNumber)) return null;
   return {
     id: value.id,

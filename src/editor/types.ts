@@ -71,7 +71,8 @@ export type Scene = {
 /* Device definitions                                                         */
 /* -------------------------------------------------------------------------- */
 
-export type DeviceCategory = "phone" | "tablet" | "desktop" | "browser" | "none";
+export type DeviceCategory =
+  "phone" | "tablet" | "laptop" | "desktop" | "watch" | "browser" | "other" | "none" | "custom";
 
 /** Uniform radius or per-corner radii: [top-left, top-right, bottom-right, bottom-left]. */
 export type CornerRadius = number | [number, number, number, number];
@@ -116,6 +117,11 @@ export type DeviceDefinition = {
   screenFill: string;
   layout: DeviceLayoutMode;
   variants?: DeviceVariant[];
+  /**
+   * User-uploaded frame: its shadow is cast from the artwork's alpha
+   * channel instead of the `body` rectangles.
+   */
+  custom?: boolean;
 };
 
 /** Concrete geometry of a device for a given screenshot (frame coordinates). */

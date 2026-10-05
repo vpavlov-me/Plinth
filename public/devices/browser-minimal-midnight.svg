@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1462" height="951" viewBox="0 0 1462 951">
+<defs><linearGradient id="framebg" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#2b2f48"/><stop offset="1" stop-color="#3b2c4a"/></linearGradient></defs>
+
+<path fill-rule="evenodd" fill="url(#framebg)" d="M18,0H1444A18,18 0 0 1 1462,18V933A18,18 0 0 1 1444,951H18A18,18 0 0 1 0,933V18A18,18 0 0 1 18,0ZM21,40H1441A10,10 0 0 1 1451,50V930A10,10 0 0 1 1441,940H21A10,10 0 0 1 11,930V50A10,10 0 0 1 21,40Z"/>
+<path fill="none" stroke="#3d4160" stroke-width="1" d="M18.5,0.5H1443.5A18,18 0 0 1 1461.5,18.5V932.5A18,18 0 0 1 1443.5,950.5H18.5A18,18 0 0 1 0.5,932.5V18.5A18,18 0 0 1 18.5,0.5Z"/>
+<circle cx="18" cy="20" r="6.5" fill="#ff5f57"/>
+<circle cx="39" cy="20" r="6.5" fill="#febc2e"/>
+<circle cx="60" cy="20" r="6.5" fill="#28c840"/>
+</svg>

@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="3938" height="2490" viewBox="0 0 3938 2490">
+<defs><linearGradient id="glare" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ffffff" stop-opacity="0.07"/><stop offset="0.42" stop-color="#ffffff" stop-opacity="0.015"/><stop offset="0.43" stop-color="#ffffff" stop-opacity="0"/><stop offset="1" stop-color="#ffffff" stop-opacity="0"/></linearGradient>
+<linearGradient id="deck" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#78787a"/><stop offset="0.18" stop-color="#49494b"/><stop offset="0.55" stop-color="#303033"/><stop offset="1" stop-color="#1a1a1c"/></linearGradient>
+<linearGradient id="deckx" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#000" stop-opacity="0.25"/><stop offset="0.04" stop-color="#000" stop-opacity="0"/><stop offset="0.96" stop-color="#000" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity="0.25"/></linearGradient>
+<linearGradient id="hinge" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#000" stop-opacity="0.7"/><stop offset="1" stop-color="#000" stop-opacity="0"/></linearGradient>
+<linearGradient id="lidedge" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#1a1a1c"/><stop offset="0.012" stop-color="#8d8d8f"/><stop offset="0.03" stop-color="#303033"/><stop offset="0.5" stop-color="#555558"/><stop offset="0.97" stop-color="#303033"/><stop offset="0.988" stop-color="#8d8d8f"/><stop offset="1" stop-color="#1a1a1c"/></linearGradient></defs>
+<path fill="#d9dde5" d="M267,64H3671A26,26 0 0 1 3697,90V2298H241V90A26,26 0 0 1 267,64Z"/>
+<path fill-rule="evenodd" fill="url(#lidedge)" d="M249,0H3689A70,70 0 0 1 3759,70V2392A10,10 0 0 1 3749,2402H189A10,10 0 0 1 179,2392V70A70,70 0 0 1 249,0ZM249,10H3689A60,60 0 0 1 3749,70V2392H189V70A60,60 0 0 1 249,10Z"/>
+<path fill-rule="evenodd" fill="#050506" d="M249,10H3689A60,60 0 0 1 3749,70V2392H189V70A60,60 0 0 1 249,10ZM267,64H3671A26,26 0 0 1 3697,90V2298H241V90A26,26 0 0 1 267,64Z"/>
+<path fill="none" stroke="#ffffff" stroke-opacity="0.14" stroke-width="2" d="M249,11H3689A59,59 0 0 1 3748,70V2391H190V70A59,59 0 0 1 249,11Z"/>
+<path fill="none" stroke="#000" stroke-opacity="0.55" stroke-width="3" d="M267,64H3671A26,26 0 0 1 3697,90V2298H241V90A26,26 0 0 1 267,64Z"/>
+<path fill="url(#glare)" d="M267,64H3671A26,26 0 0 1 3697,90V2298H241V90A26,26 0 0 1 267,64Z"/>
+<path fill="#050506" d="M1779,60H2159V126A16,16 0 0 1 2143,142H1795A16,16 0 0 1 1779,126V60Z"/>
+<circle cx="1969" cy="103" r="8" fill="#07080b"/><circle cx="1969" cy="103" r="4.96" fill="#141a26"/><circle cx="1969" cy="103" r="2.72" fill="#1e2a40"/><circle cx="1967" cy="101" r="1.12" fill="#ffffff" fill-opacity="0.35"/>
+<path fill="url(#deck)" d="M8,2396H3930A8,8 0 0 1 3938,2404V2443A47,47 0 0 1 3891,2490H47A47,47 0 0 1 0,2443V2404A8,8 0 0 1 8,2396Z"/>
+<path fill="url(#deckx)" d="M8,2396H3930A8,8 0 0 1 3938,2404V2443A47,47 0 0 1 3891,2490H47A47,47 0 0 1 0,2443V2404A8,8 0 0 1 8,2396Z"/>
+<path fill="url(#hinge)" d="M209,2396H3729V2412H209V2396Z"/>
+<path fill="#222224" d="M1673.65,2396H2264.35V2412.08A14,14 0 0 1 2250.35,2426.08H1687.65A14,14 0 0 1 1673.65,2412.08V2396Z"/>
+<path stroke="#fff" stroke-opacity="0.45" stroke-width="2" d="M12,2397.5 H3926"/>
+</svg>

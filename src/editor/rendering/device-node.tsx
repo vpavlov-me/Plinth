@@ -7,7 +7,7 @@ import type { DeviceTransform } from "@/editor/geometry";
 import { ImageShape } from "@/editor/rendering/image-shape";
 import { ScreenshotNode } from "@/editor/rendering/screenshot-node";
 import { ShadowNode } from "@/editor/rendering/shadow-node";
-import { getSilhouette } from "@/editor/rendering/silhouette";
+import { getFrameSilhouette, getSilhouette } from "@/editor/rendering/silhouette";
 import type { DeviceInstance, ResolvedDeviceGeometry } from "@/editor/types";
 
 type Props = {
@@ -47,7 +47,12 @@ export const DeviceNode = forwardRef<Konva.Group, Props>(function DeviceNode(
   const frameImage = useImage(frameSrc);
   // Frameless screenshots cast an alpha-aware shadow.
   const screenshot = useImage(useAsset(instance.screenshotId)?.url);
-  const mask = device.layout.type === "screenshot" && screenshot ? getSilhouette(screenshot, geometry.screen) : null;
+  const mask =
+    device.layout.type === "screenshot" && screenshot
+      ? getSilhouette(screenshot, geometry.screen)
+      : device.custom && frameImage
+        ? getFrameSilhouette(frameImage, geometry.screen)
+        : null;
 
   return (
     <Group

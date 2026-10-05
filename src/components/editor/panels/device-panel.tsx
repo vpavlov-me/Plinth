@@ -9,7 +9,9 @@ import { SliderField } from "@/components/ui/slider-field";
 import { Tooltip } from "@/components/ui/tooltip";
 import { importScreenshot } from "@/editor/actions";
 import { useAsset } from "@/editor/assets";
-import { DEVICES, getDevice } from "@/editor/devices/definitions";
+import { customDeviceId } from "@/editor/custom-frames";
+import { DEVICE_GROUPS, getDevice } from "@/editor/devices/definitions";
+import { useLibraryStore } from "@/editor/library";
 import { changeDeviceModel, resetDeviceTransform, setScreenshot, updateDevice } from "@/editor/scene";
 import { useActiveDeviceId } from "@/editor/selection";
 import { useDevice, useEditorStore, useScene } from "@/editor/store";
@@ -22,6 +24,7 @@ export function DevicePanel() {
   const canvas = useScene((s) => s.canvas);
   const update = useEditorStore((s) => s.update);
   const commit = useEditorStore((s) => s.commit);
+  const frames = useLibraryStore((s) => s.frames);
   if (!instance) return null;
 
   const device = getDevice(instance.deviceId);
@@ -50,11 +53,24 @@ export function DevicePanel() {
           onChange={(e) => update((scene, sizeOf) => changeDeviceModel(scene, instance.id, e.target.value, sizeOf))}
           className="h-8 w-full cursor-default appearance-none rounded-lg bg-field pr-8 pl-2.5 text-xs font-medium text-ink outline-none focus-visible:outline-2 focus-visible:outline-accent"
         >
-          {DEVICES.map((d) => (
-            <option key={d.id} value={d.id}>
-              {d.name}
-            </option>
+          {DEVICE_GROUPS.map((group) => (
+            <optgroup key={group.label} label={group.label}>
+              {group.devices.map((d) => (
+                <option key={d.id} value={d.id}>
+                  {d.name}
+                </option>
+              ))}
+            </optgroup>
           ))}
+          {frames.length > 0 ? (
+            <optgroup label="Your frames">
+              {frames.map((f) => (
+                <option key={f.assetId} value={customDeviceId(f.assetId)}>
+                  {f.name}
+                </option>
+              ))}
+            </optgroup>
+          ) : null}
         </select>
         <ChevronDown className="pointer-events-none absolute top-2 right-2.5 size-4 text-muted" />
       </div>

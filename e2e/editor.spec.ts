@@ -44,8 +44,8 @@ test("main workflow: upload → device → canvas → background → move → ex
   await expect(page.getByText("portrait.png")).toBeVisible();
   await expect(page.getByRole("heading", { name: "Drop a screenshot" })).toBeHidden();
 
-  await page.getByRole("button", { name: "Tablet", exact: true }).click();
-  await expect(page.getByLabel("Device model")).toHaveValue("tablet-portrait");
+  await page.getByRole("button", { name: "Tablet Pro 13″", exact: true }).click();
+  await expect(page.getByLabel("Device model")).toHaveValue("tablet-pro-13");
 
   await page.getByRole("radio", { name: /Square/ }).click();
   expect(await canvasSize(page)).toContain("1200 by 1200");
@@ -168,4 +168,28 @@ test("picks a built-in background image and exports it", async ({ page }) => {
   await expect(night).toHaveAttribute("aria-pressed", "true");
 
   expect(pngSize(await exportImage(page, "PNG", 1))).toMatchObject({ width: 1920, height: 1080 });
+});
+
+test("uploads a custom device frame and detects its screen", async ({ page }) => {
+  const chooser = page.waitForEvent("filechooser");
+  await page.getByRole("button", { name: "Upload a device frame" }).click();
+  await (await chooser).setFiles(join(FIXTURE_DIR, "frame.png"));
+  const notifications = page.getByRole("region", { name: "Notifications" });
+  await expect(notifications.getByText("Screen detected: 480 × 880 px")).toBeVisible();
+  await expect(page.getByLabel("Device model")).toHaveValue(/^custom:/);
+
+  await openScreenshot(page, "portrait.png");
+  const file = await exportImage(page, "PNG", 1);
+  expect(pngSize(file)).toMatchObject({ width: 1920, height: 1080 });
+
+  await page.waitForTimeout(800);
+  await page.reload();
+  await expect(page.getByLabel("Device model")).toHaveValue(/^custom:/);
+});
+
+test("applies social presets", async ({ page }) => {
+  await page.getByRole("button", { name: /TikTok story/ }).click();
+  expect(await canvasSize(page)).toContain("1080 by 1920");
+  await page.getByRole("button", { name: /^YouTube thumbnail/ }).click();
+  expect(await canvasSize(page)).toContain("1280 by 720");
 });

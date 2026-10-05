@@ -1,6 +1,8 @@
 import { useAssetStore } from "@/editor/assets";
 import { getDevice, suggestDeviceForImage } from "@/editor/devices/definitions";
 import { ImageImportError, importImageFile } from "@/editor/import-image";
+import { customDeviceId, detectScreen, FrameDetectionError } from "@/editor/custom-frames";
+import { getCachedImage } from "@/editor/assets";
 import { useLibraryStore } from "@/editor/library";
 import { notify } from "@/editor/notify";
 import { changeDeviceModel, setScreenshot } from "@/editor/scene";
@@ -93,4 +95,34 @@ export async function pasteScreenshotFromClipboard(instanceId?: string | null): 
   } catch {
     notify("Clipboard access was blocked", { description: "Press ⌘V / Ctrl+V to paste instead." });
   }
+}
+
+/**
+ * Adds a user-supplied device frame (PNG/WebP with a transparent screen) to
+ * the library and applies it to the active device.
+ */
+export async function importDeviceFrame(file: Blob & { name?: string }, instanceId?: string | null): Promise<void> {
+  const asset = await importWithFeedback(file);
+  if (!asset) return;
+  const image = getCachedImage(asset.url);
+  let screen;
+  try {
+    if (!image) throw new FrameDetectionError("The image could not be read.");
+    screen = detectScreen(image);
+  } catch (error) {
+    const description = error instanceof FrameDetectionError ? error.message : "The screen area could not be detected.";
+    notify("Couldn’t use this frame", { description, type: "error" });
+    useAssetStore.getState().prune(Object.keys(useAssetStore.getState().assets).filter((id) => id !== asset.id));
+    return;
+  }
+  const name = (asset.name || "Frame").replace(/\.[a-z0-9]+$/i, "");
+  useLibraryStore.getState().addFrame({ assetId: asset.id, name, screen });
+  const scene = getScene();
+  const target = scene.devices.find((d) => d.id === instanceId) ?? scene.devices[0];
+  if (target) {
+    useEditorStore
+      .getState()
+      .update((current, sizeOf) => changeDeviceModel(current, target.id, customDeviceId(asset.id), sizeOf));
+  }
+  notify("Frame added", { description: `Screen detected: ${screen.width} × ${screen.height} px` });
 }

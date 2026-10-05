@@ -7,7 +7,7 @@ const canvas = { width: 1920, height: 1080, preset: "landscape" as const };
 
 describe("geometry", () => {
   it("keeps fixed devices unchanged", () => {
-    const phone = getDevice("phone");
+    const phone = getDevice("phone-pro");
     const g = resolveDeviceGeometry(phone, { width: 100, height: 100 });
     expect(g.width).toBe(phone.frame.width);
     expect(g.screen).toEqual(phone.screen);
@@ -34,10 +34,10 @@ describe("geometry", () => {
   });
 
   it("fits with padding and round-trips transforms", () => {
-    const g = resolveDeviceGeometry(getDevice("laptop"), null);
+    const g = resolveDeviceGeometry(getDevice("laptop-air"), null);
     const scale = fitScale(g, canvas);
     expect(g.width * scale).toBeLessThanOrEqual(canvas.width * 0.82 + 0.001);
-    const instance = { ...createDeviceInstance("laptop"), x: 0.3, y: 0.6, scale: 1.4, rotation: 12 };
+    const instance = { ...createDeviceInstance("laptop-air"), x: 0.3, y: 0.6, scale: 1.4, rotation: 12 };
     const abs = deviceTransform(instance, g, canvas);
     expect(relativeTransform(abs, g, canvas)).toEqual({ x: 0.3, y: 0.6, scale: 1.4, rotation: 12 });
   });
