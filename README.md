@@ -18,7 +18,8 @@ Everything runs locally in the browser. There are no accounts, no uploads and no
 - **Your own frames**: upload any PNG/WebP device frame with a transparent screen (for example official bezels you
   downloaded under their licence). The screen opening is detected automatically, the shadow follows the frame's shape,
   and the frame is kept in your local library — it never leaves your browser.
-- **Canvas**: Original (screenshot at native resolution), 1:1, 4:5, 16:9, 9:16 and custom sizes (100–8000 px).
+- **Canvas**: picked in the library's Presets (left): Original (screenshot at native resolution), 1:1, 4:5, 16:9, 9:16 and
+  custom sizes (100–8000 px).
   Changing the canvas keeps the composition.
 - **Composition**: drag on the canvas (snaps to the centre lines), corner handles to scale, the rotation handle (snaps
   to 90°), and Scale / Horizontal / Vertical field sliders in the inspector (double-click a slider to reset it).
@@ -32,6 +33,8 @@ Everything runs locally in the browser. There are no accounts, no uploads and no
   Threads, Dribbble, Behance, Open Graph) that resize the canvas and re-fit the device, plus showcase scenes
   (Product Hunt, App Store, Google Play feature graphic, portfolio hero, presentation) that also set a background.
 - **Export**: PNG at 1×/2×/3×, JPG with a quality setting, transparent PNG, and copying to the clipboard (`⌘E` downloads).
+- **Layout**: floating library (left: devices and presets, each half scrolls independently) and properties panel
+  (right: Device, Background, Shadow — each section collapses). Hide/show the panels from the toolbar or with `[` / `]`.
 - **Undo/redo**: `⌘Z`, `⌘⇧Z` (or `Ctrl+Y`). A drag or slider movement counts as one step.
 - **Persistence**: the project is restored after a reload. Scene settings go to `localStorage` and images go to
   IndexedDB.

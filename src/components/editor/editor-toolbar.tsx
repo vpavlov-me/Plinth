@@ -1,12 +1,13 @@
 "use client";
 
-import { ImagePlus, Redo2, Undo2 } from "lucide-react";
+import { ImagePlus, PanelLeft, PanelRight, Redo2, Undo2 } from "lucide-react";
 import { ExportMenu } from "@/components/editor/export-menu";
 import { pickImageFile } from "@/components/editor/pick-file";
 import { IconButton } from "@/components/ui/button";
 import { importScreenshot } from "@/editor/actions";
 import { useActiveDeviceId } from "@/editor/selection";
 import { useCanRedo, useCanUndo, useEditorStore, useScene } from "@/editor/store";
+import { useUIStore } from "@/editor/ui-store";
 import { modKey } from "@/lib/platform";
 
 export function EditorToolbar() {
@@ -16,6 +17,8 @@ export function EditorToolbar() {
   const redo = useEditorStore((s) => s.redo);
   const canvas = useScene((s) => s.canvas);
   const activeId = useActiveDeviceId();
+  const panels = useUIStore((s) => s.panels);
+  const togglePanel = useUIStore((s) => s.togglePanel);
 
   return (
     <header className="flex h-14 shrink-0 items-center gap-2 px-4">
@@ -23,6 +26,14 @@ export function EditorToolbar() {
         <Logo />
         <span className="text-[13px] font-semibold tracking-tight">Plinth</span>
       </div>
+      <IconButton
+        label={panels.library ? "Hide library" : "Show library"}
+        shortcut="["
+        icon={<PanelLeft />}
+        active={panels.library}
+        className="hidden xl:inline-flex"
+        onClick={() => togglePanel("library")}
+      />
 
       <div className="flex-1" />
 
@@ -40,6 +51,13 @@ export function EditorToolbar() {
       <IconButton label="Redo" shortcut={`${modKey()}⇧Z`} icon={<Redo2 />} disabled={!canRedo} onClick={redo} />
       <div className="mx-1 h-5 w-px bg-line" aria-hidden />
       <ExportMenu />
+      <IconButton
+        label={panels.inspector ? "Hide properties" : "Show properties"}
+        shortcut="]"
+        icon={<PanelRight />}
+        active={panels.inspector}
+        onClick={() => togglePanel("inspector")}
+      />
     </header>
   );
 }

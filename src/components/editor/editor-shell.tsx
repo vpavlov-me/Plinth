@@ -9,10 +9,12 @@ import { usePersistence } from "@/components/editor/use-persistence";
 import { Workspace } from "@/components/editor/workspace";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { useUIStore } from "@/editor/ui-store";
 
 export function EditorShell() {
   usePersistence();
   useEditorShortcuts();
+  const panels = useUIStore((s) => s.panels);
 
   return (
     <TooltipProvider delay={400}>
@@ -20,9 +22,9 @@ export function EditorShell() {
         <div className="workspace-bg hidden h-dvh flex-col md:flex">
           <EditorToolbar />
           <div className="flex min-h-0 flex-1 gap-3 px-3 pb-3">
-            <LibrarySidebar />
+            {panels.library ? <LibrarySidebar /> : null}
             <Workspace />
-            <InspectorSidebar />
+            {panels.inspector ? <InspectorSidebar /> : null}
           </div>
         </div>
         <NarrowScreenNotice />

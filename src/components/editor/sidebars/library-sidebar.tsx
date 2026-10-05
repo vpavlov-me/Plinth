@@ -3,6 +3,7 @@
 /* eslint-disable @next/next/no-img-element -- static SVG previews and local object URLs */
 import { Plus, ScanLine, X } from "lucide-react";
 import { linearGradientCss } from "@/components/editor/css-background";
+import { CanvasPresetPicker } from "@/components/editor/canvas-preset-picker";
 import { pickImageFile } from "@/components/editor/pick-file";
 import { Tooltip } from "@/components/ui/tooltip";
 import { importDeviceFrame } from "@/editor/actions";
@@ -17,21 +18,29 @@ import { useDevice, useEditorStore, useScene } from "@/editor/store";
 import type { BackgroundConfig, DeviceDefinition } from "@/editor/types";
 import { cn } from "@/lib/cn";
 
+/** Two equal halves — devices and presets — each with its own scroll. */
 export function LibrarySidebar() {
   return (
     <aside
       aria-label="Library"
-      className="hidden w-[248px] shrink-0 scrollbar-thin flex-col overflow-y-auto rounded-2xl bg-panel pb-4 shadow-panel xl:flex"
+      className="hidden w-[248px] shrink-0 flex-col overflow-hidden rounded-2xl bg-panel shadow-panel xl:flex"
     >
       <DeviceLibrary />
+      <div className="h-px shrink-0 bg-line" aria-hidden />
       <PresetLibrary />
     </aside>
   );
 }
 
 function SidebarHeading({ children }: { children: React.ReactNode }) {
-  return <h2 className="px-4 pt-4 pb-1 text-2xs font-semibold tracking-wide text-subtle uppercase">{children}</h2>;
+  return (
+    <h2 className="sticky top-0 z-10 bg-panel px-4 pt-3.5 pb-1.5 text-2xs font-semibold tracking-wide text-subtle uppercase">
+      {children}
+    </h2>
+  );
 }
+
+const HALF = "min-h-0 flex-1 basis-0 overflow-y-auto scrollbar-thin pb-3";
 
 function GroupHeading({ children }: { children: React.ReactNode }) {
   return <h3 className="px-4 pt-3 pb-1.5 text-2xs font-medium text-muted">{children}</h3>;
@@ -55,7 +64,7 @@ function DeviceLibrary() {
   const select = useSelectDevice();
 
   return (
-    <section aria-label="Devices">
+    <section aria-label="Devices" className={HALF}>
       <SidebarHeading>Devices</SidebarHeading>
       {DEVICE_GROUPS.map((group) => (
         <div key={group.label} role="group" aria-label={group.label}>
@@ -207,8 +216,12 @@ function PresetLibrary() {
   const update = useEditorStore((s) => s.update);
   const currentBackground = useScene((s) => s.background);
   return (
-    <section aria-label="Presets">
+    <section aria-label="Presets" className={HALF}>
       <SidebarHeading>Presets</SidebarHeading>
+      <div role="group" aria-label="Canvas">
+        <GroupHeading>Canvas</GroupHeading>
+        <CanvasPresetPicker />
+      </div>
       {SCENE_PRESET_GROUPS.map((group) => (
         <div key={group.id} role="group" aria-label={group.label}>
           <GroupHeading>{group.label}</GroupHeading>

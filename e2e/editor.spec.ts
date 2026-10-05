@@ -193,3 +193,20 @@ test("applies social presets", async ({ page }) => {
   await page.getByRole("button", { name: /^YouTube thumbnail/ }).click();
   expect(await canvasSize(page)).toContain("1280 by 720");
 });
+
+test("hides and shows the side panels and collapses sections", async ({ page }) => {
+  await page.getByRole("button", { name: "Hide library" }).click();
+  await expect(page.getByRole("complementary", { name: "Library" })).toBeHidden();
+  await page.keyboard.press("[");
+  await expect(page.getByRole("complementary", { name: "Library" })).toBeVisible();
+
+  await page.getByRole("button", { name: "Hide properties" }).click();
+  await expect(page.getByRole("complementary", { name: "Properties" })).toBeHidden();
+  await page.getByRole("button", { name: "Show properties" }).click();
+
+  const shadow = page.getByRole("button", { name: "Shadow", exact: true });
+  await shadow.click();
+  await expect(page.getByRole("button", { name: "Medium", exact: true })).toBeHidden();
+  await shadow.click();
+  await expect(page.getByRole("button", { name: "Medium", exact: true })).toBeVisible();
+});

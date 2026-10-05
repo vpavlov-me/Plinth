@@ -1,6 +1,5 @@
 "use client";
 
-import { Section } from "@/components/ui/section";
 import { NumberInput } from "@/components/ui/number-input";
 import { Tooltip } from "@/components/ui/tooltip";
 import { CANVAS_MAX_SIZE, CANVAS_MIN_SIZE, CANVAS_PRESETS, type CanvasPreset } from "@/editor/presets/canvas-presets";
@@ -8,13 +7,14 @@ import { setCanvasPreset, setCanvasSize } from "@/editor/scene";
 import { useEditorStore, useScene } from "@/editor/store";
 import { cn } from "@/lib/cn";
 
-export function CanvasPanel() {
+/** Canvas size picker, shown at the top of the library's presets. */
+export function CanvasPresetPicker() {
   const canvas = useScene((s) => s.canvas);
   const update = useEditorStore((s) => s.update);
   const commit = useEditorStore((s) => s.commit);
 
   return (
-    <Section title="Canvas">
+    <div className="flex flex-col gap-2 px-3">
       <div role="radiogroup" aria-label="Canvas size" className="grid grid-cols-3 gap-1.5">
         {CANVAS_PRESETS.map((preset) => (
           <PresetButton
@@ -45,7 +45,7 @@ export function CanvasPanel() {
           />
         </div>
       ) : null}
-    </Section>
+    </div>
   );
 }
 
@@ -67,7 +67,7 @@ function PresetButton({
         aria-label={`${preset.label} ${preset.ratio}`}
         onClick={onSelect}
         className={cn(
-          "flex h-14 cursor-default flex-col items-center justify-center gap-1 rounded-lg border transition-colors",
+          "flex h-12 cursor-default flex-col items-center justify-center gap-1 rounded-lg border transition-colors",
           selected
             ? "border-accent bg-accent-soft text-accent"
             : "border-line text-muted hover:bg-hover hover:text-ink",

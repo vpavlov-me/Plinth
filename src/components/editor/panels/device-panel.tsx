@@ -35,12 +35,16 @@ export function DevicePanel() {
     <Section
       title="Device"
       action={
-        <IconButton
-          label="Reset position"
-          icon={<RotateCcw />}
-          className="-mr-1.5 size-7"
+        <Button
+          size="sm"
+          variant="secondary"
+          className="-mr-1"
+          disabled={instance.x === 0.5 && instance.y === 0.5 && instance.scale === 1 && instance.rotation === 0}
           onClick={() => update((scene) => resetDeviceTransform(scene, instance.id))}
-        />
+        >
+          <RotateCcw className="size-3.5" />
+          Reset
+        </Button>
       }
     >
       <div className="relative">
