@@ -9,6 +9,10 @@ const nextConfig: NextConfig = {
       canvas: { browser: "./src/editor/utils/empty-module.ts" },
     },
   },
+  // llms.txt is the standard location; also answer the common misspelling.
+  async rewrites() {
+    return [{ source: "/llm.txt", destination: "/llms.txt" }];
+  },
 };
 
 export default nextConfig;

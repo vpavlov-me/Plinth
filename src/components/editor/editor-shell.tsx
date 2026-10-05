@@ -53,7 +53,7 @@ function NarrowScreenNotice() {
       <div className="flex size-11 items-center justify-center rounded-xl bg-accent-soft text-accent">
         <Monitor className="size-5" />
       </div>
-      <h1 className="text-[15px] font-semibold">Plinth needs a larger screen</h1>
+      <h2 className="text-[15px] font-semibold">Plinth needs a larger screen</h2>
       <p className="max-w-xs text-xs leading-5 text-muted">
         The mockup editor is designed for desktop and tablet. Open this page on a wider window to turn screenshots into
         polished device mockups.

@@ -32,7 +32,9 @@ export function EditorToolbar() {
       />
       <div className="flex items-center gap-2 pr-2">
         <Logo />
-        <span className="text-[13px] font-semibold tracking-tight">Plinth</span>
+        <h1 className="text-[13px] font-semibold tracking-tight">
+          Plinth<span className="sr-only"> — device mockup generator for screenshots</span>
+        </h1>
       </div>
 
       <div className="flex-1" />

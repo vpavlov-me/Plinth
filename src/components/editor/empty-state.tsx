@@ -82,9 +82,9 @@ export function EmptyState({ instance, canvas, viewScale, busy }: Props) {
           >
             {busy ? <Loader2 className="size-5 animate-spin" /> : <ImageUp className="size-5" />}
           </div>
-          <h1 className={cn("font-semibold text-ink", variant === "full" ? "text-[15px]" : "text-[13px]")}>
+          <h2 className={cn("font-semibold text-ink", variant === "full" ? "text-[15px]" : "text-[13px]")}>
             {busy ? "Processing image…" : "Drop a screenshot"}
-          </h1>
+          </h2>
           {variant === "full" ? (
             <p className="mt-1 text-xs leading-5 text-muted">
               PNG, JPG or WebP. Drag it anywhere, paste with {modKey()}V, or choose a file.
