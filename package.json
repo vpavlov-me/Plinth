@@ -13,7 +13,7 @@
     "test:watch": "vitest",
     "test:e2e": "playwright test",
     "devices:generate": "node scripts/generate-device-assets.mjs",
-    "backgrounds:generate": "bash scripts/generate-backgrounds.sh",
+    "backgrounds:fetch": "bash scripts/fetch-backgrounds.sh",
     "format": "prettier --write .",
     "format:check": "prettier --check ."
   },
