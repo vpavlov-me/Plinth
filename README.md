@@ -15,9 +15,13 @@ Everything runs locally in the browser. There are no accounts, no uploads and no
 - **Canvas**: Original (screenshot at native resolution), 1:1, 4:5, 16:9, 9:16 and custom sizes (100–8000 px).
   Changing the canvas keeps the composition.
 - **Composition**: drag on the canvas (snaps to the centre lines), corner handles to scale, the rotation handle (snaps
-  to 90°), inspector controls for scale, rotation and X/Y, arrow-key nudging (`⇧` for 10 px) and reset.
-- **Background**: solid colour with swatches, gradients (2–4 colours, angle, presets), image (fill/fit) or transparent.
-- **Shadow**: None / Soft / Medium / Strong, plus blur, opacity and X/Y offsets under "Advanced".
+  to 90°), and Scale / Horizontal / Vertical field sliders in the inspector (double-click a slider to reset it).
+  Arrow keys nudge the device (`⇧` for 10 px).
+- **Background**: Solid, Gradient, Image or None. Each tab shows built-in options plus the user's own: pick a colour,
+  build a two-colour gradient, or upload an image with the "+" tile. The personal library is stored locally and kept
+  across sessions; hover a personal tile to remove it. Built-in photos come from Unsplash (see
+  `src/editor/presets/photo-presets.ts`).
+- **Shadow**: None / Soft / Medium / Strong.
 - **Presets**: one-click scenes (Product Hunt, LinkedIn, App Store, Portfolio Hero, Instagram, Presentation).
 - **Export**: PNG at 1×/2×/3×, JPG with a quality setting, transparent PNG, and copying to the clipboard (`⌘E` downloads).
 - **Undo/redo**: `⌘Z`, `⌘⇧Z` (or `Ctrl+Y`). A drag or slider movement counts as one step.
@@ -170,3 +174,4 @@ higher-fidelity artwork of the same dimensions, or update the geometry to match 
 - No zoom or pan in the workspace. The canvas always fits the window.
 - Copy-to-clipboard depends on browser support for `ClipboardItem` (Chromium and Safari; Firefox is limited).
 - Screens narrower than 768 px get an informational notice instead of the editor.
+- The UI is dark-only by design.

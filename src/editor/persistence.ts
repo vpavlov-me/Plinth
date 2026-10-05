@@ -1,9 +1,11 @@
 import { getAsset, loadImage, useAssetStore } from "@/editor/assets";
 import { DEVICES } from "@/editor/devices/definitions";
+import { useLibraryStore } from "@/editor/library";
 import { CANVAS_PRESETS, clampCanvasDimension } from "@/editor/presets/canvas-presets";
+import { getPhotoPreset } from "@/editor/presets/photo-presets";
 import { SHADOW_PRESETS } from "@/editor/presets/shadow-presets";
 import { createDefaultScene, sceneAssetIds } from "@/editor/scene";
-import type { BackgroundConfig, DeviceInstance, ImageAsset, Scene, ShadowConfig } from "@/editor/types";
+import type { BackgroundConfig, DeviceInstance, GradientConfig, ImageAsset, Scene, ShadowConfig } from "@/editor/types";
 import { DEFAULT_EXPORT_SETTINGS, type ExportSettings } from "@/editor/ui-store";
 
 /**
@@ -15,6 +17,7 @@ import { DEFAULT_EXPORT_SETTINGS, type ExportSettings } from "@/editor/ui-store"
 
 const SCENE_KEY = "plinth.scene.v1";
 const SETTINGS_KEY = "plinth.settings.v1";
+const LIBRARY_KEY = "plinth.library.v1";
 const DB_NAME = "plinth";
 const STORE = "assets";
 
@@ -88,7 +91,7 @@ async function restoreAsset(id: string): Promise<ImageAsset | null> {
 
 let saveTimer: number | undefined;
 
-/** Debounced save of the scene and the images it references. */
+/** Debounced save of the scene, the user's library and the images both reference. */
 export function scheduleSave(scene: Scene): void {
   window.clearTimeout(saveTimer);
   saveTimer = window.setTimeout(() => {
@@ -97,10 +100,56 @@ export function scheduleSave(scene: Scene): void {
     } catch {
       // Storage full or disabled: the editor keeps working without persistence.
     }
-    syncStoredAssets(sceneAssetIds(scene)).catch(() => {
+    const library = useLibraryStore.getState();
+    try {
+      localStorage.setItem(
+        LIBRARY_KEY,
+        JSON.stringify({ colors: library.colors, gradients: library.gradients, images: library.images }),
+      );
+    } catch {
+      // ignore
+    }
+    syncStoredAssets([...sceneAssetIds(scene), ...library.images]).catch(() => {
       // Screenshots are persisted best-effort (private mode, quota, …).
     });
   }, 400);
+}
+
+/** Restores the user's background library (colours, gradients, uploaded images). */
+export async function loadLibrary(): Promise<void> {
+  let data: { colors: string[]; gradients: GradientConfig[]; images: string[] } = {
+    colors: [],
+    gradients: [],
+    images: [],
+  };
+  try {
+    const parsed = JSON.parse(localStorage.getItem(LIBRARY_KEY) ?? "null") as Record<string, unknown> | null;
+    if (isRecord(parsed)) {
+      data = {
+        colors: Array.isArray(parsed.colors) ? parsed.colors.filter(isColor) : [],
+        gradients: Array.isArray(parsed.gradients)
+          ? parsed.gradients
+              .map((g) => (isRecord(g) ? sanitizeBackground({ ...g, type: "gradient" }) : null))
+              .filter((g): g is GradientConfig => g?.type === "gradient")
+          : [],
+        images: Array.isArray(parsed.images) ? parsed.images.filter(isString) : [],
+      };
+    }
+  } catch {
+    // Corrupt data: start with an empty library.
+  }
+  const images: string[] = [];
+  for (const id of data.images) {
+    try {
+      const asset = await restoreAsset(id);
+      if (!asset) continue;
+      useAssetStore.getState().add(asset);
+      images.push(id);
+    } catch {
+      break; // IndexedDB unavailable
+    }
+  }
+  useLibraryStore.getState().load({ ...data, images });
 }
 
 /** Restores the last scene. Missing images are dropped from the scene. */
@@ -114,9 +163,11 @@ export async function loadScene(): Promise<Scene> {
   }
   if (!scene) return createDefaultScene();
 
-  const restored = new Set<string>();
+  // Assets may already be loaded (e.g. by the library).
+  const restored = new Set<string>(sceneAssetIds(scene).filter((id) => getAsset(id)));
   try {
-    const assets = await Promise.all(sceneAssetIds(scene).map((id) => restoreAsset(id)));
+    const missing = sceneAssetIds(scene).filter((id) => !restored.has(id));
+    const assets = await Promise.all(missing.map((id) => restoreAsset(id)));
     for (const asset of assets) {
       if (!asset) continue;
       useAssetStore.getState().add(asset);
@@ -129,7 +180,9 @@ export async function loadScene(): Promise<Scene> {
   return {
     ...scene,
     background:
-      scene.background.type === "image" && !restored.has(scene.background.assetId)
+      scene.background.type === "image" &&
+      scene.background.source.kind === "upload" &&
+      !restored.has(scene.background.source.assetId)
         ? createDefaultScene().background
         : scene.background,
     devices: scene.devices.map((d) =>
@@ -200,10 +253,18 @@ function sanitizeBackground(bg: Record<string, unknown>): BackgroundConfig | nul
       return Array.isArray(bg.colors) && bg.colors.length >= 2 && bg.colors.every(isColor) && isNumber(bg.angle)
         ? { type: "gradient", colors: bg.colors.slice(0, 4), angle: bg.angle }
         : null;
-    case "image":
-      return isString(bg.assetId)
-        ? { type: "image", assetId: bg.assetId, fit: bg.fit === "contain" ? "contain" : "cover" }
-        : null;
+    case "image": {
+      // Legacy format: { assetId, fit }.
+      if (isString(bg.assetId)) return { type: "image", source: { kind: "upload", assetId: bg.assetId } };
+      const source = isRecord(bg.source) ? bg.source : null;
+      if (source?.kind === "upload" && isString(source.assetId)) {
+        return { type: "image", source: { kind: "upload", assetId: source.assetId } };
+      }
+      if (source?.kind === "photo" && isString(source.photoId) && getPhotoPreset(source.photoId)) {
+        return { type: "image", source: { kind: "photo", photoId: source.photoId } };
+      }
+      return null;
+    }
     case "transparent":
       return { type: "transparent" };
     default:

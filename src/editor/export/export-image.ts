@@ -1,5 +1,6 @@
 import { createElement } from "react";
 import { getAsset, loadImage } from "@/editor/assets";
+import { backgroundImageUrl } from "@/editor/background-image";
 import { getDevice, getVariant } from "@/editor/devices/definitions";
 import type { Size } from "@/editor/geometry";
 import type { ExportSettings } from "@/editor/ui-store";
@@ -36,8 +37,8 @@ function sceneImageUrls(scene: Scene): string[] {
     if (shot) urls.push(shot.url);
   }
   if (scene.background.type === "image") {
-    const bg = getAsset(scene.background.assetId);
-    if (bg) urls.push(bg.url);
+    const url = backgroundImageUrl(scene.background.source);
+    if (url) urls.push(url);
   }
   return urls;
 }

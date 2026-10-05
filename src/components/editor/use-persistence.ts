@@ -4,9 +4,10 @@ import { useEffect } from "react";
 import { loadImage, useAssetStore } from "@/editor/assets";
 import { DEVICES } from "@/editor/devices/definitions";
 import { historyValues } from "@/editor/history";
-import { loadScene, loadSettings, saveSettings, scheduleSave } from "@/editor/persistence";
+import { useLibraryStore } from "@/editor/library";
+import { loadLibrary, loadScene, loadSettings, saveSettings, scheduleSave } from "@/editor/persistence";
 import { sceneAssetIds } from "@/editor/scene";
-import { useEditorStore } from "@/editor/store";
+import { getScene, useEditorStore } from "@/editor/store";
 import { useUIStore } from "@/editor/ui-store";
 
 /**
@@ -25,26 +26,38 @@ export function usePersistence() {
 
     useUIStore.getState().setExportSettings(loadSettings());
 
-    void loadScene().then((scene) => {
-      if (disposed) return;
-      useEditorStore.getState().load(scene);
-      useUIStore.getState().setHydrated();
+    void loadLibrary()
+      .then(() => loadScene())
+      .then((scene) => {
+        if (disposed) return;
+        useEditorStore.getState().load(scene);
+        useUIStore.getState().setHydrated();
 
-      unsubscribers.push(
-        useEditorStore.subscribe((state, previous) => {
-          if (state.history === previous.history) return;
-          if (state.history.present !== previous.history.present) scheduleSave(state.history.present);
-          useAssetStore.getState().prune(historyValues(state.history).flatMap(sceneAssetIds));
-        }),
-        useUIStore.subscribe((state, previous) => {
-          if (state.exportSettings !== previous.exportSettings) saveSettings(state.exportSettings);
-        }),
-      );
-    });
+        unsubscribers.push(
+          useEditorStore.subscribe((state, previous) => {
+            if (state.history === previous.history) return;
+            if (state.history.present !== previous.history.present) scheduleSave(state.history.present);
+            pruneAssets();
+          }),
+          useLibraryStore.subscribe(() => {
+            scheduleSave(getScene());
+            pruneAssets();
+          }),
+          useUIStore.subscribe((state, previous) => {
+            if (state.exportSettings !== previous.exportSettings) saveSettings(state.exportSettings);
+          }),
+        );
+      });
 
     return () => {
       disposed = true;
       for (const unsubscribe of unsubscribers) unsubscribe();
     };
   }, []);
+}
+
+/** Releases images that neither the undo history nor the library can reach. */
+function pruneAssets() {
+  const keep = historyValues(useEditorStore.getState().history).flatMap(sceneAssetIds);
+  useAssetStore.getState().prune([...keep, ...useLibraryStore.getState().images]);
 }

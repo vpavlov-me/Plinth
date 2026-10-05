@@ -59,7 +59,7 @@ test("main workflow: upload → device → canvas → background → move → ex
   await page.mouse.down();
   await page.mouse.move(box.x + box.width / 2 + 80, box.y + box.height / 2, { steps: 10 });
   await page.mouse.up();
-  await expect(page.getByLabel("X", { exact: true })).not.toHaveValue("600");
+  await expect(page.getByRole("slider", { name: "Horizontal" })).not.toHaveValue("0");
 
   const file = await exportImage(page, "PNG", 2);
   expect(pngSize(file)).toMatchObject({ width: 2400, height: 2400 });
@@ -95,7 +95,7 @@ test("handles invalid, tiny, transparent and very large images", async ({ page }
   await expect(page.getByText("large.jpg")).toBeVisible();
 });
 
-test("every canvas preset, rotation, frameless and undo/redo", async ({ page }) => {
+test("every canvas preset, frameless, scale and undo/redo", async ({ page }) => {
   await openScreenshot(page, "portrait.png");
   for (const [name, size] of [
     [/Square/, "1200 by 1200"],
@@ -110,19 +110,19 @@ test("every canvas preset, rotation, frameless and undo/redo", async ({ page }) 
   expect(await canvasSize(page)).not.toContain("1080 by 1920");
 
   await page.getByLabel("Device model").selectOption("none");
-  const rotation = page.getByRole("slider", { name: "Rotation" });
-  await rotation.focus();
+  const scale = page.getByRole("slider", { name: "Scale" });
+  await scale.focus();
   await page.keyboard.press("ArrowRight");
   await page.keyboard.press("ArrowRight");
-  await expect(page.getByText("2°", { exact: true })).toBeVisible();
+  await expect(page.getByText("102%", { exact: true })).toBeVisible();
 
   await page.keyboard.press("ControlOrMeta+z");
   await page.keyboard.press("ControlOrMeta+z");
-  await expect(page.getByText("0°", { exact: true })).toBeVisible();
+  await expect(page.getByText("100%", { exact: true })).toBeVisible();
   await page.keyboard.press("ControlOrMeta+Shift+z");
-  await expect(page.getByText("1°", { exact: true })).toBeVisible();
+  await expect(page.getByText("101%", { exact: true })).toBeVisible();
   await page.keyboard.press("ControlOrMeta+Shift+z");
-  await expect(page.getByText("2°", { exact: true })).toBeVisible();
+  await expect(page.getByText("102%", { exact: true })).toBeVisible();
 });
 
 test("restores the project after reload", async ({ page }) => {
@@ -132,4 +132,26 @@ test("restores the project after reload", async ({ page }) => {
   await page.reload();
   await expect(page.getByText("landscape.png")).toBeVisible();
   expect(await canvasSize(page)).toContain("1080 by 1920");
+});
+
+test("keeps the user's own backgrounds in the library", async ({ page }) => {
+  await page.getByRole("button", { name: "Gradient", exact: true }).click();
+  await page.getByRole("button", { name: "Add your gradient" }).click();
+  await page.getByRole("button", { name: "Add gradient" }).click();
+  await expect(page.getByRole("button", { name: "Your gradient 1", exact: true })).toBeVisible();
+
+  const chooser = page.waitForEvent("filechooser");
+  await page.getByRole("button", { name: "Image", exact: true }).click();
+  await (await chooser).setFiles(join(FIXTURE_DIR, "small.png"));
+  await expect(page.getByRole("button", { name: "small.png", exact: true })).toBeVisible();
+
+  await page.waitForTimeout(800);
+  await page.reload();
+  await expect(page.getByRole("button", { name: "small.png", exact: true })).toBeVisible();
+  await page.getByRole("button", { name: "Gradient", exact: true }).click();
+  await expect(page.getByRole("button", { name: "Your gradient 1", exact: true })).toBeVisible();
+
+  await page.getByRole("button", { name: "Your gradient 1", exact: true }).hover();
+  await page.getByRole("button", { name: "Remove Your gradient 1" }).click();
+  await expect(page.getByRole("button", { name: "Your gradient 1", exact: true })).toBeHidden();
 });

@@ -14,7 +14,7 @@ import { useUIStore } from "@/editor/ui-store";
 
 /** Snap distance to the canvas centre lines, in screen pixels. */
 const SNAP_DISTANCE = 6;
-const ACCENT = "#3462f5";
+const ACCENT = "#6b8cff";
 
 type Guides = { vertical: boolean; horizontal: boolean };
 

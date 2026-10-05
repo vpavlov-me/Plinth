@@ -25,10 +25,13 @@ export type GradientConfig = {
 export type BackgroundConfig =
   | { type: "solid"; color: string }
   | GradientConfig
-  | { type: "image"; assetId: string; fit: "cover" | "contain" }
+  | { type: "image"; source: BackgroundImageSource }
   | { type: "transparent" };
 
 export type BackgroundType = BackgroundConfig["type"];
+
+/** A background photo: either one of the built-in photos or a user upload. */
+export type BackgroundImageSource = { kind: "photo"; photoId: string } | { kind: "upload"; assetId: string };
 
 export type ShadowPresetId = "none" | "soft" | "medium" | "strong" | "custom";
 

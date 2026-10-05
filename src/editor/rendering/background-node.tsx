@@ -1,7 +1,8 @@
 import { Image as KonvaImage, Rect } from "react-konva";
-import { useAsset, useImage } from "@/editor/assets";
+import { useImage } from "@/editor/assets";
+import { useBackgroundImageUrl } from "@/editor/background-image";
 import { fitRect } from "@/editor/geometry";
-import type { BackgroundConfig, CanvasConfig, GradientConfig } from "@/editor/types";
+import type { BackgroundConfig, BackgroundImageSource, CanvasConfig, GradientConfig } from "@/editor/types";
 
 type Props = { background: BackgroundConfig; canvas: CanvasConfig };
 
@@ -15,36 +16,18 @@ export function BackgroundNode({ background, canvas }: Props) {
         <Rect width={width} height={height} listening={false} {...linearGradientProps(background, width, height)} />
       );
     case "image":
-      return <BackgroundImage assetId={background.assetId} fit={background.fit} width={width} height={height} />;
+      return <BackgroundImage source={background.source} width={width} height={height} />;
     case "transparent":
       return null;
   }
 }
 
-function BackgroundImage({
-  assetId,
-  fit,
-  width,
-  height,
-}: {
-  assetId: string;
-  fit: "cover" | "contain";
-  width: number;
-  height: number;
-}) {
-  const asset = useAsset(assetId);
-  const image = useImage(asset?.url);
-  if (!asset || !image) return null;
-  const rect = fitRect(asset, { width, height }, fit);
-  return (
-    <KonvaImage
-      image={image}
-      listening={false}
-      {...rect}
-      // Crop to the canvas so exports never contain overflow.
-      {...(fit === "cover" ? coverCrop(asset, rect, width, height) : {})}
-    />
-  );
+function BackgroundImage({ source, width, height }: { source: BackgroundImageSource; width: number; height: number }) {
+  const image = useImage(useBackgroundImageUrl(source));
+  if (!image) return null;
+  const size = { width: image.naturalWidth, height: image.naturalHeight };
+  const rect = fitRect(size, { width, height }, "cover");
+  return <KonvaImage image={image} listening={false} {...coverCrop(size, rect, width, height)} />;
 }
 
 /** For "cover", draw only the visible part of the image. */

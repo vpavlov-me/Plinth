@@ -15,7 +15,7 @@ export function LibrarySidebar() {
   return (
     <aside
       aria-label="Library"
-      className="hidden w-[232px] shrink-0 scrollbar-thin flex-col overflow-y-auto border-r border-line bg-panel xl:flex"
+      className="hidden w-[232px] shrink-0 scrollbar-thin flex-col overflow-y-auto rounded-2xl bg-panel shadow-panel xl:flex"
     >
       <DeviceLibrary />
       <PresetLibrary />

@@ -129,6 +129,7 @@ export function applyScenePreset(scene: Scene, preset: ScenePreset, sizeOf: Asse
 /** All asset ids referenced by a scene. */
 export function sceneAssetIds(scene: Scene): string[] {
   const ids = scene.devices.flatMap((d) => (d.screenshotId ? [d.screenshotId] : []));
-  if (scene.background.type === "image") ids.push(scene.background.assetId);
+  const { background } = scene;
+  if (background.type === "image" && background.source.kind === "upload") ids.push(background.source.assetId);
   return ids;
 }

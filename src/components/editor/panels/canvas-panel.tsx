@@ -25,24 +25,26 @@ export function CanvasPanel() {
           />
         ))}
       </div>
-      <div className="grid grid-cols-2 gap-2">
-        <NumberInput
-          label="W"
-          value={canvas.width}
-          min={CANVAS_MIN_SIZE}
-          max={CANVAS_MAX_SIZE}
-          onChange={(width) => update((scene) => setCanvasSize(scene, { width }), { transient: true })}
-          onCommit={commit}
-        />
-        <NumberInput
-          label="H"
-          value={canvas.height}
-          min={CANVAS_MIN_SIZE}
-          max={CANVAS_MAX_SIZE}
-          onChange={(height) => update((scene) => setCanvasSize(scene, { height }), { transient: true })}
-          onCommit={commit}
-        />
-      </div>
+      {canvas.preset === "custom" ? (
+        <div className="grid grid-cols-2 gap-2">
+          <NumberInput
+            label="W"
+            value={canvas.width}
+            min={CANVAS_MIN_SIZE}
+            max={CANVAS_MAX_SIZE}
+            onChange={(width) => update((scene) => setCanvasSize(scene, { width }), { transient: true })}
+            onCommit={commit}
+          />
+          <NumberInput
+            label="H"
+            value={canvas.height}
+            min={CANVAS_MIN_SIZE}
+            max={CANVAS_MAX_SIZE}
+            onChange={(height) => update((scene) => setCanvasSize(scene, { height }), { transient: true })}
+            onCommit={commit}
+          />
+        </div>
+      ) : null}
     </Section>
   );
 }

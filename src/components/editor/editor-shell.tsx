@@ -17,9 +17,9 @@ export function EditorShell() {
   return (
     <TooltipProvider delay={400}>
       <Toaster>
-        <div className="hidden h-dvh flex-col md:flex">
+        <div className="workspace-bg hidden h-dvh flex-col md:flex">
           <EditorToolbar />
-          <div className="flex min-h-0 flex-1">
+          <div className="flex min-h-0 flex-1 gap-3 px-3 pb-3">
             <LibrarySidebar />
             <Workspace />
             <InspectorSidebar />

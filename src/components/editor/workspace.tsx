@@ -13,7 +13,7 @@ import { cn } from "@/lib/cn";
 const CanvasStage = dynamic(() => import("@/components/editor/canvas-stage"), { ssr: false });
 
 /** Space kept around the canvas inside the workspace, in CSS pixels. */
-const MARGIN = 56;
+const MARGIN = 40;
 const MAX_VIEW_SCALE = 2;
 
 export function Workspace() {
@@ -53,7 +53,7 @@ export function Workspace() {
     <main
       ref={containerRef}
       aria-label="Workspace"
-      className="workspace-bg relative min-w-0 flex-1 overflow-hidden"
+      className="relative min-w-0 flex-1 overflow-hidden"
       onPointerDown={(event) => {
         if (event.target === event.currentTarget) select(null);
       }}

@@ -1,6 +1,7 @@
 import { useAssetStore } from "@/editor/assets";
 import { getDevice, suggestDeviceForImage } from "@/editor/devices/definitions";
 import { ImageImportError, importImageFile } from "@/editor/import-image";
+import { useLibraryStore } from "@/editor/library";
 import { notify } from "@/editor/notify";
 import { changeDeviceModel, setScreenshot } from "@/editor/scene";
 import { getScene, useEditorStore } from "@/editor/store";
@@ -62,9 +63,10 @@ export async function importScreenshot(file: Blob & { name?: string }, instanceI
 export async function importBackgroundImage(file: Blob & { name?: string }): Promise<void> {
   const asset = await importWithFeedback(file);
   if (!asset) return;
+  useLibraryStore.getState().addImage(asset.id);
   useEditorStore.getState().update((scene) => ({
     ...scene,
-    background: { type: "image", assetId: asset.id, fit: "cover" },
+    background: { type: "image", source: { kind: "upload", assetId: asset.id } },
   }));
 }
 

@@ -8,7 +8,9 @@ type Props = {
   min: number;
   max: number;
   step?: number;
-  /** Formats the value shown next to the label. */
+  /** Value restored by double-clicking the field. */
+  defaultValue?: number;
+  /** Formats the value shown on the right. */
   format?: (value: number) => string;
   /** Fires continuously while dragging. */
   onChange: (value: number) => void;
@@ -16,7 +18,22 @@ type Props = {
   onCommit: () => void;
 };
 
-export function SliderField({ label, value, min, max, step = 1, format = String, onChange, onCommit }: Props) {
+/**
+ * Full-width "field" slider: the whole field is the track, the fill shows the
+ * value and a thin handle marks it. Label and value sit inside the field.
+ * Keyboard: arrow keys / Page Up / Page Down / Home / End.
+ */
+export function SliderField({
+  label,
+  value,
+  min,
+  max,
+  step = 1,
+  defaultValue,
+  format = String,
+  onChange,
+  onCommit,
+}: Props) {
   return (
     <Slider.Root
       value={value}
@@ -25,19 +42,28 @@ export function SliderField({ label, value, min, max, step = 1, format = String,
       step={step}
       onValueChange={(next) => onChange(next)}
       onValueCommitted={() => onCommit()}
-      className="grid grid-cols-[64px_1fr_44px] items-center gap-2"
+      className="relative"
     >
-      <Slider.Label className="text-xs text-muted">{label}</Slider.Label>
-      <Slider.Control className="flex h-6 w-full touch-none items-center select-none">
-        <Slider.Track className="h-1 w-full rounded-full bg-active">
-          <Slider.Indicator className="rounded-full bg-ink/70" />
+      <Slider.Control
+        className="group relative h-10 w-full cursor-ew-resize touch-none overflow-hidden rounded-xl bg-field select-none"
+        onDoubleClick={() => {
+          if (defaultValue === undefined || defaultValue === value) return;
+          onChange(defaultValue);
+          onCommit();
+        }}
+      >
+        <Slider.Track className="h-full w-full">
+          <Slider.Indicator className="h-full bg-white/[0.06] transition-colors group-hover:bg-white/[0.08]" />
           <Slider.Thumb
             getAriaValueText={(_formatted, v) => format(v)}
-            className="size-3.5 rounded-full border border-line-strong bg-panel shadow-[0_1px_3px_rgb(0_0_0/0.2)] outline-offset-2 has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-accent"
+            className="h-4 w-[3px] rounded-full bg-white/35 outline-none group-hover:bg-white/60 has-[:focus-visible]:bg-accent has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-accent"
           />
         </Slider.Track>
+        <div className="pointer-events-none absolute inset-0 flex items-center justify-between px-3.5 text-[13px]">
+          <Slider.Label className="text-muted">{label}</Slider.Label>
+          <span className="text-ink/80 tabular-nums">{format(value)}</span>
+        </div>
       </Slider.Control>
-      <span className="text-right text-xs text-muted tabular-nums">{format(value)}</span>
     </Slider.Root>
   );
 }

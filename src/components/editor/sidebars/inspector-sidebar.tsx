@@ -9,7 +9,7 @@ export function InspectorSidebar() {
   return (
     <aside
       aria-label="Properties"
-      className="flex w-[300px] shrink-0 scrollbar-thin flex-col overflow-y-auto border-l border-line bg-panel"
+      className="flex w-[300px] shrink-0 scrollbar-thin flex-col overflow-y-auto rounded-2xl bg-panel shadow-panel"
     >
       <CanvasPanel />
       <BackgroundPanel />

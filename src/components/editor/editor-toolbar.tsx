@@ -18,7 +18,7 @@ export function EditorToolbar() {
   const activeId = useActiveDeviceId();
 
   return (
-    <header className="flex h-12 shrink-0 items-center gap-2 border-b border-line bg-chrome px-3">
+    <header className="flex h-14 shrink-0 items-center gap-2 px-4">
       <div className="flex items-center gap-2 pr-2">
         <Logo />
         <span className="text-[13px] font-semibold tracking-tight">Plinth</span>

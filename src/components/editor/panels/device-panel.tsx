@@ -4,7 +4,6 @@
 import { ChevronDown, ImagePlus, RotateCcw, Trash2 } from "lucide-react";
 import { pickImageFile } from "@/components/editor/pick-file";
 import { Button, IconButton } from "@/components/ui/button";
-import { NumberInput } from "@/components/ui/number-input";
 import { Section } from "@/components/ui/section";
 import { SliderField } from "@/components/ui/slider-field";
 import { Tooltip } from "@/components/ui/tooltip";
@@ -92,33 +91,31 @@ export function DevicePanel() {
         value={Math.round(instance.scale * 100)}
         min={10}
         max={300}
+        defaultValue={100}
         format={(v) => `${v}%`}
         onChange={(v) => patch({ scale: v / 100 }, true)}
         onCommit={commit}
       />
       <SliderField
-        label="Rotation"
-        value={Math.round(instance.rotation)}
-        min={-180}
-        max={180}
-        format={(v) => `${v}°`}
-        onChange={(rotation) => patch({ rotation }, true)}
+        label="Horizontal"
+        value={Math.round((instance.x - 0.5) * canvas.width)}
+        min={-Math.round(canvas.width / 2)}
+        max={Math.round(canvas.width / 2)}
+        defaultValue={0}
+        format={(v) => `${v}px`}
+        onChange={(v) => patch({ x: 0.5 + v / canvas.width }, true)}
         onCommit={commit}
       />
-      <div className="grid grid-cols-2 gap-2">
-        <NumberInput
-          label="X"
-          value={Math.round(instance.x * canvas.width)}
-          onChange={(x) => patch({ x: x / canvas.width }, true)}
-          onCommit={commit}
-        />
-        <NumberInput
-          label="Y"
-          value={Math.round(instance.y * canvas.height)}
-          onChange={(y) => patch({ y: y / canvas.height }, true)}
-          onCommit={commit}
-        />
-      </div>
+      <SliderField
+        label="Vertical"
+        value={Math.round((instance.y - 0.5) * canvas.height)}
+        min={-Math.round(canvas.height / 2)}
+        max={Math.round(canvas.height / 2)}
+        defaultValue={0}
+        format={(v) => `${v}px`}
+        onChange={(v) => patch({ y: 0.5 + v / canvas.height }, true)}
+        onCommit={commit}
+      />
     </Section>
   );
 }
