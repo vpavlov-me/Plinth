@@ -16,11 +16,7 @@ type Props = {
 /** Inspector section whose header smoothly collapses and expands its controls. */
 export function Section({ title, action, defaultOpen = true, children }: Props) {
   return (
-    <Collapsible.Root
-      defaultOpen={defaultOpen}
-      render={<section aria-label={title} />}
-      className="border-b border-line px-4 py-3 last:border-b-0"
-    >
+    <Collapsible.Root defaultOpen={defaultOpen} render={<section aria-label={title} />} className="px-4 py-2.5">
       <header className="flex h-7 items-center justify-between gap-2">
         <Collapsible.Trigger className={COLLAPSE_TRIGGER}>
           {title}
@@ -29,7 +25,7 @@ export function Section({ title, action, defaultOpen = true, children }: Props) 
         {action}
       </header>
       <Collapsible.Panel className={COLLAPSE_PANEL}>
-        <div className="flex flex-col gap-3 pt-2.5 pb-1.5">{children}</div>
+        <div className="flex flex-col gap-2 pt-2 pb-2">{children}</div>
       </Collapsible.Panel>
     </Collapsible.Root>
   );

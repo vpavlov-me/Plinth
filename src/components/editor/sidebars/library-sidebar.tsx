@@ -35,7 +35,6 @@ export function LibrarySidebar() {
       <LibraryHalf title="Devices" open={open.devices} onToggle={() => setOpen((o) => ({ ...o, devices: !o.devices }))}>
         <DeviceLibrary />
       </LibraryHalf>
-      <div className="h-px shrink-0 bg-line" aria-hidden />
       <LibraryHalf title="Presets" open={open.presets} onToggle={() => setOpen((o) => ({ ...o, presets: !o.presets }))}>
         <PresetLibrary />
       </LibraryHalf>
