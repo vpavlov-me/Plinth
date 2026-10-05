@@ -237,3 +237,33 @@ export function cropOverflow(crop: ScreenshotCrop, image: Size, screen: Rect): {
   const rect = croppedImageRect(image, screen, crop);
   return { x: rect.width - screen.width > 0.5, y: rect.height - screen.height > 0.5 };
 }
+
+/**
+ * CSS `matrix3d()` that maps a `width × height` box (origin top-left, with
+ * `transform-origin: 0 0`) onto an arbitrary quad: top-left, top-right,
+ * bottom-right, bottom-left. Used to lay HTML over projected devices.
+ */
+export function quadToCssMatrix(
+  width: number,
+  height: number,
+  quad: [{ x: number; y: number }, { x: number; y: number }, { x: number; y: number }, { x: number; y: number }],
+): string {
+  const [p0, p1, p2, p3] = quad;
+  // Unit square → quad (Heckbert's projective mapping).
+  const dx1 = p1.x - p2.x;
+  const dx2 = p3.x - p2.x;
+  const dx3 = p0.x - p1.x + p2.x - p3.x;
+  const dy1 = p1.y - p2.y;
+  const dy2 = p3.y - p2.y;
+  const dy3 = p0.y - p1.y + p2.y - p3.y;
+  const den = dx1 * dy2 - dx2 * dy1 || 1e-9;
+  const g = (dx3 * dy2 - dx2 * dy3) / den;
+  const h = (dx1 * dy3 - dx3 * dy1) / den;
+  const a = p1.x - p0.x + g * p1.x;
+  const b = p3.x - p0.x + h * p3.x;
+  const d = p1.y - p0.y + g * p1.y;
+  const e = p3.y - p0.y + h * p3.y;
+  // Box pixels → unit square, then column-major for CSS.
+  const m = [a / width, d / width, 0, g / width, b / height, e / height, 0, h / height, 0, 0, 1, 0, p0.x, p0.y, 0, 1];
+  return `matrix3d(${m.map((v) => +v.toPrecision(12)).join(",")})`;
+}

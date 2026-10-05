@@ -328,20 +328,48 @@ function LayoutLibrary() {
 
 /** Typical proportions per slot category, used only to draw layout previews. */
 const PREVIEW_SHAPES = {
-  phone: { width: 0.49, height: 1 },
-  tablet: { width: 0.75, height: 1 },
-  laptop: { width: 1, height: 0.62 },
+  phone: { width: 0.49, height: 1, radius: 0.16 },
+  tablet: { width: 0.75, height: 1, radius: 0.08 },
+  laptop: { width: 1, height: 0.62, radius: 0.04 },
 };
+
+/**
+ * SVG path of a polygon with rounded corners (any quad: turned or projected).
+ * Each corner is cut at `radius` along both edges and joined with a curve.
+ */
+function roundedPolygonPath(points: { x: number; y: number }[], radius: number): string {
+  const n = points.length;
+  const commands = points.map((corner, i) => {
+    const prev = points[(i - 1 + n) % n]!;
+    const next = points[(i + 1) % n]!;
+    const toward = (target: { x: number; y: number }) => {
+      const length = Math.hypot(target.x - corner.x, target.y - corner.y) || 1;
+      const cut = Math.min(radius, length / 2);
+      return {
+        x: corner.x + ((target.x - corner.x) / length) * cut,
+        y: corner.y + ((target.y - corner.y) / length) * cut,
+      };
+    };
+    const start = toward(prev);
+    const end = toward(next);
+    const f = (v: number) => v.toFixed(3);
+    return `${i === 0 ? "M" : "L"}${f(start.x)},${f(start.y)} Q${f(corner.x)},${f(corner.y)} ${f(end.x)},${f(end.y)}`;
+  });
+  return `${commands.join(" ")} Z`;
+}
 
 /** Schematic preview drawn from the layout data itself (no images). */
 function LayoutPreview({ layout }: { layout: LayoutPreset }) {
   const shapes = layout.slots.map((slot) => {
     const shape = PREVIEW_SHAPES[slot.category ?? "phone"];
-    return deviceOutline(shape, slot.perspective, slot.rotation, slot.size / Math.max(shape.width, shape.height)).map(
-      (p) => ({ x: p.x + slot.x, y: p.y + slot.y }),
-    );
+    const scale = slot.size / Math.max(shape.width, shape.height);
+    const points = deviceOutline(shape, slot.perspective, slot.rotation, scale).map((p) => ({
+      x: p.x + slot.x,
+      y: p.y + slot.y,
+    }));
+    return { points, radius: shape.radius * scale };
   });
-  const bounds = boundsOf(shapes.flat());
+  const bounds = boundsOf(shapes.flatMap((s) => s.points));
   const pad = Math.max(bounds.width, bounds.height) * 0.08;
   return (
     <svg
@@ -349,10 +377,10 @@ function LayoutPreview({ layout }: { layout: LayoutPreset }) {
       className="h-9 w-full"
       aria-hidden
     >
-      {shapes.map((points, i) => (
-        <polygon
+      {shapes.map((shape, i) => (
+        <path
           key={i}
-          points={points.map((p) => `${p.x.toFixed(3)},${p.y.toFixed(3)}`).join(" ")}
+          d={roundedPolygonPath(shape.points, shape.radius)}
           className="fill-[#3a3d46] stroke-[#9aa0ad]"
           strokeWidth={Math.max(bounds.width, bounds.height) * 0.025}
           strokeLinejoin="round"

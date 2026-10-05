@@ -15,11 +15,17 @@ test.beforeEach(async ({ page }) => {
 });
 
 async function openScreenshot(page: Page, file: string) {
-  const chooser = page.waitForEvent("filechooser");
   const section = page.getByRole("region", { name: "Screenshot" });
   const replace = section.getByRole("button", { name: "Replace screenshot" });
-  await ((await replace.isVisible()) ? replace : section.getByRole("button", { name: "Add screenshot" })).click();
-  await (await chooser).setFiles(join(FIXTURE_DIR, file));
+  const button = (await replace.isVisible()) ? replace : section.getByRole("button", { name: "Add screenshot" });
+  // Headless Chrome occasionally drops the first file chooser; click again if it doesn't open.
+  for (let attempt = 0; attempt < 3; attempt++) {
+    const chooser = page.waitForEvent("filechooser", { timeout: 5000 }).catch(() => null);
+    await button.click();
+    const opened = await chooser;
+    if (opened) return opened.setFiles(join(FIXTURE_DIR, file));
+  }
+  throw new Error("The file chooser did not open");
 }
 
 function pngSize(path: string) {
@@ -284,11 +290,13 @@ test("crop: zoom and reposition the screenshot inside the screen, then export", 
   await expect(page.getByRole("button", { name: "Adjust on canvas" })).toBeVisible();
   expect(pngSize(await exportImage(page, "PNG", 2))).toMatchObject({ width: 2160, height: 2700 });
 
-  // The whole crop is one undo step.
+  // The drag is one undo step, the wheel zoom another.
+  const screenshot = page.getByRole("region", { name: "Screenshot" });
   await page.keyboard.press("ControlOrMeta+z");
-  await expect(page.getByRole("region", { name: "Screenshot" }).getByRole("slider", { name: "Vertical" })).toHaveValue(
-    "0",
-  );
+  await expect(screenshot.getByRole("slider", { name: "Vertical" })).toHaveValue("0");
+  await expect(screenshot.getByRole("slider", { name: "Zoom" })).not.toHaveValue("100");
+  await page.keyboard.press("ControlOrMeta+z");
+  await expect(screenshot.getByRole("slider", { name: "Zoom" })).toHaveValue("100");
 });
 
 test("perspective: Perspective Right exports at every scale and as JPG", async ({ page }) => {

@@ -52,13 +52,35 @@ export type Projection = {
  * device changes look but not position when switching presets.
  */
 export function projectRect(width: number, height: number, preset: PerspectivePreset): Projection {
+  const project = perspectiveProjector(width, height, preset);
+  const corners: Projection["corners"] = [project(0, 0), project(width, 0), project(width, height), project(0, height)];
+  const xs = corners.map((c) => c.x);
+  const ys = corners.map((c) => c.y);
+  const minX = Math.min(...xs);
+  const minY = Math.min(...ys);
+  return {
+    corners,
+    bounds: { x: minX, y: minY, width: Math.max(...xs) - minX, height: Math.max(...ys) - minY },
+  };
+}
+
+/**
+ * Projects any point of a `width × height` rectangle (local units, origin
+ * top-left) through the preset — the same projection used for the device
+ * artwork, so overlays such as the upload prompt can follow it exactly.
+ */
+export function perspectiveProjector(
+  width: number,
+  height: number,
+  preset: PerspectivePreset,
+): (px: number, py: number) => ProjectedPoint {
   const rad = Math.PI / 180;
   const [sx, cx] = [Math.sin(preset.rotateX * rad), Math.cos(preset.rotateX * rad)];
   const [sy, cy] = [Math.sin(preset.rotateY * rad), Math.cos(preset.rotateY * rad)];
   const [sz, cz] = [Math.sin(preset.rotateZ * rad), Math.cos(preset.rotateZ * rad)];
   const distance = CAMERA_DISTANCE * Math.max(width, height);
 
-  const project = (px: number, py: number): ProjectedPoint => {
+  return (px: number, py: number): ProjectedPoint => {
     // Centre the rectangle; z points towards the viewer.
     let x = px - width / 2;
     let y = py - height / 2;
@@ -71,15 +93,5 @@ export function projectRect(width: number, height: number, preset: PerspectivePr
     [x, y] = [x * cz - y * sz, x * sz + y * cz];
     const w = (distance - z) / distance;
     return { x: width / 2 + x / w, y: height / 2 + y / w, w };
-  };
-
-  const corners: Projection["corners"] = [project(0, 0), project(width, 0), project(width, height), project(0, height)];
-  const xs = corners.map((c) => c.x);
-  const ys = corners.map((c) => c.y);
-  const minX = Math.min(...xs);
-  const minY = Math.min(...ys);
-  return {
-    corners,
-    bounds: { x: minX, y: minY, width: Math.max(...xs) - minX, height: Math.max(...ys) - minY },
   };
 }

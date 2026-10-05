@@ -161,6 +161,13 @@ function InteractiveDevice({ instance, canvas, viewScale, cropping, onSelect, on
     const stage = event.target.getStage();
     if (!asset || !stage) return;
     event.cancelBubble = true;
+    // A pending wheel zoom becomes its own undo step now, so its delayed
+    // commit can't split this drag in two.
+    if (zoomCommit.current !== undefined) {
+      window.clearTimeout(zoomCommit.current);
+      zoomCommit.current = undefined;
+      commit();
+    }
     const area = screenArea({ device: getDevice(instance.deviceId), geometry });
     const scale = stage.scaleX();
     const start = { x: event.evt.clientX, y: event.evt.clientY };
@@ -191,7 +198,10 @@ function InteractiveDevice({ instance, canvas, viewScale, cropping, onSelect, on
     const next = clamp(current.crop.zoom * factor, 1, MAX_CROP_ZOOM);
     update((scene) => updateDevice(scene, instance.id, { crop: { ...current.crop, zoom: next } }), { transient: true });
     window.clearTimeout(zoomCommit.current);
-    zoomCommit.current = window.setTimeout(commit, 300);
+    zoomCommit.current = window.setTimeout(() => {
+      zoomCommit.current = undefined;
+      commit();
+    }, 300);
   };
 
   return (

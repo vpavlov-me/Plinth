@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { extractPalette, hslToHex, hueDistance, matchedBackground, rgbToHsl } from "@/editor/color-match";
-import { croppedImageRect, panCrop } from "@/editor/geometry";
+import { croppedImageRect, panCrop, quadToCssMatrix } from "@/editor/geometry";
 import { getPerspectivePreset, PERSPECTIVE_PRESETS, projectRect } from "@/editor/presets/perspective-presets";
 
 describe("perspective presets", () => {
@@ -131,3 +131,37 @@ function hexRgb(hex: string): [number, number, number] {
   const n = parseInt(hex.slice(1, 7), 16);
   return [(n >> 16) & 255, (n >> 8) & 255, n & 255];
 }
+
+describe("quadToCssMatrix", () => {
+  /** Applies a CSS matrix3d to a 2D point (homogeneous divide). */
+  const apply = (css: string, x: number, y: number) => {
+    const m = css.slice("matrix3d(".length, -1).split(",").map(Number);
+    const w = m[3]! * x + m[7]! * y + m[15]!;
+    return { x: (m[0]! * x + m[4]! * y + m[12]!) / w, y: (m[1]! * x + m[5]! * y + m[13]!) / w };
+  };
+
+  it("maps the box corners onto a projected quad", () => {
+    const quad = [
+      { x: 30, y: 12 },
+      { x: 210, y: 40 },
+      { x: 190, y: 330 },
+      { x: 10, y: 290 },
+    ] as const;
+    const css = quadToCssMatrix(200, 400, [...quad]);
+    const corners = [apply(css, 0, 0), apply(css, 200, 0), apply(css, 200, 400), apply(css, 0, 400)];
+    corners.forEach((c, i) => {
+      expect(c.x).toBeCloseTo(quad[i]!.x, 4);
+      expect(c.y).toBeCloseTo(quad[i]!.y, 4);
+    });
+  });
+
+  it("is a plain translation for an unchanged box", () => {
+    const css = quadToCssMatrix(100, 50, [
+      { x: 5, y: 7 },
+      { x: 105, y: 7 },
+      { x: 105, y: 57 },
+      { x: 5, y: 57 },
+    ]);
+    expect(apply(css, 50, 25)).toEqual({ x: 55, y: 32 });
+  });
+});

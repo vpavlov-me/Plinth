@@ -28,7 +28,10 @@ export function Workspace() {
   const canvas = useScene((s) => s.canvas);
   const background = useScene((s) => s.background);
   const activeId = useActiveDeviceId();
-  const active = useDevice(activeId);
+  // The upload prompt sits on the front-most empty device: it's an HTML
+  // overlay, so on a device further back it would cover the ones in front.
+  const emptyId = useScene((scene) => scene.devices.findLast((d) => d.screenshotId === null)?.id ?? null);
+  const empty = useDevice(emptyId);
   const hydrated = useUIStore((s) => s.hydrated);
   const importing = useUIStore((s) => s.importing);
   const select = useUIStore((s) => s.select);
@@ -56,7 +59,7 @@ export function Workspace() {
       )
     : 0;
 
-  const isEmpty = hydrated && active !== null && active.screenshotId === null;
+  const isEmpty = hydrated && empty !== null;
 
   return (
     <main
@@ -110,8 +113,8 @@ export function Workspace() {
           >
             <CanvasStage viewScale={viewScale} />
           </div>
-          {isEmpty && !dragging && active ? (
-            <EmptyState instance={active} canvas={canvas} viewScale={viewScale} busy={importing} />
+          {isEmpty && !dragging && empty ? (
+            <EmptyState instance={empty} canvas={canvas} viewScale={viewScale} busy={importing} />
           ) : null}
         </div>
       ) : null}
