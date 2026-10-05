@@ -333,7 +333,7 @@ function ImageTiles({
         />
       ))}
       {PHOTO_PRESETS.map((photo) => (
-        <Tooltip key={photo.id} label={`Photo by ${photo.author} on Unsplash`}>
+        <Tooltip key={photo.id} label={photo.author ? `Photo by ${photo.author} on Unsplash` : photo.name}>
           <div>
             <Tile
               label={photo.name}

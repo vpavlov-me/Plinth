@@ -140,8 +140,9 @@ test("keeps the user's own backgrounds in the library", async ({ page }) => {
   await page.getByRole("button", { name: "Add gradient" }).click();
   await expect(page.getByRole("button", { name: "Your gradient 1", exact: true })).toBeVisible();
 
-  const chooser = page.waitForEvent("filechooser");
   await page.getByRole("button", { name: "Image", exact: true }).click();
+  const chooser = page.waitForEvent("filechooser");
+  await page.getByRole("button", { name: "Upload your image" }).click();
   await (await chooser).setFiles(join(FIXTURE_DIR, "small.png"));
   await expect(page.getByRole("button", { name: "small.png", exact: true })).toBeVisible();
 
@@ -154,4 +155,17 @@ test("keeps the user's own backgrounds in the library", async ({ page }) => {
   await page.getByRole("button", { name: "Your gradient 1", exact: true }).hover();
   await page.getByRole("button", { name: "Remove Your gradient 1" }).click();
   await expect(page.getByRole("button", { name: "Your gradient 1", exact: true })).toBeHidden();
+});
+
+test("picks a built-in background image and exports it", async ({ page }) => {
+  await openScreenshot(page, "landscape.png");
+  await page.getByRole("radio", { name: /Wide/ }).click();
+  await page.getByRole("button", { name: "Image", exact: true }).click();
+  await expect(page.getByRole("button", { name: "Morning haze", exact: true })).toHaveAttribute("aria-pressed", "true");
+
+  const night = page.getByRole("button", { name: "Night bokeh", exact: true });
+  await night.click();
+  await expect(night).toHaveAttribute("aria-pressed", "true");
+
+  expect(pngSize(await exportImage(page, "PNG", 1))).toMatchObject({ width: 1920, height: 1080 });
 });
