@@ -21,7 +21,7 @@ import { PHOTO_PRESETS, photoThumbSrc } from "@/editor/presets/photo-presets";
 import { useEditorStore, useScene } from "@/editor/store";
 import type { BackgroundConfig, BackgroundImageSource, BackgroundType, GradientConfig } from "@/editor/types";
 import { cn } from "@/lib/cn";
-import { useVideoMode } from "@/editor/video";
+import { formatDuration, useVideoMode } from "@/editor/video";
 
 export function BackgroundPanel() {
   const background = useScene((s) => s.background);
@@ -48,7 +48,7 @@ export function BackgroundPanel() {
     const firstUpload = useLibraryStore.getState().images[0];
     if (firstPhoto) return set({ type: "image", source: { kind: "photo", photoId: firstPhoto.id } });
     if (firstUpload) return set({ type: "image", source: { kind: "upload", assetId: firstUpload } });
-    pickImageFile((file) => void importBackgroundImage(file));
+    pickImageFile((file) => void importBackgroundImage(file), { video: true });
   };
 
   return (
@@ -363,11 +363,11 @@ function ImageTiles({
 
   return (
     <TileGrid label="Images">
-      <Tooltip label="Upload your image">
+      <Tooltip label="Upload an image or video">
         <button
           type="button"
-          aria-label="Upload your image"
-          onClick={() => pickImageFile((file) => void importBackgroundImage(file))}
+          aria-label="Upload an image or video"
+          onClick={() => pickImageFile((file) => void importBackgroundImage(file), { video: true })}
           className={cn(ADD_TILE, "aspect-square")}
         >
           <Plus className="size-4" />
@@ -415,7 +415,17 @@ function UploadTile({
   if (!asset) return null;
   return (
     <Tile label={asset.name} selected={selected} onSelect={onSelect} onRemove={onRemove} className="aspect-square">
-      <img src={asset.url} alt="" className="size-full object-cover" draggable={false} />
+      {asset.kind === "video" ? (
+        <span className="relative block size-full">
+          {/* A paused, muted element shows the first frame. */}
+          <video src={asset.url} muted playsInline preload="auto" className="size-full object-cover" />
+          <span className="absolute right-0.5 bottom-0.5 rounded bg-black/60 px-1 text-[9px] leading-3.5 font-medium text-white tabular-nums">
+            {formatDuration(asset.duration ?? 0)}
+          </span>
+        </span>
+      ) : (
+        <img src={asset.url} alt="" className="size-full object-cover" draggable={false} />
+      )}
     </Tile>
   );
 }

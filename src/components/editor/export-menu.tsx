@@ -9,8 +9,14 @@ import { cancelVideoExport, copySceneToClipboard, exportScene } from "@/componen
 import { exportSize, isExportSizeSupported } from "@/editor/export/export-image";
 import { useScene } from "@/editor/store";
 import { DEFAULT_EXPORT_SETTINGS, useUIStore, type ExportFormat, type ExportScale } from "@/editor/ui-store";
-import { getAsset } from "@/editor/assets";
-import { formatDuration, MAX_VIDEO_SECONDS, sceneVideoDuration, useVideoMode, videoExportSize } from "@/editor/video";
+import {
+  formatDuration,
+  MAX_VIDEO_SECONDS,
+  sceneLongestVideo,
+  sceneVideoDuration,
+  useAnyVideo,
+  videoExportSize,
+} from "@/editor/video";
 import { modKey } from "@/lib/platform";
 
 const SCALES: ExportScale[] = [1, 2, 3];
@@ -22,7 +28,7 @@ export function ExportMenu() {
   const canvas = useScene((s) => s.canvas);
   const transparent = useScene((s) => s.background.type === "transparent");
   const size = exportSize(canvas, settings.scale);
-  const videoMode = useVideoMode();
+  const videoMode = useAnyVideo();
 
   return (
     <Popover.Root>
@@ -110,7 +116,7 @@ function VideoExport() {
   const progress = useUIStore((s) => s.videoProgress);
   const canvas = useScene((s) => s.canvas);
   const duration = useScene(sceneVideoDuration);
-  const longest = useScene((s) => Math.max(0, ...s.devices.map((d) => getAsset(d.screenshotId)?.duration ?? 0)));
+  const longest = useScene(sceneLongestVideo);
   const size = videoExportSize(canvas);
 
   return (

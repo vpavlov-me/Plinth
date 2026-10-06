@@ -3,7 +3,7 @@ import { notify } from "@/editor/notify";
 import { completeOnboarding } from "@/editor/onboarding";
 import { getScene } from "@/editor/store";
 import { useUIStore, type ExportSettings } from "@/editor/ui-store";
-import { sceneHasVideo } from "@/editor/video";
+import { sceneHasAnyVideo } from "@/editor/video";
 
 async function runExport<T>(
   settings: ExportSettings,
@@ -60,7 +60,7 @@ export function cancelVideoExport(): void {
 
 /** Renders the scene with the current export settings and downloads it (a video when the scene has one). */
 export function exportScene(): Promise<void> {
-  if (sceneHasVideo(getScene())) return exportVideo();
+  if (sceneHasAnyVideo(getScene())) return exportVideo();
   return runExport(useUIStore.getState().exportSettings, ({ blob, fileName, width, height }) => {
     downloadBlob(blob, fileName);
     completeOnboarding();

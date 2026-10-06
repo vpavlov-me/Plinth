@@ -8,11 +8,14 @@ import type { ImageAsset, Scene } from "@/editor/types";
 import { createId } from "@/editor/utils/id";
 
 /**
- * Video screenshots ("video mode").
+ * Videos: a screen recording in a device, a video background, or both.
  *
- * A video replaces the screenshot of a single device. To keep rendering and
- * export simple, a scene with a video has one device, no perspective and no
- * colour matching; the export is a silent MP4 (WebM where the browser can't
+ * A video in a device switches the editor to "video mode": to keep rendering
+ * and export simple, the scene then has one device, no perspective and no
+ * colour matching. A video background changes nothing else (screenshots
+ * stay still, so layouts and perspective are cheap to keep).
+ *
+ * Any video makes the export a silent MP4 (WebM where the browser can't
  * encode H.264) at up to Full HD.
  */
 
@@ -50,15 +53,36 @@ export function isVideoAsset(id: string | null | undefined): boolean {
   return getAsset(id)?.kind === "video";
 }
 
-/** True when any device shows a video. */
+/** True when any device shows a video (video mode). */
 export function sceneHasVideo(scene: Pick<Scene, "devices">): boolean {
   return scene.devices.some((d) => isVideoAsset(d.screenshotId));
 }
 
-/** Length of the exported video: the longest device video, capped. */
-export function sceneVideoDuration(scene: Pick<Scene, "devices">): number {
-  const longest = Math.max(0, ...scene.devices.map((d) => getAsset(d.screenshotId)?.duration ?? 0));
-  return Math.min(longest, MAX_VIDEO_SECONDS);
+/** The background's video, when the background is an uploaded video. */
+export function backgroundVideo(scene: Pick<Scene, "background">): ImageAsset | null {
+  const { background } = scene;
+  if (background.type !== "image" || background.source.kind !== "upload") return null;
+  const asset = getAsset(background.source.assetId);
+  return asset?.kind === "video" ? asset : null;
+}
+
+/** True when the scene moves at all: a video in a device or in the background. The export is then a video. */
+export function sceneHasAnyVideo(scene: Pick<Scene, "devices" | "background">): boolean {
+  return sceneHasVideo(scene) || backgroundVideo(scene) !== null;
+}
+
+/**
+ * Natural length of the scene's video: the longest device video (a video
+ * background loops along), else the background video.
+ */
+export function sceneLongestVideo(scene: Pick<Scene, "devices" | "background">): number {
+  const devices = Math.max(0, ...scene.devices.map((d) => getAsset(d.screenshotId)?.duration ?? 0));
+  return devices > 0 ? devices : (backgroundVideo(scene)?.duration ?? 0);
+}
+
+/** Length of the exported video: {@link sceneLongestVideo}, capped. */
+export function sceneVideoDuration(scene: Pick<Scene, "devices" | "background">): number {
+  return Math.min(sceneLongestVideo(scene), MAX_VIDEO_SECONDS);
 }
 
 /**
@@ -240,7 +264,12 @@ export function videoDeviceGroups(videoMode: boolean) {
   })).filter((group) => group.devices.length > 0);
 }
 
-/** True while the scene shows a video (see the module comment for what that locks). */
+/** True while a device shows a video (see the module comment for what that locks). */
 export function useVideoMode(): boolean {
   return useScene(sceneHasVideo);
+}
+
+/** True while anything in the scene is a video: the preview plays and the export is a video. */
+export function useAnyVideo(): boolean {
+  return useScene(sceneHasAnyVideo);
 }

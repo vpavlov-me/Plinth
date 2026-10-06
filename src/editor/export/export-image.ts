@@ -38,8 +38,10 @@ function sceneImageUrls(scene: Scene): string[] {
     if (shot && shot.kind !== "video") urls.push(shot.url);
   }
   if (scene.background.type === "image") {
-    const url = backgroundImageUrl(scene.background.source);
-    if (url) urls.push(url);
+    const { source } = scene.background;
+    const url = backgroundImageUrl(source);
+    const video = source.kind === "upload" && getAsset(source.assetId)?.kind === "video";
+    if (url && !video) urls.push(url);
   }
   return urls;
 }

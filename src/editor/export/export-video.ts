@@ -1,7 +1,7 @@
 import { getAsset } from "@/editor/assets";
 import { ExportError, mountScene, type ExportResult } from "@/editor/export/export-image";
 import type { ImageAsset, Scene } from "@/editor/types";
-import { sceneVideoDuration, VIDEO_FPS, videoExportSize } from "@/editor/video";
+import { backgroundVideo, sceneVideoDuration, VIDEO_FPS, videoExportSize } from "@/editor/video";
 
 export class ExportCanceled extends Error {
   override name = "ExportCanceled";
@@ -16,8 +16,8 @@ type Options = {
 /**
  * Renders the scene as a silent video, frame by frame.
  *
- * Each source video is decoded at the exact times needed (shorter ones
- * loop), the scene is drawn with those frames on the offscreen export stage
+ * Each source video (device screens and the background) is decoded at the
+ * exact times needed (shorter ones loop), the scene is drawn with those frames on the offscreen export stage
  * and the result is encoded by the browser: H.264 in MP4 where available,
  * else VP9/VP8 in WebM. Nothing is uploaded.
  */
@@ -37,6 +37,8 @@ export async function renderVideo(scene: Scene, { onProgress, signal }: Options 
     const asset = getAsset(device.screenshotId);
     if (asset?.kind === "video") assets.set(asset.url, asset);
   }
+  const background = backgroundVideo(scene);
+  if (background) assets.set(background.url, background);
 
   const inputs: InstanceType<typeof mb.Input>[] = [];
   const streams: { url: string; frames: AsyncGenerator<{ canvas: CanvasImageSource } | null> }[] = [];

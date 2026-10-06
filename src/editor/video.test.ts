@@ -1,10 +1,11 @@
 import { afterEach, describe, expect, it } from "vitest";
 import { useAssetStore } from "@/editor/assets";
 import { createDefaultScene, updateDevice } from "@/editor/scene";
-import type { ImageAsset } from "@/editor/types";
+import type { BackgroundConfig, ImageAsset } from "@/editor/types";
 import {
   formatDuration,
   MAX_VIDEO_SECONDS,
+  sceneHasAnyVideo,
   sceneHasVideo,
   sceneVideoDuration,
   videoDeviceGroups,
@@ -20,6 +21,11 @@ const video = (id: string, duration: number): ImageAsset => ({
   duration,
   name: `${id}.mp4`,
   blob: new Blob(),
+});
+
+const videoBackground = (assetId: string): BackgroundConfig => ({
+  type: "image",
+  source: { kind: "upload", assetId },
 });
 
 afterEach(() => useAssetStore.setState({ assets: {} }));
@@ -49,6 +55,19 @@ describe("video mode", () => {
     useAssetStore.getState().add(video("long", 95));
     const long = updateDevice(scene, scene.devices[0]!.id, { screenshotId: "long" });
     expect(sceneVideoDuration(long)).toBe(MAX_VIDEO_SECONDS);
+  });
+
+  it("a video background makes the scene a video without locking anything; device videos set the length", () => {
+    useAssetStore.getState().add(video("bg", 8));
+    const scene = { ...createDefaultScene(), background: videoBackground("bg") };
+    expect(sceneHasVideo(scene)).toBe(false);
+    expect(sceneHasAnyVideo(scene)).toBe(true);
+    expect(sceneVideoDuration(scene)).toBe(8);
+
+    useAssetStore.getState().add(video("clip", 3));
+    const both = updateDevice(scene, scene.devices[0]!.id, { screenshotId: "clip" });
+    expect(sceneHasVideo(both)).toBe(true);
+    expect(sceneVideoDuration(both)).toBe(3);
   });
 
   it("hides the watch and the spatial window", () => {

@@ -213,8 +213,9 @@ export function matchBackgroundColors(variant: MatchVariant = "soft", instanceId
   return true;
 }
 
+/** Adds an uploaded image or video to the background library and applies it. */
 export async function importBackgroundImage(file: Blob & { name?: string }): Promise<void> {
-  const asset = await importWithFeedback(file);
+  const asset = await importWithFeedback(file, { allowVideo: true });
   if (!asset) return;
   useLibraryStore.getState().addImage(asset.id);
   useEditorStore.getState().update((scene) => ({

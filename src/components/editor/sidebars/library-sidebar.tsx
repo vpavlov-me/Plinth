@@ -486,15 +486,16 @@ function BackgroundBox({
   style?: React.CSSProperties;
   children?: ReactNode;
 }) {
-  const imageUrl = useBackgroundImageUrl(
-    background.type === "image" ? background.source : { kind: "upload", assetId: "" },
-  );
+  const source = background.type === "image" ? background.source : null;
+  const upload = useAsset(source?.kind === "upload" ? source.assetId : null);
+  const imageUrl = useBackgroundImageUrl(source ?? { kind: "upload", assetId: "" });
+  const video = upload?.kind === "video" ? upload : null;
   const paint: React.CSSProperties =
     background.type === "solid"
       ? { background: background.color }
       : background.type === "gradient"
         ? { background: gradientCss(background) }
-        : background.type === "image"
+        : background.type === "image" && !video
           ? imageUrl
             ? { background: `center / cover no-repeat url("${imageUrl}")` }
             : { background: "var(--line-strong)" }
@@ -502,13 +503,28 @@ function BackgroundBox({
   return (
     <span
       className={cn(
-        "shadow-[inset_0_0_0_1px_var(--tile-ring)]",
+        "relative shadow-[inset_0_0_0_1px_var(--tile-ring)]",
         background.type === "transparent" && "checkerboard",
         className,
       )}
       style={{ ...paint, ...style }}
     >
-      {children}
+      {video ? (
+        // First frame of a video background; previews stay still.
+        <video
+          src={video.url}
+          muted
+          playsInline
+          preload="auto"
+          aria-hidden
+          className="pointer-events-none absolute inset-0 size-full rounded-[inherit] object-cover"
+        />
+      ) : null}
+      {video && children ? (
+        <span className="relative flex size-full items-center justify-center">{children}</span>
+      ) : (
+        children
+      )}
     </span>
   );
 }
