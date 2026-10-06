@@ -7,12 +7,12 @@ import { useId, useState, type ReactNode } from "react";
 import { gradientCss } from "@/components/editor/css-background";
 import { pickImageFile } from "@/components/editor/pick-file";
 import { COLLAPSE_CHEVRON, COLLAPSE_PANEL, COLLAPSE_TRIGGER } from "@/components/ui/collapse";
+import { LockedTitle } from "@/components/ui/section";
 import { Tooltip } from "@/components/ui/tooltip";
 import { applyLayoutPreset, importDeviceFrame } from "@/editor/actions";
 import { useAsset } from "@/editor/assets";
 import { useBackgroundImageUrl } from "@/editor/background-image";
 import { customDeviceId, type CustomFrame } from "@/editor/custom-frames";
-import { DEVICE_GROUPS } from "@/editor/devices/definitions";
 import { boundsOf, deviceOutline } from "@/editor/geometry";
 import { LAYOUT_PRESETS, type LayoutPreset } from "@/editor/presets/layout-presets";
 import { useLibraryStore } from "@/editor/library";
@@ -21,6 +21,7 @@ import { applyScenePreset, changeDeviceModel } from "@/editor/scene";
 import { useActiveDeviceId } from "@/editor/selection";
 import { useDevice, useEditorStore, useScene } from "@/editor/store";
 import type { BackgroundConfig, DeviceDefinition } from "@/editor/types";
+import { useVideoMode, videoDeviceGroups } from "@/editor/video";
 import { cn } from "@/lib/cn";
 
 type LibraryPart = "devices" | "layouts" | "presets";
@@ -33,6 +34,8 @@ type LibraryPart = "devices" | "layouts" | "presets";
 export function LibrarySidebar() {
   const [open, setOpen] = useState<LibraryPart | null>("devices");
   const toggle = (part: LibraryPart) => setOpen((current) => (current === part ? null : part));
+  // A video uses a single device: layouts are locked meanwhile.
+  const videoMode = useVideoMode();
   return (
     <aside
       aria-label="Library"
@@ -41,7 +44,12 @@ export function LibrarySidebar() {
       <LibraryPartSection title="Devices" open={open === "devices"} onToggle={() => toggle("devices")}>
         <DeviceLibrary />
       </LibraryPartSection>
-      <LibraryPartSection title="Layouts" open={open === "layouts"} onToggle={() => toggle("layouts")}>
+      <LibraryPartSection
+        title="Layouts"
+        open={open === "layouts" && !videoMode}
+        locked={videoMode ? "Layouts aren’t available for video" : undefined}
+        onToggle={() => toggle("layouts")}
+      >
         <LayoutLibrary />
       </LibraryPartSection>
       <LibraryPartSection title="Presets" open={open === "presets"} onToggle={() => toggle("presets")}>
@@ -54,15 +62,27 @@ export function LibrarySidebar() {
 function LibraryPartSection({
   title,
   open,
+  locked,
   onToggle,
   children,
 }: {
   title: string;
   open: boolean;
+  /** When set, the part stays closed and shows a lock with this explanation. */
+  locked?: string;
   onToggle: () => void;
   children: ReactNode;
 }) {
   const id = useId();
+  if (locked) {
+    return (
+      <section aria-label={title} className="flex min-h-11 shrink-0 flex-col">
+        <h2 className="flex shrink-0 items-center px-4 pt-3 pb-1">
+          <LockedTitle title={title} reason={locked} />
+        </h2>
+      </section>
+    );
+  }
   return (
     // Takes its content's height and shrinks (scrolling) when space runs out.
     <section aria-label={title} className="flex min-h-11 shrink flex-col overflow-hidden">
@@ -158,10 +178,11 @@ function DeviceLibrary() {
   const activeId = useActiveDeviceId();
   const active = useDevice(activeId);
   const select = useSelectDevice();
+  const videoMode = useVideoMode();
 
   return (
     <div className="flex flex-col gap-0.5">
-      {DEVICE_GROUPS.map((group) => (
+      {videoDeviceGroups(videoMode).map((group) => (
         <Folder key={group.label} label={group.label} count={group.devices.length} defaultOpen={false}>
           <div className="grid grid-cols-2 gap-1">
             {group.devices.map((device) => (
@@ -408,9 +429,11 @@ function LayoutPreview({ layout }: { layout: LayoutPreset }) {
 function PresetLibrary() {
   const update = useEditorStore((s) => s.update);
   const currentBackground = useScene((s) => s.background);
+  // Showcase presets arrange layouts and perspective, which video mode doesn't use.
+  const videoMode = useVideoMode();
   return (
     <div className="flex flex-col gap-0.5">
-      {SCENE_PRESET_GROUPS.map((group) => {
+      {SCENE_PRESET_GROUPS.filter((group) => !videoMode || group.id !== "showcase").map((group) => {
         const presets = SCENE_PRESETS.filter((p) => p.group === group.id);
         return (
           <Folder key={group.id} label={group.label} count={presets.length} defaultOpen={false}>

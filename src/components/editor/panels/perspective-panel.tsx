@@ -7,6 +7,7 @@ import { setPerspective } from "@/editor/scene";
 import { useActiveDeviceId } from "@/editor/selection";
 import { useDevice, useEditorStore } from "@/editor/store";
 import type { PerspectiveId } from "@/editor/types";
+import { useVideoMode } from "@/editor/video";
 import { cn } from "@/lib/cn";
 
 /** Perspective is a look, not a 3D editor: five presets, no angles or cameras. */
@@ -14,6 +15,7 @@ export function PerspectivePanel() {
   const activeId = useActiveDeviceId();
   const instance = useDevice(activeId);
   const update = useEditorStore((s) => s.update);
+  const videoMode = useVideoMode();
   if (!instance) return null;
   const current = PERSPECTIVE_PRESETS.find((p) => p.id === instance.perspective);
 
@@ -21,6 +23,7 @@ export function PerspectivePanel() {
     <Section
       title="Perspective"
       defaultOpen={false}
+      locked={videoMode ? "Perspective isn’t available for video" : undefined}
       action={<span className="text-xs text-muted">{current?.name}</span>}
     >
       <div role="radiogroup" aria-label="Perspective" className="grid grid-cols-5 gap-1">

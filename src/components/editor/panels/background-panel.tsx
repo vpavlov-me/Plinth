@@ -21,12 +21,14 @@ import { PHOTO_PRESETS, photoThumbSrc } from "@/editor/presets/photo-presets";
 import { useEditorStore, useScene } from "@/editor/store";
 import type { BackgroundConfig, BackgroundImageSource, BackgroundType, GradientConfig } from "@/editor/types";
 import { cn } from "@/lib/cn";
+import { useVideoMode } from "@/editor/video";
 
 export function BackgroundPanel() {
   const background = useScene((s) => s.background);
   const update = useEditorStore((s) => s.update);
   const commit = useEditorStore((s) => s.commit);
   // Remembers the last configuration of each type so switching tabs is lossless.
+  const videoMode = useVideoMode();
   const memory = useRef<Partial<Record<BackgroundType, BackgroundConfig>>>({});
   useEffect(() => {
     memory.current[background.type] = background;
@@ -51,7 +53,8 @@ export function BackgroundPanel() {
 
   return (
     <Section title="Background">
-      <MatchColors />
+      {/* Colour matching reads a still screenshot; videos don't offer it. */}
+      {videoMode ? null : <MatchColors />}
       <Segmented<BackgroundType>
         label="Background type"
         value={background.type}

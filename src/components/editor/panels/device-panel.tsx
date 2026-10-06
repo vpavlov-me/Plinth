@@ -8,13 +8,14 @@ import { SliderField } from "@/components/ui/slider-field";
 import { Tooltip } from "@/components/ui/tooltip";
 import { removeSelectedDevice } from "@/editor/actions";
 import { customDeviceId } from "@/editor/custom-frames";
-import { DEVICE_GROUPS, getDevice } from "@/editor/devices/definitions";
+import { getDevice } from "@/editor/devices/definitions";
 import { useLibraryStore } from "@/editor/library";
 import { changeDeviceModel, resetDeviceTransform, updateDevice } from "@/editor/scene";
 import { useActiveDeviceId } from "@/editor/selection";
 import { useDevice, useEditorStore, useScene } from "@/editor/store";
 import type { DeviceInstance } from "@/editor/types";
 import { useUIStore } from "@/editor/ui-store";
+import { useVideoMode, videoDeviceGroups } from "@/editor/video";
 import { cn } from "@/lib/cn";
 
 export function DevicePanel() {
@@ -26,6 +27,7 @@ export function DevicePanel() {
   const frames = useLibraryStore((s) => s.frames);
   const deviceIds = useScene((s) => s.devices.map((d) => d.id).join(" "));
   const select = useUIStore((s) => s.select);
+  const videoMode = useVideoMode();
   if (!instance) return null;
   const ids = deviceIds.split(" ");
 
@@ -72,7 +74,7 @@ export function DevicePanel() {
           onChange={(e) => update((scene, sizeOf) => changeDeviceModel(scene, instance.id, e.target.value, sizeOf))}
           className="h-8 w-full cursor-default appearance-none rounded-lg bg-field pr-8 pl-2.5 text-xs font-medium text-ink outline-none focus-visible:outline-2 focus-visible:outline-accent"
         >
-          {DEVICE_GROUPS.map((group) => (
+          {videoDeviceGroups(videoMode).map((group) => (
             <optgroup key={group.label} label={group.label}>
               {group.devices.map((d) => (
                 <option key={d.id} value={d.id}>

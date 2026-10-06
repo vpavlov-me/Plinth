@@ -5,6 +5,7 @@ import { getDevice, getVariant } from "@/editor/devices/definitions";
 import type { Size } from "@/editor/geometry";
 import type { ExportSettings } from "@/editor/ui-store";
 import type { Scene } from "@/editor/types";
+import { VideoFrameContext, type VideoFrameSource } from "@/editor/rendering/video-frames";
 
 /** Longest side of an exported image. Browsers refuse larger canvases. */
 export const MAX_EXPORT_SIDE = 16384;
@@ -34,7 +35,7 @@ function sceneImageUrls(scene: Scene): string[] {
     const frame = getVariant(device, instance.variantId)?.frameSrc ?? device.frameSrc;
     if (frame) urls.push(frame);
     const shot = getAsset(instance.screenshotId);
-    if (shot) urls.push(shot.url);
+    if (shot && shot.kind !== "video") urls.push(shot.url);
   }
   if (scene.background.type === "image") {
     const url = backgroundImageUrl(scene.background.source);
@@ -59,43 +60,11 @@ export async function renderScene(scene: Scene, settings: ExportSettings): Promi
     );
   }
 
-  await Promise.all(sceneImageUrls(scene).map((url) => loadImage(url)));
-
-  // Loaded lazily: Konva only works in the browser.
-  const [{ createRoot }, { Stage }, { StaticScene }] = await Promise.all([
-    import("react-dom/client"),
-    import("react-konva"),
-    import("@/editor/rendering/scene-content"),
-  ]);
-  type StageHandle = import("konva").default.Stage;
-
-  const container = document.createElement("div");
-  const root = createRoot(container);
+  const mounted = await mountScene(scene);
   let output: HTMLCanvasElement | null = null;
 
   try {
-    const stage = await new Promise<StageHandle>((resolve, reject) => {
-      const timer = window.setTimeout(() => reject(new ExportError("Rendering timed out.")), 15_000);
-      root.render(
-        createElement(
-          Stage,
-          {
-            // The stage itself stays tiny so its layer canvases cost nothing;
-            // the export region is passed explicitly to toCanvas().
-            width: 1,
-            height: 1,
-            ref: (node: StageHandle | null) => {
-              if (!node) return;
-              window.clearTimeout(timer);
-              // Children are committed after the stage ref resolves.
-              requestAnimationFrame(() => resolve(node));
-            },
-          },
-          createElement(StaticScene, { scene }),
-        ),
-      );
-    });
-
+    const { stage } = mounted;
     const rendered = stage.toCanvas({
       x: 0,
       y: 0,
@@ -131,15 +100,72 @@ export async function renderScene(scene: Scene, settings: ExportSettings): Promi
     const extension = settings.format === "jpeg" ? "jpg" : "png";
     return { blob, width, height, fileName: `mockup-${width}x${height}.${extension}` };
   } finally {
-    root.unmount();
-    // Perspective renders at export resolution are large; the editor re-renders its own on demand.
-    const { clearPerspectiveCache } = await import("@/editor/rendering/perspective-render");
-    clearPerspectiveCache();
+    await mounted.unmount();
     if (output) {
       // Release the backing store right away instead of waiting for GC.
       output.width = 0;
       output.height = 0;
     }
+  }
+}
+
+export type MountedScene = {
+  stage: import("konva").default.Stage;
+  unmount: () => Promise<void>;
+};
+
+/**
+ * Mounts the scene into a dedicated, offscreen Konva stage built from the
+ * same React components as the editor (so exports never contain editor UI).
+ * Video exports pass `videoFrames` to supply the frame being rendered.
+ */
+export async function mountScene(scene: Scene, videoFrames?: VideoFrameSource): Promise<MountedScene> {
+  await Promise.all(sceneImageUrls(scene).map((url) => loadImage(url)));
+
+  // Loaded lazily: Konva only works in the browser.
+  const [{ createRoot }, { Stage }, { StaticScene }] = await Promise.all([
+    import("react-dom/client"),
+    import("react-konva"),
+    import("@/editor/rendering/scene-content"),
+  ]);
+  type StageHandle = import("konva").default.Stage;
+
+  const container = document.createElement("div");
+  const root = createRoot(container);
+  const unmount = async () => {
+    root.unmount();
+    // Perspective renders at export resolution are large; the editor re-renders its own on demand.
+    const { clearPerspectiveCache } = await import("@/editor/rendering/perspective-render");
+    clearPerspectiveCache();
+  };
+
+  try {
+    const content = createElement(StaticScene, { scene });
+    const stage = await new Promise<StageHandle>((resolve, reject) => {
+      const timer = window.setTimeout(() => reject(new ExportError("Rendering timed out.")), 15_000);
+      root.render(
+        createElement(
+          Stage,
+          {
+            // The stage itself stays tiny so its layer canvases cost nothing;
+            // the export region is passed explicitly to toCanvas().
+            width: 1,
+            height: 1,
+            ref: (node: StageHandle | null) => {
+              if (!node) return;
+              window.clearTimeout(timer);
+              // Children are committed after the stage ref resolves.
+              requestAnimationFrame(() => resolve(node));
+            },
+          },
+          videoFrames ? createElement(VideoFrameContext.Provider, { value: videoFrames }, content) : content,
+        ),
+      );
+    });
+    return { stage, unmount };
+  } catch (error) {
+    await unmount();
+    throw error;
   }
 }
 

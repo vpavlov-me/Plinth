@@ -6,11 +6,27 @@ import { getCachedImage } from "@/editor/assets";
 import { useLibraryStore } from "@/editor/library";
 import { notify } from "@/editor/notify";
 import { DEFAULT_LAYOUT_ID, layoutForScreenshotCount } from "@/editor/presets/layout-presets";
-import { applyLayout, changeDeviceModel, createDefaultScene, removeDevice, setScreenshot } from "@/editor/scene";
+import {
+  applyLayout,
+  changeDeviceModel,
+  createDefaultScene,
+  DEFAULT_TRANSFORM,
+  removeDevice,
+  setScreenshot,
+  type AssetSizeLookup,
+} from "@/editor/scene";
 import { getScene, useEditorStore } from "@/editor/store";
-import type { ImageAsset } from "@/editor/types";
+import type { ImageAsset, Scene } from "@/editor/types";
 import { createId } from "@/editor/utils/id";
 import { useUIStore } from "@/editor/ui-store";
+import {
+  importVideoFile,
+  MAX_STORED_VIDEO_BYTES,
+  VIDEO_FALLBACK_DEVICE,
+  VIDEO_HIDDEN_DEVICES,
+  VideoImportError,
+  videoType,
+} from "@/editor/video";
 import { modKey } from "@/lib/platform";
 
 /**
@@ -18,10 +34,21 @@ import { modKey } from "@/lib/platform";
  * notifications. Components call these instead of orchestrating themselves.
  */
 
-async function importWithFeedback(file: Blob & { name?: string }): Promise<ImageAsset | null> {
+async function importWithFeedback(
+  file: Blob & { name?: string },
+  { allowVideo = false } = {},
+): Promise<ImageAsset | null> {
   const ui = useUIStore.getState();
   ui.setImporting(true);
   try {
+    if (allowVideo && videoType(file)) {
+      const asset = await importVideoFile(file);
+      useAssetStore.getState().add(asset);
+      if (asset.blob.size > MAX_STORED_VIDEO_BYTES) {
+        notify("Large video", { description: "It works now, but won’t be kept after you reload the page." });
+      }
+      return asset;
+    }
     const { asset, downscaled } = await importImageFile(file);
     useAssetStore.getState().add(asset);
     if (downscaled) {
@@ -31,6 +58,10 @@ async function importWithFeedback(file: Blob & { name?: string }): Promise<Image
     }
     return asset;
   } catch (error) {
+    if (error instanceof VideoImportError) {
+      notify("Couldn’t import video", { description: error.message, type: "error" });
+      return null;
+    }
     const message = error instanceof ImageImportError ? error.message : "Something went wrong while reading the image.";
     notify("Couldn’t import image", { description: message, type: "error" });
     return null;
@@ -40,11 +71,20 @@ async function importWithFeedback(file: Blob & { name?: string }): Promise<Image
 }
 
 export async function importScreenshot(file: Blob & { name?: string }, instanceId?: string | null): Promise<void> {
-  const asset = await importWithFeedback(file);
+  const asset = await importWithFeedback(file, { allowVideo: true });
   if (!asset) return;
   const scene = getScene();
   const target = scene.devices.find((d) => d.id === instanceId) ?? scene.devices[0];
   if (!target) return;
+
+  if (asset.kind === "video") {
+    useEditorStore.getState().update((current, sizeOf) => toVideoScene(current, target.id, asset.id, sizeOf));
+    useUIStore.getState().select(target.id);
+    if (scene.devices.length > 1) {
+      notify("Video uses a single device", { description: `Press ${modKey()}Z to get the layout back.` });
+    }
+    return;
+  }
 
   // The device stays as it is: the user picks the device, the screenshot
   // only fills its screen.
@@ -61,11 +101,35 @@ export async function importScreenshot(file: Blob & { name?: string }, instanceI
 }
 
 /**
+ * Video mode keeps the scene simple: one device, shown flat, never a device
+ * that doesn't suit a screen recording.
+ */
+function toVideoScene(scene: Scene, targetId: string, assetId: string, sizeOf: AssetSizeLookup): Scene {
+  const target = scene.devices.find((d) => d.id === targetId);
+  if (!target) return scene;
+  const alone = scene.devices.length === 1;
+  let next: Scene = {
+    ...scene,
+    layout: DEFAULT_LAYOUT_ID,
+    devices: [{ ...target, perspective: "front", ...(alone ? {} : DEFAULT_TRANSFORM) }],
+  };
+  if (VIDEO_HIDDEN_DEVICES.has(target.deviceId))
+    next = changeDeviceModel(next, targetId, VIDEO_FALLBACK_DEVICE, sizeOf);
+  return setScreenshot(next, targetId, assetId, sizeOf);
+}
+
+/**
  * Several screenshots at once (drop): they fill a layout with one device
  * per screenshot (two → Duo, three or more → Fan). A single file behaves
  * like {@link importScreenshot}.
  */
 export async function importScreenshots(files: File[], instanceId?: string | null): Promise<void> {
+  // A video always goes into a single device.
+  const video = files.find((file) => videoType(file));
+  if (video) {
+    await importScreenshot(video, instanceId);
+    return;
+  }
   if (files.length <= 1) {
     if (files[0]) await importScreenshot(files[0], instanceId);
     return;
@@ -138,6 +202,7 @@ export function matchBackgroundColors(variant: MatchVariant = "soft", instanceId
   const preferred = scene.devices.find((d) => d.id === instanceId && d.screenshotId);
   const source = preferred ?? scene.devices.find((d) => d.screenshotId);
   const asset = getAsset(source?.screenshotId);
+  if (asset?.kind === "video") return false;
   const image = asset ? getCachedImage(asset.url) : null;
   if (!asset || !image) {
     notify("Add a screenshot first", { description: "Match colors builds the background from your screenshot." });

@@ -1,9 +1,11 @@
 "use client";
 
+import { Pause, Play } from "lucide-react";
 import dynamic from "next/dynamic";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { EmptyState } from "@/components/editor/empty-state";
 import { OnboardingHint } from "@/components/editor/onboarding-hint";
+import { Tooltip } from "@/components/ui/tooltip";
 import { useOnboardingStore } from "@/editor/onboarding";
 import { getCanvasPreset } from "@/editor/presets/canvas-presets";
 import { clipOutPolygon, uploadPrompts, type Point } from "@/editor/rendering/device-quad";
@@ -15,6 +17,7 @@ import { useActiveDeviceId } from "@/editor/selection";
 import { useScene } from "@/editor/store";
 import type { CanvasConfig } from "@/editor/types";
 import { useUIStore } from "@/editor/ui-store";
+import { formatDuration, restartVideos, sceneVideoDuration, usePlaybackStore, useVideoMode } from "@/editor/video";
 import { cn } from "@/lib/cn";
 
 const CanvasStage = dynamic(() => import("@/components/editor/canvas-stage"), { ssr: false });
@@ -181,16 +184,40 @@ function frameName(canvas: CanvasConfig): string {
 
 /** Figma-style frame title above the canvas: its name on the left, its size on the right. */
 function FrameLabel({ canvas }: { canvas: CanvasConfig }) {
+  const videoMode = useVideoMode();
   return (
-    <div
-      className="pointer-events-none absolute bottom-full left-0 mb-1.5 flex w-full min-w-max items-center justify-between gap-3 text-2xs text-muted select-none"
-      aria-live="polite"
-    >
-      <span className="truncate font-medium">{frameName(canvas)}</span>
+    <div className="pointer-events-none absolute bottom-full left-0 mb-1.5 flex w-full min-w-max items-center justify-between gap-3 text-2xs text-muted select-none">
+      <span className="flex min-w-0 items-center gap-1.5" aria-live="polite">
+        {videoMode ? <PlaybackToggle /> : null}
+        <span className="truncate font-medium">{frameName(canvas)}</span>
+      </span>
       <span className="text-subtle tabular-nums">
         {canvas.width} × {canvas.height}
       </span>
     </div>
+  );
+}
+
+/** Play/pause of the video preview, with the length of the exported video. */
+function PlaybackToggle() {
+  const playing = usePlaybackStore((s) => s.playing);
+  const setPlaying = usePlaybackStore((s) => s.setPlaying);
+  const duration = useScene(sceneVideoDuration);
+  return (
+    <Tooltip label={playing ? "Pause preview" : "Play preview"} side="top">
+      <button
+        type="button"
+        aria-label={playing ? "Pause video" : "Play video"}
+        onClick={() => {
+          if (!playing) restartVideos();
+          setPlaying(!playing);
+        }}
+        className="pointer-events-auto -ml-1 flex h-5 cursor-default items-center gap-1 rounded-md px-1 text-ink tabular-nums transition-colors hover:bg-hover [&_svg]:size-3"
+      >
+        {playing ? <Pause /> : <Play />}
+        {formatDuration(duration)}
+      </button>
+    </Tooltip>
   );
 }
 

@@ -28,6 +28,12 @@ production site counts visits with Yandex Metrica.
 - **Upload prompts**: every device without a screenshot shows a minimal upload prompt (click anywhere on the screen,
   drop or paste) with the screenshot size that fits the screen exactly, e.g. 1206 × 2622 px (windows: a width only). A prompt is clipped by the devices in
   front of it, shrinks to its icon when its screen is partly covered, and is left out when the screen is mostly hidden.
+- **Video**: a screen recording (MP4, WebM or MOV the browser can decode) can replace the screenshot. Video mode keeps
+  the scene simple: a single device (adding a video to a layout switches to Solo; `⌘Z` brings the layout back),
+  perspective and layouts are locked, Match colors and Showcase presets are hidden, and the watch and spatial window
+  aren't offered. The preview plays muted and looping (▶︎/⏸ above the canvas). Export renders every frame at 30 fps and
+  encodes a silent MP4 (H.264; WebM where the browser can't encode H.264) at up to Full HD on the long side, at most
+  60 s long. Videos over 200 MB aren't kept after a reload.
 - **Perspective**: Front, Tilt Left, Tilt Right, Perspective Left and Perspective Right, per device. Presets only — no
   angles or cameras — and they export at full resolution with matching shadows.
 - **Screenshot crop**: zoom (100–400 %) and position the screenshot inside the screen with the Screenshot section, or

@@ -17,6 +17,7 @@ import { useActiveDeviceId } from "@/editor/selection";
 import { useDevice, useEditorStore, useScene } from "@/editor/store";
 import type { DeviceInstance, ScreenshotCrop } from "@/editor/types";
 import { useUIStore } from "@/editor/ui-store";
+import { formatDuration } from "@/editor/video";
 
 /** The active device's screenshot: replace/remove, and where it sits inside the screen. */
 export function ScreenshotPanel() {
@@ -51,7 +52,7 @@ export function ScreenshotPanel() {
 function ScreenshotRow({ instance }: { instance: DeviceInstance }) {
   const asset = useAsset(instance.screenshotId);
   const update = useEditorStore((s) => s.update);
-  const replace = () => pickImageFile((file) => void importScreenshot(file, instance.id));
+  const replace = () => pickImageFile((file) => void importScreenshot(file, instance.id), { video: true });
 
   if (!asset) {
     return (
@@ -64,12 +65,18 @@ function ScreenshotRow({ instance }: { instance: DeviceInstance }) {
   return (
     <div className="flex items-center gap-2.5">
       <div className="checkerboard size-10 shrink-0 overflow-hidden rounded-md shadow-[inset_0_0_0_1px_rgb(0_0_0/0.1)]">
-        <img src={asset.url} alt="" className="size-full object-cover object-top" />
+        {asset.kind === "video" ? (
+          // A paused, muted element shows the first frame as the thumbnail.
+          <video src={asset.url} muted playsInline preload="metadata" className="size-full object-cover object-top" />
+        ) : (
+          <img src={asset.url} alt="" className="size-full object-cover object-top" />
+        )}
       </div>
       <div className="min-w-0 flex-1">
         <p className="truncate text-xs text-ink">{asset.name}</p>
         <p className="text-2xs text-muted tabular-nums">
           {asset.width} × {asset.height}
+          {asset.kind === "video" ? ` · ${formatDuration(asset.duration ?? 0)}` : null}
         </p>
       </div>
       <IconButton label="Replace screenshot" icon={<ImagePlus />} onClick={replace} />
@@ -108,7 +115,9 @@ function CropControls({ instance }: { instance: DeviceInstance }) {
         {cropping ? "Done" : "Adjust on canvas"}
       </Button>
       {cropping ? (
-        <p className="text-2xs leading-4 text-muted">Drag to move the screenshot, scroll to zoom. Esc to finish.</p>
+        <p className="text-2xs leading-4 text-muted">
+          Drag to move the {asset.kind === "video" ? "video" : "screenshot"}, scroll to zoom. Esc to finish.
+        </p>
       ) : null}
       <SliderField
         label="Zoom"

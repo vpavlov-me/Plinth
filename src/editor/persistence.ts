@@ -1,4 +1,5 @@
 import { getAsset, loadImage, useAssetStore } from "@/editor/assets";
+import { MAX_STORED_VIDEO_BYTES } from "@/editor/video";
 import { hasDevice } from "@/editor/devices/definitions";
 import type { CustomFrame } from "@/editor/custom-frames";
 import { useLibraryStore, type LibraryData } from "@/editor/library";
@@ -42,7 +43,15 @@ const LIBRARY_KEY = "plinth.library.v1";
 const DB_NAME = "plinth";
 const STORE = "assets";
 
-type StoredAsset = { id: string; blob: Blob; width: number; height: number; name: string };
+type StoredAsset = {
+  id: string;
+  blob: Blob;
+  width: number;
+  height: number;
+  name: string;
+  kind?: "image" | "video";
+  duration?: number;
+};
 
 /* -------------------------------------------------------------------------- */
 /* IndexedDB                                                                  */
@@ -85,7 +94,17 @@ async function syncStoredAssets(ids: string[]): Promise<void> {
     if (stored.has(id)) continue;
     const asset = getAsset(id);
     if (!asset) continue;
-    const record: StoredAsset = { id, blob: asset.blob, width: asset.width, height: asset.height, name: asset.name };
+    // Very large videos stay in memory for this session only.
+    if (asset.kind === "video" && asset.blob.size > MAX_STORED_VIDEO_BYTES) continue;
+    const record: StoredAsset = {
+      id,
+      blob: asset.blob,
+      width: asset.width,
+      height: asset.height,
+      name: asset.name,
+      kind: asset.kind,
+      duration: asset.duration,
+    };
     await run("readwrite", (s) => s.put(record));
   }
   for (const id of stored) {
@@ -97,13 +116,18 @@ async function restoreAsset(id: string): Promise<ImageAsset | null> {
   const record = (await run("readonly", (s) => s.get(id))) as StoredAsset | undefined;
   if (!record?.blob) return null;
   const url = URL.createObjectURL(record.blob);
+  const base = { id, url, width: record.width, height: record.height, name: record.name, blob: record.blob };
+  if (record.kind === "video") {
+    // The preview element loads on demand; the video was validated at import.
+    return { ...base, kind: "video", duration: record.duration ?? 0 };
+  }
   try {
     await loadImage(url);
   } catch {
     URL.revokeObjectURL(url);
     return null;
   }
-  return { id, url, width: record.width, height: record.height, name: record.name, blob: record.blob };
+  return base;
 }
 
 /* -------------------------------------------------------------------------- */

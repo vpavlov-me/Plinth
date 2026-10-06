@@ -447,3 +447,51 @@ test("first visit: a starter mockup and a dismissible three-step hint", async ({
   await expect(page.getByRole("heading", { name: "Drop a screenshot" })).toBeVisible();
   await expect(hint).toBeHidden();
 });
+
+/* -------------------------------------------------------------------------- */
+/* Video                                                                      */
+/* -------------------------------------------------------------------------- */
+
+test("video: a screen recording locks perspective and layouts and exports a video", async ({ page }) => {
+  await openLibrary(page, "Layouts");
+  await page.getByRole("button", { name: "Duo", exact: true }).click();
+  await openScreenshot(page, "clip.webm");
+  await expect(page.getByText("clip.webm")).toBeVisible();
+  await expect(page.getByText("Video uses a single device")).toBeVisible();
+
+  // Video mode: one device, perspective and layouts locked, no colour matching.
+  await expect(
+    page.getByRole("button", { name: /^Perspective \(Perspective isn’t available for video\)/ }),
+  ).toBeVisible();
+  await expect(page.getByRole("button", { name: /^Layouts \(Layouts aren’t available for video\)/ })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Match colors", exact: true })).toHaveCount(0);
+  await expect(page.getByLabel("Device model").locator('option[value="watch"]')).toHaveCount(0);
+  await expect(page.getByRole("button", { name: "Pause video" })).toBeVisible();
+  await page.getByRole("button", { name: "Pause video" }).click();
+  await expect(page.getByRole("button", { name: "Play video" })).toBeVisible();
+
+  await page.getByRole("button", { name: "Export" }).click();
+  await expect(page.getByText(/MP4 · 1536 × 1920/)).toBeVisible();
+  const download = page.waitForEvent("download", { timeout: 60_000 });
+  await page.getByRole("button", { name: /^Download video/ }).click();
+  const file = await (await download).path();
+  const bytes = readFileSync(file);
+  const isMp4 = bytes.subarray(4, 8).toString() === "ftyp";
+  const isWebm = bytes.readUInt32BE(0) === 0x1a45dfa3;
+  expect(isMp4 || isWebm).toBe(true);
+
+  const { Input, ALL_FORMATS, BufferSource } = await import("mediabunny");
+  const input = new Input({ formats: ALL_FORMATS, source: new BufferSource(bytes) });
+  const track = (await input.getPrimaryVideoTrack())!;
+  expect({ width: track.displayWidth, height: track.displayHeight }).toEqual({ width: 1536, height: 1920 });
+  const seconds = await track.computeDuration();
+  expect(seconds).toBeGreaterThan(1.2);
+  expect(seconds).toBeLessThan(1.8);
+  input.dispose();
+
+  // Replacing the video with an image unlocks everything again.
+  await page.keyboard.press("Escape");
+  await openScreenshot(page, "portrait.png");
+  await expect(page.getByRole("button", { name: "Perspective", exact: true })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Match colors", exact: true })).toBeVisible();
+});
