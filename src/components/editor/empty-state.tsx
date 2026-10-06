@@ -2,9 +2,9 @@
 
 import { ImageUp, Loader2 } from "lucide-react";
 import { pickImageFile } from "@/components/editor/pick-file";
-import { Button } from "@/components/ui/button";
 import { Tooltip } from "@/components/ui/tooltip";
 import { importScreenshot } from "@/editor/actions";
+import { getDevice, idealScreenshotSize } from "@/editor/devices/definitions";
 import { cornerRadii, quadToCssMatrix } from "@/editor/geometry";
 import { deviceToCanvas, rectQuad } from "@/editor/rendering/device-quad";
 import { useDeviceLayout } from "@/editor/rendering/use-device-layout";
@@ -46,12 +46,14 @@ export function EmptyState({ instance, canvas, viewScale, busy, iconOnly = false
     .join(" ");
 
   const size = Math.min(width, height);
-  const variant = iconOnly ? "icon" : width >= 250 && height >= 230 ? "full" : size >= 110 ? "compact" : "icon";
+  const variant = iconOnly ? "icon" : width >= 220 && height >= 200 ? "full" : size >= 110 ? "compact" : "icon";
+  const ideal = idealScreenshotSize(getDevice(instance.deviceId));
   const choose = () => pickImageFile((file) => void importScreenshot(file, instance.id));
+  const icon = busy ? <Loader2 className="animate-spin" /> : <ImageUp />;
 
   return (
     <div
-      className="pointer-events-auto absolute flex items-center justify-center overflow-hidden bg-overlay p-3 text-center backdrop-blur-sm transition-opacity duration-300 starting:opacity-0"
+      className="group/prompt pointer-events-auto absolute flex cursor-pointer items-center justify-center overflow-hidden bg-overlay p-3 text-center backdrop-blur-sm transition-[opacity,background-color] duration-300 starting:opacity-0"
       style={{
         left: 0,
         top: 0,
@@ -61,50 +63,58 @@ export function EmptyState({ instance, canvas, viewScale, busy, iconOnly = false
         transformOrigin: "0 0",
         transform: quadToCssMatrix(width, height, quad),
       }}
+      onClick={busy ? undefined : choose}
     >
       {variant === "icon" ? (
-        <Tooltip label={`Add screenshot or paste with ${modKey()}V`}>
-          <button
-            type="button"
-            aria-label="Add screenshot"
-            onClick={choose}
-            className="relative flex size-9 cursor-default items-center justify-center rounded-xl bg-accent-soft text-accent hover:bg-accent/25"
-          >
-            {busy ? <Loader2 className="size-4 animate-spin" /> : <ImageUp className="size-4" />}
-          </button>
-        </Tooltip>
+        <div className="flex flex-col items-center">
+          <Tooltip label={ideal ? `Add screenshot · ${ideal}` : "Add screenshot"}>
+            <button
+              type="button"
+              aria-label="Add screenshot"
+              onClick={(event) => {
+                event.stopPropagation();
+                choose();
+              }}
+              className="flex size-9 cursor-pointer items-center justify-center rounded-full text-muted transition-colors group-hover/prompt:text-ink [&_svg]:size-5"
+            >
+              {icon}
+            </button>
+          </Tooltip>
+          {ideal && size >= 110 ? <p className="mt-1 text-2xs text-muted tabular-nums">{ideal}</p> : null}
+        </div>
       ) : (
-        <div className="relative flex max-w-[300px] flex-col items-center">
-          <div
+        <div className="flex flex-col items-center">
+          <span
             className={cn(
-              "mb-3 flex items-center justify-center rounded-xl bg-accent-soft text-accent",
-              variant === "full" ? "size-11" : "size-9",
+              "flex items-center justify-center text-subtle transition-colors group-hover/prompt:text-ink",
+              variant === "full" ? "mb-3 [&_svg]:size-6" : "mb-2 [&_svg]:size-5",
             )}
+            aria-hidden
           >
-            {busy ? <Loader2 className="size-5 animate-spin" /> : <ImageUp className="size-5" />}
-          </div>
-          <h2 className={cn("font-semibold text-ink", variant === "full" ? "text-[15px]" : "text-[13px]")}>
+            {icon}
+          </span>
+          <h2 className={cn("font-medium text-ink", variant === "full" ? "text-sm" : "text-xs")}>
             {busy ? "Processing image…" : "Drop a screenshot"}
           </h2>
-          <p className={cn("mt-1 text-muted", variant === "full" ? "text-xs leading-5" : "text-2xs leading-4")}>
-            {variant === "full" ? "PNG, JPG or WebP. Drag it anywhere, choose a file, or just " : "Or just "}
-            paste an image from your clipboard with <span className="font-medium text-ink">{modKey()}V</span>.
-          </p>
-          <div className={cn("flex w-full gap-2", variant === "full" ? "mt-5" : "mt-3")}>
-            <Button
-              variant="primary"
-              size={variant === "full" ? "md" : "sm"}
-              className="flex-1"
-              disabled={busy}
-              onClick={choose}
-            >
-              <ImageUp className="size-4" />
-              Choose file
-            </Button>
-          </div>
-          {variant === "full" ? (
-            <p className="mt-4 text-2xs text-subtle">Images stay on your device. Nothing is uploaded.</p>
+          {ideal ? (
+            <p className="mt-1 text-2xs text-muted tabular-nums" title="Use this size for a pixel-perfect fit">
+              {ideal}
+            </p>
           ) : null}
+          <p className={cn("text-2xs text-subtle", variant === "full" ? "mt-3" : "mt-2")}>
+            <button
+              type="button"
+              disabled={busy}
+              onClick={(event) => {
+                event.stopPropagation();
+                choose();
+              }}
+              className="cursor-pointer font-medium text-ink underline decoration-line-strong underline-offset-2 hover:decoration-ink"
+            >
+              Choose file
+            </button>
+            {variant === "full" ? ` or paste with ${modKey()}V` : null}
+          </p>
         </div>
       )}
     </div>
