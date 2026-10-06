@@ -7,11 +7,12 @@ import { getCachedImage } from "@/editor/assets";
 import { useLibraryStore } from "@/editor/library";
 import { notify } from "@/editor/notify";
 import { DEFAULT_LAYOUT_ID, layoutForScreenshotCount } from "@/editor/presets/layout-presets";
-import { applyLayout, changeDeviceModel, removeDevice, setScreenshot } from "@/editor/scene";
+import { applyLayout, changeDeviceModel, createDefaultScene, removeDevice, setScreenshot } from "@/editor/scene";
 import { getScene, useEditorStore } from "@/editor/store";
 import type { DeviceInstance, ImageAsset } from "@/editor/types";
 import { createId } from "@/editor/utils/id";
 import { useUIStore } from "@/editor/ui-store";
+import { modKey } from "@/lib/platform";
 
 /**
  * User-level actions that combine asset handling, scene updates and
@@ -118,6 +119,17 @@ export function applyLayoutPreset(layoutId: string): void {
   const keep = scene.devices.find((d) => d.id === selected) ?? scene.devices[0];
   useUIStore.getState().select(keep?.id ?? null);
   useUIStore.getState().setCropping(null);
+}
+
+/**
+ * Starts over: the default scene, without screenshots, as one undo step (so
+ * the previous project comes back with undo). The user's library is kept.
+ */
+export function resetProject(): void {
+  useEditorStore.getState().update(() => createDefaultScene());
+  useUIStore.getState().setCropping(null);
+  useUIStore.getState().select(null);
+  notify("Project reset", { description: `Press ${modKey()}Z to undo.` });
 }
 
 /** Removes the selected device when the composition has more than one. */
