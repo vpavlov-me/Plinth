@@ -1,12 +1,14 @@
 #!/usr/bin/env node
 /**
- * Generates the built-in video backgrounds (`public/backgrounds/videos`):
- * soft colour lights drifting over a base colour, as seamless loops. Every
- * frame is painted on a canvas in headless Chromium and encoded with ffmpeg
- * twice — VP9 WebM (small; preferred where it plays) and H.264 MP4 (plays
- * everywhere) — plus a JPEG poster for the tiles.
+ * Generates the built-in video backgrounds (`public/backgrounds/videos`): the
+ * signature gradients (`GRADIENT_PRESETS`) brought to life as seamless loops —
+ * the base gradient sways and every colour light drifts, turns and breathes.
+ * Every frame is painted on a canvas in headless Chromium (the same painting as
+ * the editor's gradient background) and encoded with ffmpeg twice — VP9 WebM
+ * (small; preferred where it plays) and H.264 MP4 (plays everywhere) — plus a
+ * JPEG poster for the tiles. Grain is left out: it would flicker and bloat the files.
  *
- * The artwork is original; paths are periodic so the last frame meets the first.
+ * Motion is periodic over the loop, so the last frame meets the first.
  *
  * Usage: node scripts/generate-background-videos.mjs   (needs ffmpeg on PATH)
  */
@@ -15,6 +17,7 @@ import { mkdirSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { chromium } from "@playwright/test";
+import { GRADIENT_PRESETS } from "../src/editor/presets/background-presets.ts";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
 const OUT = join(ROOT, "public", "backgrounds", "videos");
@@ -22,29 +25,7 @@ const SIZE = 1440;
 const FPS = 30;
 const SECONDS = 8;
 
-/** Each light moves on a closed path: x/y = centre + amp·sin(2π·freq·t + phase). */
-const VIDEOS = [
-  {
-    id: "aurora",
-    base: "#050816",
-    lights: [
-      { color: "#2dd4bf", r: 0.55, x: [0.3, 0.18, 1, 0], y: [0.35, 0.12, 2, 1.2], stretch: 1.6 },
-      { color: "#6366f1", r: 0.6, x: [0.7, 0.16, 1, 2.1], y: [0.55, 0.15, 1, 0.4], stretch: 1.3 },
-      { color: "#a855f7", r: 0.45, x: [0.45, 0.2, 2, 4.2], y: [0.8, 0.1, 1, 2.8], stretch: 1.8 },
-      { color: "#0ea5e9", r: 0.4, x: [0.2, 0.12, 1, 3.3], y: [0.75, 0.14, 2, 0.6], stretch: 1.2 },
-    ],
-  },
-  {
-    id: "sunset-flow",
-    base: "#ff5f6d",
-    lights: [
-      { color: "#ffc371", r: 0.6, x: [0.25, 0.16, 1, 0.3], y: [0.3, 0.14, 1, 1.7], stretch: 1.4 },
-      { color: "#ff3cac", r: 0.55, x: [0.75, 0.15, 1, 2.4], y: [0.4, 0.16, 2, 0.2], stretch: 1.5 },
-      { color: "#784ba0", r: 0.5, x: [0.55, 0.2, 2, 4.0], y: [0.85, 0.1, 1, 3.1], stretch: 1.7 },
-      { color: "#ffe29f", r: 0.35, x: [0.4, 0.14, 1, 5.1], y: [0.6, 0.18, 1, 2.2], stretch: 1.1 },
-    ],
-  },
-];
+const VIDEOS = GRADIENT_PRESETS.map((preset) => ({ id: preset.id, gradient: preset.gradient }));
 
 async function main() {
   mkdirSync(OUT, { recursive: true });
@@ -138,23 +119,44 @@ function paintFrame({ video, size, t }) {
     height: size,
   }));
   const ctx = canvas.getContext("2d");
-  ctx.fillStyle = video.base;
+  const { gradient } = video;
+  const turn = 2 * Math.PI * t;
+
+  // Base: the preset's linear gradient, its angle swaying ±18°.
+  const radians = ((gradient.angle + 18 * Math.sin(turn)) * Math.PI) / 180;
+  const dx = Math.sin(radians);
+  const dy = -Math.cos(radians);
+  const half = (Math.abs(size * dx) + Math.abs(size * dy)) / 2;
+  const c = size / 2;
+  const colors = gradient.colors.length > 1 ? gradient.colors : [gradient.colors[0], gradient.colors[0]];
+  const base = ctx.createLinearGradient(c - dx * half, c - dy * half, c + dx * half, c + dy * half);
+  colors.forEach((color, i) => base.addColorStop(i / (colors.length - 1), color));
+  ctx.fillStyle = base;
   ctx.fillRect(0, 0, size, size);
-  const wave = ([centre, amp, freq, phase]) => centre + amp * Math.sin(2 * Math.PI * freq * t + phase);
-  for (const light of video.lights) {
-    const radius = light.r * size;
+
+  // Lights: each drifts on its own closed path (phase from its index), turns and breathes.
+  (gradient.blobs ?? []).forEach((blob, i) => {
+    const phase = i * 2.1 + 0.7;
+    const x = blob.x + 0.09 * Math.sin(turn + phase);
+    const y = blob.y + 0.07 * Math.sin(2 * turn + phase * 1.3);
+    const radius = blob.r * (1 + 0.1 * Math.sin(turn + phase * 0.6)) * size;
+    const angle = (blob.angle ?? 0) + 22 * Math.sin(turn + phase * 1.7);
+    const stretch = Math.max(0.2, Math.min(5, blob.stretch ?? 1));
+    const core = Math.max(0, Math.min(0.9, blob.core ?? 0));
+    const solid = blob.color.slice(0, 7);
     ctx.save();
-    ctx.translate(wave(light.x) * size, wave(light.y) * size);
-    ctx.rotate(Math.sin(2 * Math.PI * t + light.x[3]) * 0.6);
-    ctx.scale(light.stretch, 1);
-    const gradient = ctx.createRadialGradient(0, 0, 0, 0, 0, radius);
-    gradient.addColorStop(0, light.color);
-    gradient.addColorStop(0.55, `${light.color}88`);
-    gradient.addColorStop(1, `${light.color}00`);
-    ctx.fillStyle = gradient;
+    ctx.translate(x * size, y * size);
+    ctx.rotate((angle * Math.PI) / 180);
+    ctx.scale(stretch, 1);
+    const light = ctx.createRadialGradient(0, 0, 0, 0, 0, radius);
+    light.addColorStop(0, blob.color);
+    if (core > 0) light.addColorStop(core, blob.color);
+    light.addColorStop(core + (1 - core) * 0.55, `${solid}88`);
+    light.addColorStop(1, `${solid}00`);
+    ctx.fillStyle = light;
     ctx.fillRect(-radius, -radius, radius * 2, radius * 2);
     ctx.restore();
-  }
+  });
   return canvas.toDataURL("image/jpeg", 0.95).split(",")[1];
 }
 

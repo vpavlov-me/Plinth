@@ -80,7 +80,7 @@ describe("video mode", () => {
   it("built-in video backgrounds have a known length", () => {
     const scene = {
       ...createDefaultScene(),
-      background: { type: "video", source: { kind: "preset", videoId: "aurora" } },
+      background: { type: "video", source: { kind: "preset", videoId: "liquid-blue" } },
     };
     expect(sceneHasAnyVideo(scene as never)).toBe(true);
     expect(sceneVideoDuration(scene as never)).toBe(8);

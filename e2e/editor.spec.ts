@@ -530,10 +530,10 @@ test("video background: screenshots keep every feature and the export is a video
 
 test("video background presets, and a 720p export", async ({ page }) => {
   await page.getByRole("button", { name: "Video", exact: true }).click();
-  // The first built-in loop is applied right away; the other one is a tile.
+  // The first built-in loop is applied right away; the others are tiles.
   await expect(page.getByRole("button", { name: "Pause video" })).toBeVisible();
-  await page.getByRole("button", { name: "Sunset Flow", exact: true }).click();
-  await expect(page.getByRole("button", { name: "Sunset Flow", exact: true })).toHaveAttribute("aria-pressed", "true");
+  await page.getByRole("button", { name: "Pink Orange", exact: true }).click();
+  await expect(page.getByRole("button", { name: "Pink Orange", exact: true })).toHaveAttribute("aria-pressed", "true");
 
   await page.getByRole("button", { name: "Export" }).click();
   await page.getByRole("button", { name: "720p", exact: true }).click();
