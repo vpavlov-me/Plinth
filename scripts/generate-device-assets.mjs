@@ -481,51 +481,26 @@ function monitor(spec) {
   };
 }
 
-/** Smartwatch: case, crown, button, band. */
+/** Smartwatch: case, crown and side button (no band: it only distracted from the screen). */
 function watch(spec) {
   const caseW = spec.screen.w + 2 * (spec.bezel + spec.rim);
   const caseH = spec.screen.h + 2 * (spec.bezel + spec.rim);
-  const bandW = Math.round(caseW * 0.78);
-  const bandL = spec.bandLength;
   const crown = 26;
   const width = caseW + crown + 4;
-  const height = caseH + bandL * 2;
-  const kase = rect(0, bandL, caseW, caseH, spec.radius);
-  const screen = rect(
-    spec.rim + spec.bezel,
-    bandL + spec.rim + spec.bezel,
-    spec.screen.w,
-    spec.screen.h,
-    spec.screen.r,
-  );
-  const bandTop = rect((caseW - bandW) / 2, 0, bandW, bandL + 40, [18, 18, 0, 0]);
-  const bandBottom = rect((caseW - bandW) / 2, bandL + caseH - 40, bandW, bandL + 40, [0, 0, 18, 18]);
+  const height = caseH;
+  const kase = rect(0, 0, caseW, caseH, spec.radius);
+  const screen = rect(spec.rim + spec.bezel, spec.rim + spec.bezel, spec.screen.w, spec.screen.h, spec.screen.r);
 
   return {
     width,
     height,
     screen,
-    body: [inset(kase, 1), bandTop, bandBottom],
+    body: [inset(kase, 1)],
     render(v, fill) {
       const defs = [
         GLARE,
         SHEEN,
         linear("case", metalStops(metal(v.case))),
-        linear("band", [
-          [0, shade(v.band, -0.25)],
-          [0.12, v.band],
-          [0.88, v.band],
-          [1, shade(v.band, -0.25)],
-        ]),
-        linear(
-          "bandfade",
-          [
-            [0, "#000", 0.2],
-            [0.5, "#000", 0],
-            [1, "#000", 0.2],
-          ],
-          "y",
-        ),
         linear(
           "crown",
           [
@@ -538,23 +513,15 @@ function watch(spec) {
       ];
       const glass = inset(kase, spec.rim);
       const out = [previewFill(fill, screen)];
-      out.push(`<path fill="url(#band)" d="${path(bandTop)}"/>`);
-      out.push(`<path fill="url(#band)" d="${path(bandBottom)}"/>`);
-      out.push(`<path fill="url(#bandfade)" d="${rrect(bandTop.x, 0, bandW, height, 18)}"/>`);
-      for (let i = 1; i < 6; i++) {
-        out.push(
-          `<rect x="${bandTop.x + 10}" y="${r2(bandL + caseH + 40 + i * (bandL / 6))}" width="${bandW - 20}" height="2" fill="#000" opacity="0.12"/>`,
-        );
-      }
       // Crown with ridges and side button.
-      const crownY = bandL + caseH * 0.28;
+      const crownY = caseH * 0.28;
       out.push(`<path fill="url(#crown)" d="${rrect(caseW - 6, crownY, crown, caseH * 0.2, 8)}"/>`);
       for (let i = 1; i < 8; i++) {
         out.push(
           `<rect x="${caseW}" y="${r2(crownY + (i * caseH * 0.2) / 8)}" width="${crown - 6}" height="2" fill="#000" opacity="0.25"/>`,
         );
       }
-      out.push(`<path fill="url(#crown)" d="${rrect(caseW - 6, bandL + caseH * 0.58, 14, caseH * 0.2, 6)}"/>`);
+      out.push(`<path fill="url(#crown)" d="${rrect(caseW - 6, caseH * 0.58, 14, caseH * 0.2, 6)}"/>`);
       out.push(`<path fill-rule="evenodd" fill="url(#case)" d="${path(kase)}${path(glass)}"/>`);
       out.push(`<path fill-rule="evenodd" fill="url(#sheen)" d="${path(kase)}${path(glass)}"/>`);
       out.push(`<path fill-rule="evenodd" fill="#030304" d="${path(glass)}${path(screen)}"/>`);
@@ -799,10 +766,10 @@ const DISPLAY = {
   black: { name: "Black", swatch: "#2d2e31", body: "#2f3033", stand: "#3a3b3f" },
 };
 const WATCH = {
-  midnight: { name: "Jet Black", swatch: "#1d1e21", case: "#2b2c30", band: "#1f2125" },
-  silver: { name: "Silver", swatch: "#d3d4d8", case: "#c7c8cc", band: "#d9dce3" },
-  rose: { name: "Rose Gold", swatch: "#e5c3b6", case: "#d9b3a5", band: "#e9cfc6" },
-  blue: { name: "Storm Blue", swatch: "#4b5a75", case: "#c7c8cc", band: "#4b5a75" },
+  midnight: { name: "Jet Black", swatch: "#2b2c30", case: "#2b2c30" },
+  silver: { name: "Silver", swatch: "#c7c8cc", case: "#c7c8cc" },
+  rose: { name: "Rose Gold", swatch: "#d9b3a5", case: "#d9b3a5" },
+  blue: { name: "Storm Blue", swatch: "#56647c", case: "#56647c" },
 };
 const BROWSER_LIGHT = {
   chrome: "#f2f2f4",
@@ -1205,7 +1172,7 @@ const DEVICES = [
     name: "Watch 46mm",
     category: "watch",
     variants: WATCH,
-    shape: watch({ screen: { w: 416, h: 496, r: 112 }, bezel: 26, rim: 24, radius: 168, bandLength: 330 }),
+    shape: watch({ screen: { w: 416, h: 496, r: 112 }, bezel: 26, rim: 24, radius: 168 }),
   },
   {
     id: "glass-window",
