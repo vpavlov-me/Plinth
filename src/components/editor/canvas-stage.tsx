@@ -14,6 +14,7 @@ import { MAX_CROP_ZOOM, updateDevice } from "@/editor/scene";
 import { getScene, useEditorStore, useScene } from "@/editor/store";
 import type { CanvasConfig, DeviceInstance } from "@/editor/types";
 import { useUIStore } from "@/editor/ui-store";
+import { useAnyVideo, usePlaybackStore } from "@/editor/video";
 
 /** Snap distance to the canvas centre lines, in screen pixels. */
 const SNAP_DISTANCE = 6;
@@ -36,6 +37,18 @@ export default function CanvasStage({ viewScale }: { viewScale: number }) {
   const transformerRef = useRef<Konva.Transformer>(null);
   const stageRef = useRef<Konva.Stage>(null);
   const [guides, setGuides] = useState<Guides>({ vertical: false, horizontal: false });
+  const anyVideo = useAnyVideo();
+  const playing = usePlaybackStore((s) => s.playing);
+
+  // Video preview: redraw every frame while it plays.
+  useEffect(() => {
+    if (!anyVideo || !playing) return;
+    let frame = requestAnimationFrame(function tick() {
+      stageRef.current?.batchDraw();
+      frame = requestAnimationFrame(tick);
+    });
+    return () => cancelAnimationFrame(frame);
+  }, [anyVideo, playing]);
 
   // Attach the transformer to the selected device.
   useEffect(() => {

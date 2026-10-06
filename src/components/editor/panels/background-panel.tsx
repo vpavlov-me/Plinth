@@ -11,7 +11,7 @@ import { ColorField } from "@/components/ui/color-field";
 import { Section } from "@/components/ui/section";
 import { Segmented } from "@/components/ui/segmented";
 import { Tooltip } from "@/components/ui/tooltip";
-import { importBackgroundImage, matchBackgroundColors } from "@/editor/actions";
+import { importBackgroundImage, importBackgroundVideo, matchBackgroundColors } from "@/editor/actions";
 import { getAsset, getCachedImage, useAsset, useImage } from "@/editor/assets";
 import { MATCH_VARIANTS, matchedBackground, screenshotPalette } from "@/editor/color-match";
 import { useActiveDeviceId } from "@/editor/selection";
@@ -19,14 +19,23 @@ import { sameGradient, useLibraryStore } from "@/editor/library";
 import { cloneGradient, DEFAULT_GRADIENT, GRADIENT_PRESETS, SOLID_SWATCHES } from "@/editor/presets/background-presets";
 import { PHOTO_PRESETS, photoThumbSrc } from "@/editor/presets/photo-presets";
 import { useEditorStore, useScene } from "@/editor/store";
-import type { BackgroundConfig, BackgroundImageSource, BackgroundType, GradientConfig } from "@/editor/types";
+import type {
+  BackgroundConfig,
+  BackgroundImageSource,
+  BackgroundType,
+  BackgroundVideoSource,
+  GradientConfig,
+} from "@/editor/types";
 import { cn } from "@/lib/cn";
+import { formatDuration, resolveBackgroundVideo, useAnyVideo } from "@/editor/video";
+import { VIDEO_PRESETS, videoPresetThumbSrc } from "@/editor/presets/video-presets";
 
 export function BackgroundPanel() {
   const background = useScene((s) => s.background);
   const update = useEditorStore((s) => s.update);
   const commit = useEditorStore((s) => s.commit);
   // Remembers the last configuration of each type so switching tabs is lossless.
+  const anyVideo = useAnyVideo();
   const memory = useRef<Partial<Record<BackgroundType, BackgroundConfig>>>({});
   useEffect(() => {
     memory.current[background.type] = background;
@@ -38,10 +47,16 @@ export function BackgroundPanel() {
   const switchType = (type: BackgroundType) => {
     if (type === background.type) return;
     const remembered = memory.current[type];
-    if (remembered && (remembered.type !== "image" || isAvailable(remembered.source))) return set(remembered);
+    if (remembered && isUsable(remembered)) return set(remembered);
     if (type === "solid") return set({ type: "solid", color: "#f4f4f5" });
     if (type === "gradient") return set(cloneGradient(DEFAULT_GRADIENT));
     if (type === "transparent") return set({ type: "transparent" });
+    if (type === "video") {
+      const firstVideo = VIDEO_PRESETS[0];
+      return firstVideo
+        ? set({ type: "video", source: { kind: "preset", videoId: firstVideo.id } })
+        : pickImageFile((file) => void importBackgroundVideo(file), { video: "only" });
+    }
     const firstPhoto = PHOTO_PRESETS[0];
     const firstUpload = useLibraryStore.getState().images[0];
     if (firstPhoto) return set({ type: "image", source: { kind: "photo", photoId: firstPhoto.id } });
@@ -51,15 +66,18 @@ export function BackgroundPanel() {
 
   return (
     <Section title="Background">
-      <MatchColors />
+      {/* Colour matching reads a still screenshot; videos don't offer it. */}
+      {anyVideo ? null : <MatchColors />}
       <Segmented<BackgroundType>
         label="Background type"
+        fitLabels
         value={background.type}
         onChange={switchType}
         options={[
           { value: "solid", label: "Solid" },
           { value: "gradient", label: "Gradient" },
           { value: "image", label: "Image" },
+          { value: "video", label: "Video" },
           { value: "transparent", label: "None" },
         ]}
       />
@@ -73,6 +91,9 @@ export function BackgroundPanel() {
       {background.type === "gradient" ? <GradientTiles gradient={background} onPick={(g) => set(g)} /> : null}
       {background.type === "image" ? (
         <ImageTiles source={background.source} onPick={(source) => set({ type: "image", source })} />
+      ) : null}
+      {background.type === "video" ? (
+        <VideoTiles source={background.source} onPick={(source) => set({ type: "video", source })} />
       ) : null}
       {background.type === "transparent" ? (
         <p className="text-xs leading-5 text-muted">Exports as a transparent PNG. JPG exports use white.</p>
@@ -122,6 +143,12 @@ function MatchColors() {
         : null}
     </div>
   );
+}
+
+function isUsable(background: BackgroundConfig): boolean {
+  if (background.type === "image") return isAvailable(background.source);
+  if (background.type === "video") return resolveBackgroundVideo(background.source) !== null;
+  return true;
 }
 
 function isAvailable(source: BackgroundImageSource): boolean {
@@ -397,6 +424,59 @@ function ImageTiles({
   );
 }
 
+/* -------------------------------------------------------------------------- */
+/* Video                                                                      */
+/* -------------------------------------------------------------------------- */
+
+function VideoTiles({
+  source,
+  onPick,
+}: {
+  source: BackgroundVideoSource;
+  onPick: (source: BackgroundVideoSource) => void;
+}) {
+  const uploads = useLibraryStore((s) => s.videos);
+  const removeVideo = useLibraryStore((s) => s.removeVideo);
+
+  return (
+    <TileGrid label="Videos">
+      <Tooltip label="Upload your video">
+        <button
+          type="button"
+          aria-label="Upload your video"
+          onClick={() => pickImageFile((file) => void importBackgroundVideo(file), { video: "only" })}
+          className={cn(ADD_TILE, "aspect-square")}
+        >
+          <Plus className="size-4" />
+        </button>
+      </Tooltip>
+      {uploads.map((assetId) => (
+        <UploadTile
+          key={assetId}
+          assetId={assetId}
+          selected={source.kind === "upload" && source.assetId === assetId}
+          onSelect={() => onPick({ kind: "upload", assetId })}
+          onRemove={() => removeVideo(assetId)}
+        />
+      ))}
+      {VIDEO_PRESETS.map((preset) => (
+        <Tooltip key={preset.id} label={`${preset.name} · ${formatDuration(preset.duration)} loop`}>
+          <div>
+            <Tile
+              label={preset.name}
+              selected={source.kind === "preset" && source.videoId === preset.id}
+              onSelect={() => onPick({ kind: "preset", videoId: preset.id })}
+              className="aspect-square"
+            >
+              <img src={videoPresetThumbSrc(preset.id)} alt="" className="size-full object-cover" draggable={false} />
+            </Tile>
+          </div>
+        </Tooltip>
+      ))}
+    </TileGrid>
+  );
+}
+
 function UploadTile({
   assetId,
   selected,
@@ -412,7 +492,17 @@ function UploadTile({
   if (!asset) return null;
   return (
     <Tile label={asset.name} selected={selected} onSelect={onSelect} onRemove={onRemove} className="aspect-square">
-      <img src={asset.url} alt="" className="size-full object-cover" draggable={false} />
+      {asset.kind === "video" ? (
+        <span className="relative block size-full">
+          {/* A paused, muted element shows the first frame. */}
+          <video src={asset.url} muted playsInline preload="auto" className="size-full object-cover" />
+          <span className="absolute right-0.5 bottom-0.5 rounded bg-black/60 px-1 text-[9px] leading-3.5 font-medium text-white tabular-nums">
+            {formatDuration(asset.duration ?? 0)}
+          </span>
+        </span>
+      ) : (
+        <img src={asset.url} alt="" className="size-full object-cover" draggable={false} />
+      )}
     </Tile>
   );
 }

@@ -3,14 +3,18 @@ import { create } from "zustand";
 export type ExportFormat = "png" | "jpeg";
 export type ExportScale = 1 | 2 | 3;
 
+/** Video export size: the long side is 854, 1280 or 1920 px (480p, 720p, 1080p). */
+export type VideoQuality = 480 | 720 | 1080;
+
 export type ExportSettings = {
   format: ExportFormat;
   scale: ExportScale;
   /** JPG quality, 0.5–1. */
   quality: number;
+  videoQuality: VideoQuality;
 };
 
-export const DEFAULT_EXPORT_SETTINGS: ExportSettings = { format: "png", scale: 2, quality: 0.92 };
+export const DEFAULT_EXPORT_SETTINGS: ExportSettings = { format: "png", scale: 2, quality: 0.92, videoQuality: 1080 };
 
 export type EditorDialog = "shortcuts" | "about" | "reset";
 
@@ -21,6 +25,8 @@ type UIState = {
   croppingDeviceId: string | null;
   exportSettings: ExportSettings;
   exporting: boolean;
+  /** Share of a video export done (0–1), or null when no video is being exported. */
+  videoProgress: number | null;
   /** True once the persisted project has been restored. */
   hydrated: boolean;
   /** True while a screenshot is being decoded. */
@@ -33,6 +39,7 @@ type UIState = {
   setCropping: (id: string | null) => void;
   setExportSettings: (patch: Partial<ExportSettings>) => void;
   setExporting: (exporting: boolean) => void;
+  setVideoProgress: (progress: number | null) => void;
   setImporting: (importing: boolean) => void;
   setHydrated: () => void;
 };
@@ -42,6 +49,7 @@ export const useUIStore = create<UIState>((set) => ({
   croppingDeviceId: null,
   exportSettings: DEFAULT_EXPORT_SETTINGS,
   exporting: false,
+  videoProgress: null,
   hydrated: false,
   importing: false,
   dialog: null,
@@ -55,6 +63,7 @@ export const useUIStore = create<UIState>((set) => ({
     set((state) => ({ croppingDeviceId, selectedDeviceId: croppingDeviceId ?? state.selectedDeviceId })),
   setExportSettings: (patch) => set((state) => ({ exportSettings: { ...state.exportSettings, ...patch } })),
   setExporting: (exporting) => set({ exporting }),
+  setVideoProgress: (videoProgress) => set({ videoProgress }),
   setImporting: (importing) => set({ importing }),
   setHydrated: () => set({ hydrated: true }),
 }));

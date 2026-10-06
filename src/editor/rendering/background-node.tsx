@@ -1,9 +1,18 @@
 import { Group, Image as KonvaImage, Rect, Shape } from "react-konva";
-import { useImage } from "@/editor/assets";
+import { useAsset, useImage } from "@/editor/assets";
 import { useBackgroundImageUrl } from "@/editor/background-image";
 import { fitRect } from "@/editor/geometry";
 import { getNoiseTexture } from "@/editor/rendering/noise";
-import type { BackgroundConfig, BackgroundImageSource, CanvasConfig, GradientConfig, MeshBlob } from "@/editor/types";
+import { useVideoFrameSource } from "@/editor/rendering/video-frames";
+import type {
+  BackgroundConfig,
+  BackgroundImageSource,
+  CanvasConfig,
+  BackgroundVideoSource,
+  GradientConfig,
+  MeshBlob,
+} from "@/editor/types";
+import { resolveBackgroundVideo, useVideo } from "@/editor/video";
 
 type Props = { background: BackgroundConfig; canvas: CanvasConfig };
 
@@ -16,6 +25,8 @@ export function BackgroundNode({ background, canvas }: Props) {
       return <GradientNode gradient={background} width={width} height={height} />;
     case "image":
       return <BackgroundImage source={background.source} width={width} height={height} />;
+    case "video":
+      return <VideoBackground source={background.source} width={width} height={height} />;
     case "transparent":
       return null;
   }
@@ -83,6 +94,39 @@ function BackgroundImage({ source, width, height }: { source: BackgroundImageSou
   const size = { width: image.naturalWidth, height: image.naturalHeight };
   const rect = fitRect(size, { width, height }, "cover");
   return <KonvaImage image={image} listening={false} {...coverCrop(size, rect, width, height)} />;
+}
+
+/**
+ * A video background, drawn "cover" from the frame current at draw time:
+ * the live preview element in the editor, the decoded frame while exporting.
+ */
+function VideoBackground({ source, width, height }: { source: BackgroundVideoSource; width: number; height: number }) {
+  // Re-resolves when an upload is restored.
+  const upload = useAsset(source.kind === "upload" ? source.assetId : null);
+  const resolved = resolveBackgroundVideo(source);
+  const video = useVideo(resolved?.url);
+  const frames = useVideoFrameSource();
+  if (!resolved || (!video && !frames) || (source.kind === "upload" && !upload)) return null;
+  const rect = fitRect({ width: resolved.width, height: resolved.height }, { width, height }, "cover");
+  return (
+    <Shape
+      listening={false}
+      perfectDrawEnabled={false}
+      sceneFunc={(context) => {
+        const frame = (frames ? frames(resolved.url) : null) ?? video;
+        if (!frame) return;
+        const ctx = context._context;
+        ctx.save();
+        ctx.beginPath();
+        ctx.rect(0, 0, width, height);
+        ctx.clip();
+        ctx.imageSmoothingEnabled = true;
+        ctx.imageSmoothingQuality = "high";
+        ctx.drawImage(frame, rect.x, rect.y, rect.width, rect.height);
+        ctx.restore();
+      }}
+    />
+  );
 }
 
 /** For "cover", draw only the visible part of the image. */

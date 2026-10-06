@@ -13,10 +13,12 @@ type Props<T extends string> = {
   options: SegmentedOption<T>[];
   onChange: (value: T) => void;
   className?: string;
+  /** Options take width by their label instead of equal shares (for many options). */
+  fitLabels?: boolean;
 };
 
 /** Single-choice segmented control (keyboard: arrow keys move between options). */
-export function Segmented<T extends string>({ label, value, options, onChange, className }: Props<T>) {
+export function Segmented<T extends string>({ label, value, options, onChange, className, fitLabels }: Props<T>) {
   return (
     <ToggleGroup
       aria-label={label}
@@ -32,7 +34,10 @@ export function Segmented<T extends string>({ label, value, options, onChange, c
           key={option.value}
           value={option.value}
           aria-label={option.icon ? option.label : undefined}
-          className="flex min-w-0 flex-1 cursor-default items-center justify-center gap-1.5 rounded-md px-1.5 text-xs font-medium text-muted transition-colors select-none hover:text-ink data-[pressed]:bg-panel data-[pressed]:text-ink data-[pressed]:shadow-[0_1px_2px_rgb(0_0_0/0.08),0_0_0_1px_var(--line)] [&_svg]:size-3.5"
+          className={cn(
+            "flex min-w-0 cursor-default items-center justify-center gap-1.5 rounded-md px-1.5 text-xs font-medium text-muted transition-colors select-none hover:text-ink data-[pressed]:bg-panel data-[pressed]:text-ink data-[pressed]:shadow-[0_1px_2px_rgb(0_0_0/0.08),0_0_0_1px_var(--line)] [&_svg]:size-3.5",
+            fitLabels ? "flex-auto" : "flex-1",
+          )}
         >
           {option.icon}
           <span className="truncate">{option.label}</span>

@@ -54,7 +54,7 @@ export function useEditorShortcuts() {
       }
       if (mod && key === "o") {
         event.preventDefault();
-        pickImageFile((file) => void importScreenshot(file, activeDeviceId()));
+        pickImageFile((file) => void importScreenshot(file, activeDeviceId()), { video: true });
         return;
       }
       if (!mod && event.key === "?") {

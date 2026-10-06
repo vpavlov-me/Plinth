@@ -1,9 +1,13 @@
 import { loadImage } from "@/editor/assets";
 import type { ImageAsset } from "@/editor/types";
 import { createId } from "@/editor/utils/id";
+import { videoType } from "@/editor/video";
 
 export const ACCEPTED_IMAGE_TYPES = ["image/png", "image/jpeg", "image/webp"] as const;
 export const ACCEPT_ATTRIBUTE = ".png,.jpg,.jpeg,.webp,image/png,image/jpeg,image/webp";
+export const ACCEPT_VIDEO_ATTRIBUTE = ".mp4,.m4v,.webm,.mov,video/mp4,video/webm,video/quicktime";
+/** Screenshots may also be screen recordings. */
+export const ACCEPT_SCREENSHOT_ATTRIBUTE = `${ACCEPT_ATTRIBUTE},${ACCEPT_VIDEO_ATTRIBUTE}`;
 
 /** Files larger than this are rejected before decoding. */
 export const MAX_FILE_BYTES = 50 * 1024 * 1024;
@@ -97,14 +101,20 @@ async function resizeBitmap(bitmap: ImageBitmap, width: number, height: number):
   return blob;
 }
 
-/** First image file in a DataTransfer (drop or paste), if any. */
+const isMediaFile = (file: File) =>
+  file.type.startsWith("image/") ||
+  file.type.startsWith("video/") ||
+  detectType(file) !== "" ||
+  videoType(file) !== null;
+
+/** First image or video file in a DataTransfer (drop or paste), if any. */
 export function firstImageFile(data: DataTransfer | null): File | null {
   if (!data) return null;
   for (const file of Array.from(data.files)) {
-    if (file.type.startsWith("image/") || detectType(file)) return file;
+    if (isMediaFile(file)) return file;
   }
   for (const item of Array.from(data.items ?? [])) {
-    if (item.kind === "file" && item.type.startsWith("image/")) {
+    if (item.kind === "file" && (item.type.startsWith("image/") || item.type.startsWith("video/"))) {
       const file = item.getAsFile();
       if (file) return file;
     }
@@ -112,8 +122,8 @@ export function firstImageFile(data: DataTransfer | null): File | null {
   return data.files[0] ?? null;
 }
 
-/** Every image file in a DataTransfer (multi-file drop), in order. */
+/** Every image or video file in a DataTransfer (multi-file drop), in order. */
 export function imageFiles(data: DataTransfer | null): File[] {
   if (!data) return [];
-  return Array.from(data.files).filter((file) => file.type.startsWith("image/") || detectType(file));
+  return Array.from(data.files).filter(isMediaFile);
 }

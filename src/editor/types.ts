@@ -48,9 +48,13 @@ export type BackgroundConfig =
   | { type: "solid"; color: string }
   | GradientConfig
   | { type: "image"; source: BackgroundImageSource }
+  | { type: "video"; source: BackgroundVideoSource }
   | { type: "transparent" };
 
 export type BackgroundType = BackgroundConfig["type"];
+
+/** A video background: one of the built-in loops or a user upload. */
+export type BackgroundVideoSource = { kind: "preset"; videoId: string } | { kind: "upload"; assetId: string };
 
 /** A background photo: either one of the built-in photos or a user upload. */
 export type BackgroundImageSource = { kind: "photo"; photoId: string } | { kind: "upload"; assetId: string };
@@ -192,6 +196,10 @@ export type ImageAsset = {
   width: number;
   height: number;
   name: string;
+  /** "video" for screen recordings (see `video.ts`); images leave it out. */
+  kind?: "image" | "video";
+  /** Length of a video, in seconds. */
+  duration?: number;
   /** Kept so the asset can be persisted locally. */
   blob: Blob;
 };

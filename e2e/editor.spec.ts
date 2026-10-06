@@ -447,3 +447,106 @@ test("first visit: a starter mockup and a dismissible three-step hint", async ({
   await expect(page.getByRole("heading", { name: "Drop a screenshot" })).toBeVisible();
   await expect(hint).toBeHidden();
 });
+
+/* -------------------------------------------------------------------------- */
+/* Video                                                                      */
+/* -------------------------------------------------------------------------- */
+
+test("video: a screen recording locks perspective and layouts and exports a video", async ({ page }) => {
+  await openLibrary(page, "Layouts");
+  await page.getByRole("button", { name: "Duo", exact: true }).click();
+  await openScreenshot(page, "clip.webm");
+  await expect(page.getByText("clip.webm")).toBeVisible();
+  await expect(page.getByText("Video uses a single device")).toBeVisible();
+
+  // Video mode: one device, perspective and layouts locked, no colour matching.
+  await expect(
+    page.getByRole("button", { name: /^Perspective \(Perspective isn’t available for video\)/ }),
+  ).toBeVisible();
+  await expect(page.getByRole("button", { name: /^Layouts \(Layouts aren’t available for video\)/ })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Match colors", exact: true })).toHaveCount(0);
+  await expect(page.getByLabel("Device model").locator('option[value="watch"]')).toHaveCount(0);
+  await expect(page.getByRole("button", { name: "Pause video" })).toBeVisible();
+  await page.getByRole("button", { name: "Pause video" }).click();
+  await expect(page.getByRole("button", { name: "Play video" })).toBeVisible();
+
+  await page.getByRole("button", { name: "Export" }).click();
+  await expect(page.getByText(/MP4 · 1536 × 1920/)).toBeVisible();
+  const download = page.waitForEvent("download", { timeout: 60_000 });
+  await page.getByRole("button", { name: /^Download video/ }).click();
+  const file = await (await download).path();
+  const bytes = readFileSync(file);
+  const isMp4 = bytes.subarray(4, 8).toString() === "ftyp";
+  const isWebm = bytes.readUInt32BE(0) === 0x1a45dfa3;
+  expect(isMp4 || isWebm).toBe(true);
+
+  const { Input, ALL_FORMATS, BufferSource } = await import("mediabunny");
+  const input = new Input({ formats: ALL_FORMATS, source: new BufferSource(bytes) });
+  const track = (await input.getPrimaryVideoTrack())!;
+  expect({ width: track.displayWidth, height: track.displayHeight }).toEqual({ width: 1536, height: 1920 });
+  const seconds = await track.computeDuration();
+  expect(seconds).toBeGreaterThan(1.2);
+  expect(seconds).toBeLessThan(1.8);
+  input.dispose();
+
+  // Replacing the video with an image unlocks everything again.
+  await page.keyboard.press("Escape");
+  await openScreenshot(page, "portrait.png");
+  await expect(page.getByRole("button", { name: "Perspective", exact: true })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Match colors", exact: true })).toBeVisible();
+});
+
+test("video background: screenshots keep every feature and the export is a video", async ({ page }) => {
+  await openScreenshot(page, "portrait.png");
+  await page.getByRole("button", { name: "Video", exact: true }).click();
+  const chooser = page.waitForEvent("filechooser");
+  await page.getByRole("button", { name: "Upload your video" }).click();
+  await (await chooser).setFiles(join(FIXTURE_DIR, "clip.webm"));
+  await expect(page.getByRole("button", { name: "Pause video" })).toBeVisible();
+
+  // A still screenshot on a video background: nothing is locked; only Match colors is hidden.
+  await expect(page.getByRole("button", { name: "Match colors", exact: true })).toHaveCount(0);
+  await expect(page.getByRole("button", { name: "Perspective", exact: true })).toBeVisible();
+  await openLibrary(page, "Layouts");
+  await expect(page.getByRole("button", { name: "Duo", exact: true })).toBeVisible();
+  await openPerspective(page);
+  await page.getByRole("radio", { name: "Perspective Right" }).click();
+
+  await page.getByRole("button", { name: "Export" }).click();
+  await expect(page.getByText(/MP4 · 1536 × 1920 \(Full HD\) · 0:0[12]/)).toBeVisible();
+  await expect(page.getByRole("button", { name: "Copy PNG to clipboard" })).toHaveCount(0);
+  const download = page.waitForEvent("download", { timeout: 60_000 });
+  await page.getByRole("button", { name: /^Download video/ }).click();
+  const bytes = readFileSync(await (await download).path());
+
+  const { Input, ALL_FORMATS, BufferSource } = await import("mediabunny");
+  const input = new Input({ formats: ALL_FORMATS, source: new BufferSource(bytes) });
+  const track = (await input.getPrimaryVideoTrack())!;
+  expect({ width: track.displayWidth, height: track.displayHeight }).toEqual({ width: 1536, height: 1920 });
+  const seconds = await track.computeDuration();
+  expect(seconds).toBeGreaterThan(1.2);
+  expect(seconds).toBeLessThan(1.8);
+  input.dispose();
+});
+
+test("video background presets, and a 720p export", async ({ page }) => {
+  await page.getByRole("button", { name: "Video", exact: true }).click();
+  // The first built-in loop is applied right away; the others are tiles.
+  await expect(page.getByRole("button", { name: "Pause video" })).toBeVisible();
+  await page.getByRole("button", { name: "Pink Orange", exact: true }).click();
+  await expect(page.getByRole("button", { name: "Pink Orange", exact: true })).toHaveAttribute("aria-pressed", "true");
+
+  await page.getByRole("button", { name: "Export" }).click();
+  await page.getByRole("button", { name: "720p", exact: true }).click();
+  await expect(page.getByText(/MP4 · 1024 × 1280 · 0:08/)).toBeVisible();
+  const download = page.waitForEvent("download", { timeout: 120_000 });
+  await page.getByRole("button", { name: /^Download video/ }).click();
+  const bytes = readFileSync(await (await download).path());
+
+  const { Input, ALL_FORMATS, BufferSource } = await import("mediabunny");
+  const input = new Input({ formats: ALL_FORMATS, source: new BufferSource(bytes) });
+  const track = (await input.getPrimaryVideoTrack())!;
+  expect({ width: track.displayWidth, height: track.displayHeight }).toEqual({ width: 1024, height: 1280 });
+  expect(await track.computeDuration()).toBeGreaterThan(7.8);
+  input.dispose();
+});

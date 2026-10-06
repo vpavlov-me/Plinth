@@ -3,6 +3,7 @@ import { notify } from "@/editor/notify";
 import { completeOnboarding } from "@/editor/onboarding";
 import { getScene } from "@/editor/store";
 import { useUIStore, type ExportSettings } from "@/editor/ui-store";
+import { sceneHasAnyVideo } from "@/editor/video";
 
 async function runExport<T>(
   settings: ExportSettings,
@@ -23,8 +24,44 @@ async function runExport<T>(
   }
 }
 
-/** Renders the scene with the current export settings and downloads it. */
+let videoAbort: AbortController | null = null;
+
+/** Renders the scene's video (MP4, or WebM where H.264 isn't available) and downloads it. */
+async function exportVideo(): Promise<void> {
+  const ui = useUIStore.getState();
+  if (ui.exporting) return;
+  ui.setExporting(true);
+  ui.setVideoProgress(0);
+  videoAbort = new AbortController();
+  try {
+    const { renderVideo } = await import("@/editor/export/export-video");
+    const { blob, fileName, width, height } = await renderVideo(getScene(), {
+      quality: useUIStore.getState().exportSettings.videoQuality,
+      signal: videoAbort.signal,
+      onProgress: (done) => useUIStore.getState().setVideoProgress(done),
+    });
+    downloadBlob(blob, fileName);
+    completeOnboarding();
+    notify("Exported", { description: `${fileName} · ${width} × ${height}`, type: "success" });
+  } catch (error) {
+    if (error instanceof Error && error.name === "ExportCanceled") return;
+    const description = error instanceof ExportError ? error.message : "The video could not be rendered.";
+    notify("Export failed", { description, type: "error" });
+  } finally {
+    videoAbort = null;
+    useUIStore.getState().setVideoProgress(null);
+    useUIStore.getState().setExporting(false);
+  }
+}
+
+/** Stops a running video export. */
+export function cancelVideoExport(): void {
+  videoAbort?.abort();
+}
+
+/** Renders the scene with the current export settings and downloads it (a video when the scene has one). */
 export function exportScene(): Promise<void> {
+  if (sceneHasAnyVideo(getScene())) return exportVideo();
   return runExport(useUIStore.getState().exportSettings, ({ blob, fileName, width, height }) => {
     downloadBlob(blob, fileName);
     completeOnboarding();

@@ -1,4 +1,5 @@
 import { getAsset, loadImage, useAssetStore } from "@/editor/assets";
+import { MAX_STORED_VIDEO_BYTES } from "@/editor/video";
 import { hasDevice } from "@/editor/devices/definitions";
 import type { CustomFrame } from "@/editor/custom-frames";
 import { useLibraryStore, type LibraryData } from "@/editor/library";
@@ -6,6 +7,7 @@ import { CANVAS_PRESETS, clampCanvasDimension } from "@/editor/presets/canvas-pr
 import { DEFAULT_LAYOUT_ID, LAYOUT_PRESETS } from "@/editor/presets/layout-presets";
 import { isPerspectiveId } from "@/editor/presets/perspective-presets";
 import { getPhotoPreset } from "@/editor/presets/photo-presets";
+import { getVideoPreset } from "@/editor/presets/video-presets";
 import { SHADOW_PRESETS } from "@/editor/presets/shadow-presets";
 import { createDefaultScene, DEFAULT_CROP, MAX_CROP_ZOOM, MAX_SCREENSHOTS, sceneAssetIds } from "@/editor/scene";
 import type {
@@ -42,7 +44,15 @@ const LIBRARY_KEY = "plinth.library.v1";
 const DB_NAME = "plinth";
 const STORE = "assets";
 
-type StoredAsset = { id: string; blob: Blob; width: number; height: number; name: string };
+type StoredAsset = {
+  id: string;
+  blob: Blob;
+  width: number;
+  height: number;
+  name: string;
+  kind?: "image" | "video";
+  duration?: number;
+};
 
 /* -------------------------------------------------------------------------- */
 /* IndexedDB                                                                  */
@@ -85,7 +95,17 @@ async function syncStoredAssets(ids: string[]): Promise<void> {
     if (stored.has(id)) continue;
     const asset = getAsset(id);
     if (!asset) continue;
-    const record: StoredAsset = { id, blob: asset.blob, width: asset.width, height: asset.height, name: asset.name };
+    // Very large videos stay in memory for this session only.
+    if (asset.kind === "video" && asset.blob.size > MAX_STORED_VIDEO_BYTES) continue;
+    const record: StoredAsset = {
+      id,
+      blob: asset.blob,
+      width: asset.width,
+      height: asset.height,
+      name: asset.name,
+      kind: asset.kind,
+      duration: asset.duration,
+    };
     await run("readwrite", (s) => s.put(record));
   }
   for (const id of stored) {
@@ -97,13 +117,18 @@ async function restoreAsset(id: string): Promise<ImageAsset | null> {
   const record = (await run("readonly", (s) => s.get(id))) as StoredAsset | undefined;
   if (!record?.blob) return null;
   const url = URL.createObjectURL(record.blob);
+  const base = { id, url, width: record.width, height: record.height, name: record.name, blob: record.blob };
+  if (record.kind === "video") {
+    // The preview element loads on demand; the video was validated at import.
+    return { ...base, kind: "video", duration: record.duration ?? 0 };
+  }
   try {
     await loadImage(url);
   } catch {
     URL.revokeObjectURL(url);
     return null;
   }
-  return { id, url, width: record.width, height: record.height, name: record.name, blob: record.blob };
+  return base;
 }
 
 /* -------------------------------------------------------------------------- */
@@ -130,6 +155,7 @@ export function scheduleSave(scene: Scene): void {
           colors: library.colors,
           gradients: library.gradients,
           images: library.images,
+          videos: library.videos,
           frames: library.frames,
         }),
       );
@@ -142,9 +168,9 @@ export function scheduleSave(scene: Scene): void {
   }, 400);
 }
 
-/** Restores the user's background library (colours, gradients, uploaded images). */
+/** Restores the user's background library (colours, gradients, uploaded images and videos). */
 export async function loadLibrary(): Promise<void> {
-  let data: LibraryData = { colors: [], gradients: [], images: [], frames: [] };
+  let data: LibraryData = { colors: [], gradients: [], images: [], videos: [], frames: [] };
   try {
     const parsed = JSON.parse(localStorage.getItem(LIBRARY_KEY) ?? "null") as Record<string, unknown> | null;
     if (isRecord(parsed)) {
@@ -156,6 +182,7 @@ export async function loadLibrary(): Promise<void> {
               .filter((g): g is GradientConfig => g?.type === "gradient")
           : [],
         images: Array.isArray(parsed.images) ? parsed.images.filter(isString) : [],
+        videos: Array.isArray(parsed.videos) ? parsed.videos.filter(isString) : [],
         frames: Array.isArray(parsed.frames) ? parsed.frames.filter(isCustomFrame) : [],
       };
     }
@@ -163,7 +190,7 @@ export async function loadLibrary(): Promise<void> {
     // Corrupt data: start with an empty library.
   }
   const restored = new Set<string>();
-  for (const id of new Set([...data.images, ...data.frames.map((f) => f.assetId)])) {
+  for (const id of new Set([...data.images, ...data.videos, ...data.frames.map((f) => f.assetId)])) {
     try {
       const asset = await restoreAsset(id);
       if (!asset) continue;
@@ -176,6 +203,7 @@ export async function loadLibrary(): Promise<void> {
   useLibraryStore.getState().load({
     ...data,
     images: data.images.filter((id) => restored.has(id)),
+    videos: data.videos.filter((id) => restored.has(id)),
     frames: data.frames.filter((f) => restored.has(f.assetId)),
   });
 }
@@ -214,7 +242,7 @@ export async function loadScene(): Promise<{ scene: Scene; selectedDeviceId: str
   const restoredScene: Scene = {
     ...scene,
     background:
-      scene.background.type === "image" &&
+      (scene.background.type === "image" || scene.background.type === "video") &&
       scene.background.source.kind === "upload" &&
       !restored.has(scene.background.source.assetId)
         ? createDefaultScene().background
@@ -236,6 +264,7 @@ export function loadSettings(): ExportSettings {
       format: parsed.format === "jpeg" ? "jpeg" : "png",
       scale: parsed.scale === 1 || parsed.scale === 3 ? parsed.scale : 2,
       quality: isNumber(parsed.quality) ? Math.min(1, Math.max(0.5, parsed.quality)) : DEFAULT_EXPORT_SETTINGS.quality,
+      videoQuality: parsed.videoQuality === 480 || parsed.videoQuality === 720 ? parsed.videoQuality : 1080,
     };
   } catch {
     return DEFAULT_EXPORT_SETTINGS;
@@ -267,8 +296,8 @@ function isCustomFrame(v: unknown): v is CustomFrame {
 
 /** Asset ids the user's library keeps alive. */
 export function libraryAssetIds(): string[] {
-  const { images, frames } = useLibraryStore.getState();
-  return [...images, ...frames.map((f) => f.assetId)];
+  const { images, videos, frames } = useLibraryStore.getState();
+  return [...images, ...videos, ...frames.map((f) => f.assetId)];
 }
 
 /** Validates persisted data; returns null when it can't be trusted. */
@@ -337,6 +366,16 @@ function sanitizeBackground(bg: Record<string, unknown>): BackgroundConfig | nul
       }
       if (source?.kind === "photo" && isString(source.photoId) && getPhotoPreset(source.photoId)) {
         return { type: "image", source: { kind: "photo", photoId: source.photoId } };
+      }
+      return null;
+    }
+    case "video": {
+      const source = isRecord(bg.source) ? bg.source : null;
+      if (source?.kind === "upload" && isString(source.assetId)) {
+        return { type: "video", source: { kind: "upload", assetId: source.assetId } };
+      }
+      if (source?.kind === "preset" && isString(source.videoId) && getVideoPreset(source.videoId)) {
+        return { type: "video", source: { kind: "preset", videoId: source.videoId } };
       }
       return null;
     }

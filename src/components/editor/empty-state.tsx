@@ -48,7 +48,7 @@ export function EmptyState({ instance, canvas, viewScale, busy, iconOnly = false
   const size = Math.min(width, height);
   const variant = iconOnly ? "icon" : width >= 220 && height >= 200 ? "full" : size >= 110 ? "compact" : "icon";
   const ideal = idealScreenshotSize(getDevice(instance.deviceId));
-  const choose = () => pickImageFile((file) => void importScreenshot(file, instance.id));
+  const choose = () => pickImageFile((file) => void importScreenshot(file, instance.id), { video: true });
   const icon = busy ? <Loader2 className="animate-spin" /> : <ImageUp />;
 
   return (
@@ -67,7 +67,7 @@ export function EmptyState({ instance, canvas, viewScale, busy, iconOnly = false
     >
       {variant === "icon" ? (
         <div className="flex flex-col items-center">
-          <Tooltip label={ideal ? `Add screenshot · ${ideal}` : "Add screenshot"}>
+          <Tooltip label={ideal ? `Add screenshot or video · ${ideal}` : "Add screenshot or video"}>
             <button
               type="button"
               aria-label="Add screenshot"
@@ -94,7 +94,7 @@ export function EmptyState({ instance, canvas, viewScale, busy, iconOnly = false
             {icon}
           </span>
           <h2 className={cn("font-medium text-ink", variant === "full" ? "text-sm" : "text-xs")}>
-            {busy ? "Processing image…" : "Drop a screenshot"}
+            {busy ? "Processing…" : "Drop a screenshot or video"}
           </h2>
           {ideal ? (
             <p className="mt-1 text-2xs text-muted tabular-nums" title="Use this size for a pixel-perfect fit">

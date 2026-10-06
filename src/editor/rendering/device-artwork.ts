@@ -1,14 +1,30 @@
 import { croppedImageRect, traceRoundedRect } from "@/editor/geometry";
 import type { DeviceDefinition, ResolvedDeviceGeometry, RoundedRect, ScreenshotCrop } from "@/editor/types";
 
+/**
+ * What the screen shows: a decoded screenshot or the current frame of a
+ * video. `source` may be a getter, so a video always draws its latest frame.
+ */
+export type ScreenMedia = {
+  readonly source: CanvasImageSource;
+  width: number;
+  height: number;
+  /** Stable identity of the media (its URL), for render caches. */
+  key: string;
+};
+
+export function imageMedia(image: HTMLImageElement): ScreenMedia {
+  return { source: image, width: image.naturalWidth, height: image.naturalHeight, key: image.src };
+}
+
 /** Everything needed to paint a device, in its own frame units. */
 export type DeviceArtwork = {
   device: DeviceDefinition;
   geometry: ResolvedDeviceGeometry;
   /** Decoded frame artwork, or null while loading / for frameless devices. */
   frame: HTMLImageElement | null;
-  /** Decoded screenshot, or null when the device is empty. */
-  screenshot: HTMLImageElement | null;
+  /** Screenshot or video, or null when the device is empty. */
+  screenshot: ScreenMedia | null;
   crop: ScreenshotCrop;
 };
 
@@ -30,13 +46,9 @@ export function screenArea(artwork: Pick<DeviceArtwork, "device" | "geometry">):
 
 /** Where the screenshot lands, in frame units (it may extend beyond the screen). */
 export function screenshotRect(artwork: DeviceArtwork) {
-  const image = artwork.screenshot;
-  if (!image) return null;
-  return croppedImageRect(
-    { width: image.naturalWidth, height: image.naturalHeight },
-    screenArea(artwork),
-    artwork.crop,
-  );
+  const media = artwork.screenshot;
+  if (!media) return null;
+  return croppedImageRect({ width: media.width, height: media.height }, screenArea(artwork), artwork.crop);
 }
 
 /**
@@ -63,7 +75,7 @@ export function drawDeviceArtwork(ctx: CanvasRenderingContext2D, artwork: Device
     // The browser default ("low") makes downscaled screenshots look aliased, especially text.
     ctx.imageSmoothingEnabled = true;
     ctx.imageSmoothingQuality = "high";
-    ctx.drawImage(artwork.screenshot, rect.x, rect.y, rect.width, rect.height);
+    ctx.drawImage(artwork.screenshot.source, rect.x, rect.y, rect.width, rect.height);
   }
   ctx.restore();
 

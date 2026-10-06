@@ -21,6 +21,7 @@
     "@base-ui/react": "^1.8.0",
     "konva": "^10.7.0",
     "lucide-react": "^1.52.0",
+    "mediabunny": "^1.61.3",
     "next": "^16.3.8",
     "react": "^19.3.0",
     "react-dom": "^19.3.0",

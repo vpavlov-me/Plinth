@@ -7,12 +7,12 @@ import { useId, useState, type ReactNode } from "react";
 import { gradientCss } from "@/components/editor/css-background";
 import { pickImageFile } from "@/components/editor/pick-file";
 import { COLLAPSE_CHEVRON, COLLAPSE_PANEL, COLLAPSE_TRIGGER } from "@/components/ui/collapse";
+import { LockedTitle } from "@/components/ui/section";
 import { Tooltip } from "@/components/ui/tooltip";
 import { applyLayoutPreset, importDeviceFrame } from "@/editor/actions";
 import { useAsset } from "@/editor/assets";
 import { useBackgroundImageUrl } from "@/editor/background-image";
 import { customDeviceId, type CustomFrame } from "@/editor/custom-frames";
-import { DEVICE_GROUPS } from "@/editor/devices/definitions";
 import { boundsOf, deviceOutline } from "@/editor/geometry";
 import { LAYOUT_PRESETS, type LayoutPreset } from "@/editor/presets/layout-presets";
 import { useLibraryStore } from "@/editor/library";
@@ -21,6 +21,8 @@ import { applyScenePreset, changeDeviceModel } from "@/editor/scene";
 import { useActiveDeviceId } from "@/editor/selection";
 import { useDevice, useEditorStore, useScene } from "@/editor/store";
 import type { BackgroundConfig, DeviceDefinition } from "@/editor/types";
+import { videoPresetThumbSrc } from "@/editor/presets/video-presets";
+import { useVideoMode, videoDeviceGroups } from "@/editor/video";
 import { cn } from "@/lib/cn";
 
 type LibraryPart = "devices" | "layouts" | "presets";
@@ -33,6 +35,8 @@ type LibraryPart = "devices" | "layouts" | "presets";
 export function LibrarySidebar() {
   const [open, setOpen] = useState<LibraryPart | null>("devices");
   const toggle = (part: LibraryPart) => setOpen((current) => (current === part ? null : part));
+  // A video uses a single device: layouts are locked meanwhile.
+  const videoMode = useVideoMode();
   return (
     <aside
       aria-label="Library"
@@ -41,7 +45,12 @@ export function LibrarySidebar() {
       <LibraryPartSection title="Devices" open={open === "devices"} onToggle={() => toggle("devices")}>
         <DeviceLibrary />
       </LibraryPartSection>
-      <LibraryPartSection title="Layouts" open={open === "layouts"} onToggle={() => toggle("layouts")}>
+      <LibraryPartSection
+        title="Layouts"
+        open={open === "layouts" && !videoMode}
+        locked={videoMode ? "Layouts aren’t available for video" : undefined}
+        onToggle={() => toggle("layouts")}
+      >
         <LayoutLibrary />
       </LibraryPartSection>
       <LibraryPartSection title="Presets" open={open === "presets"} onToggle={() => toggle("presets")}>
@@ -54,15 +63,27 @@ export function LibrarySidebar() {
 function LibraryPartSection({
   title,
   open,
+  locked,
   onToggle,
   children,
 }: {
   title: string;
   open: boolean;
+  /** When set, the part stays closed and shows a lock with this explanation. */
+  locked?: string;
   onToggle: () => void;
   children: ReactNode;
 }) {
   const id = useId();
+  if (locked) {
+    return (
+      <section aria-label={title} className="flex min-h-11 shrink-0 flex-col">
+        <h2 className="flex shrink-0 items-center px-4 pt-3 pb-1">
+          <LockedTitle title={title} reason={locked} />
+        </h2>
+      </section>
+    );
+  }
   return (
     // Takes its content's height and shrinks (scrolling) when space runs out.
     <section aria-label={title} className="flex min-h-11 shrink flex-col overflow-hidden">
@@ -158,10 +179,11 @@ function DeviceLibrary() {
   const activeId = useActiveDeviceId();
   const active = useDevice(activeId);
   const select = useSelectDevice();
+  const videoMode = useVideoMode();
 
   return (
     <div className="flex flex-col gap-0.5">
-      {DEVICE_GROUPS.map((group) => (
+      {videoDeviceGroups(videoMode).map((group) => (
         <Folder key={group.label} label={group.label} count={group.devices.length} defaultOpen={false}>
           <div className="grid grid-cols-2 gap-1">
             {group.devices.map((device) => (
@@ -408,9 +430,11 @@ function LayoutPreview({ layout }: { layout: LayoutPreset }) {
 function PresetLibrary() {
   const update = useEditorStore((s) => s.update);
   const currentBackground = useScene((s) => s.background);
+  // Showcase presets arrange layouts and perspective, which video mode doesn't use.
+  const videoMode = useVideoMode();
   return (
     <div className="flex flex-col gap-0.5">
-      {SCENE_PRESET_GROUPS.map((group) => {
+      {SCENE_PRESET_GROUPS.filter((group) => !videoMode || group.id !== "showcase").map((group) => {
         const presets = SCENE_PRESETS.filter((p) => p.group === group.id);
         return (
           <Folder key={group.id} label={group.label} count={presets.length} defaultOpen={false}>
@@ -463,9 +487,14 @@ function BackgroundBox({
   style?: React.CSSProperties;
   children?: ReactNode;
 }) {
-  const imageUrl = useBackgroundImageUrl(
-    background.type === "image" ? background.source : { kind: "upload", assetId: "" },
-  );
+  const source = background.type === "image" ? background.source : null;
+  const imageUrl = useBackgroundImageUrl(source ?? { kind: "upload", assetId: "" });
+  // Videos: a built-in loop shows its poster, an upload its first frame (previews stay still).
+  const videoSource = background.type === "video" ? background.source : null;
+  const upload = useAsset(videoSource?.kind === "upload" ? videoSource.assetId : null);
+  const video = upload?.kind === "video" ? upload : null;
+  const poster = videoSource?.kind === "preset" ? videoPresetThumbSrc(videoSource.videoId) : null;
+  const cover = (url: string) => ({ background: `center / cover no-repeat url("${url}")` });
   const paint: React.CSSProperties =
     background.type === "solid"
       ? { background: background.color }
@@ -473,19 +502,38 @@ function BackgroundBox({
         ? { background: gradientCss(background) }
         : background.type === "image"
           ? imageUrl
-            ? { background: `center / cover no-repeat url("${imageUrl}")` }
+            ? cover(imageUrl)
             : { background: "var(--line-strong)" }
-          : {};
+          : poster
+            ? cover(poster)
+            : background.type === "video" && !video
+              ? { background: "var(--line-strong)" }
+              : {};
   return (
     <span
       className={cn(
-        "shadow-[inset_0_0_0_1px_var(--tile-ring)]",
+        "relative shadow-[inset_0_0_0_1px_var(--tile-ring)]",
         background.type === "transparent" && "checkerboard",
         className,
       )}
       style={{ ...paint, ...style }}
     >
-      {children}
+      {video ? (
+        // First frame of a video background; previews stay still.
+        <video
+          src={video.url}
+          muted
+          playsInline
+          preload="auto"
+          aria-hidden
+          className="pointer-events-none absolute inset-0 size-full rounded-[inherit] object-cover"
+        />
+      ) : null}
+      {video && children ? (
+        <span className="relative flex size-full items-center justify-center">{children}</span>
+      ) : (
+        children
+      )}
     </span>
   );
 }
