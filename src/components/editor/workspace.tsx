@@ -5,10 +5,13 @@ import { useEffect, useRef, useState } from "react";
 import { EmptyState } from "@/components/editor/empty-state";
 import { OnboardingHint } from "@/components/editor/onboarding-hint";
 import { useOnboardingStore } from "@/editor/onboarding";
+import { getCanvasPreset } from "@/editor/presets/canvas-presets";
+import { SCENE_PRESETS } from "@/editor/presets/scene-presets";
 import { importScreenshot, importScreenshots } from "@/editor/actions";
 import { firstImageFile, imageFiles } from "@/editor/import-image";
 import { useActiveDeviceId } from "@/editor/selection";
 import { useDevice, useScene } from "@/editor/store";
+import type { CanvasConfig } from "@/editor/types";
 import { useUIStore } from "@/editor/ui-store";
 import { cn } from "@/lib/cn";
 
@@ -106,6 +109,7 @@ export function Workspace() {
             top: showHint ? `calc(50% - ${HINT_SPACE / 2}px)` : undefined,
           }}
         >
+          <FrameLabel canvas={canvas} />
           <div
             role="img"
             aria-label={`Mockup canvas, ${canvas.width} by ${canvas.height} pixels`}
@@ -138,5 +142,32 @@ export function Workspace() {
         </div>
       ) : null}
     </main>
+  );
+}
+
+/** Name of the canvas size: the preset, or the social preset a custom size matches. */
+function frameName(canvas: CanvasConfig): string {
+  if (canvas.preset !== "custom") {
+    const preset = getCanvasPreset(canvas.preset);
+    return preset.size ? `${preset.label} ${preset.ratio}` : preset.label;
+  }
+  const scene = SCENE_PRESETS.find(
+    (p) => p.group === "social" && p.canvas.width === canvas.width && p.canvas.height === canvas.height,
+  );
+  return scene?.name ?? "Custom";
+}
+
+/** Figma-style frame title above the canvas: its name on the left, its size on the right. */
+function FrameLabel({ canvas }: { canvas: CanvasConfig }) {
+  return (
+    <div
+      className="pointer-events-none absolute bottom-full left-0 mb-1.5 flex w-full min-w-max items-center justify-between gap-3 text-2xs text-muted select-none"
+      aria-live="polite"
+    >
+      <span className="truncate font-medium">{frameName(canvas)}</span>
+      <span className="text-subtle tabular-nums">
+        {canvas.width} × {canvas.height}
+      </span>
+    </div>
   );
 }

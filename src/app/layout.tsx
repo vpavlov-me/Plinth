@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
+import { THEME_SCRIPT } from "@/editor/theme";
 import { SITE } from "./site";
 import { YandexMetrika } from "./yandex-metrika";
 
@@ -8,7 +9,7 @@ export const metadata: Metadata = {
   title: { default: SITE.title, template: `%s · ${SITE.name}` },
   description: SITE.description,
   applicationName: SITE.name,
-  authors: [SITE.author],
+  authors: [{ name: SITE.author.name, url: SITE.author.url }],
   creator: SITE.author.name,
   keywords: [
     "mockup generator",
@@ -47,13 +48,20 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: SITE.themeColor,
-  colorScheme: "dark",
+  themeColor: [
+    { media: "(prefers-color-scheme: dark)", color: SITE.themeColor },
+    { media: "(prefers-color-scheme: light)", color: SITE.themeColorLight },
+  ],
+  colorScheme: "dark light",
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="en">
+    // The theme script sets data-theme before hydration.
+    <html lang="en" suppressHydrationWarning>
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: THEME_SCRIPT }} />
+      </head>
       <body>
         {children}
         <YandexMetrika />

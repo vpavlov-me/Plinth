@@ -12,6 +12,8 @@ export type ExportSettings = {
 
 export const DEFAULT_EXPORT_SETTINGS: ExportSettings = { format: "png", scale: 2, quality: 0.92 };
 
+export type EditorDialog = "shortcuts" | "about";
+
 type UIState = {
   /** Instance id of the selected device, or null. */
   selectedDeviceId: string | null;
@@ -23,9 +25,9 @@ type UIState = {
   hydrated: boolean;
   /** True while a screenshot is being decoded. */
   importing: boolean;
-  /** Visibility of the floating side panels. */
-  panels: { library: boolean; inspector: boolean };
-  togglePanel: (panel: "library" | "inspector") => void;
+  /** The modal dialog that is open, or null. */
+  dialog: EditorDialog | null;
+  setDialog: (dialog: EditorDialog | null) => void;
   /** Selects a device; leaves crop mode unless it stays on the same device. */
   select: (id: string | null) => void;
   setCropping: (id: string | null) => void;
@@ -42,8 +44,8 @@ export const useUIStore = create<UIState>((set) => ({
   exporting: false,
   hydrated: false,
   importing: false,
-  panels: { library: true, inspector: true },
-  togglePanel: (panel) => set((state) => ({ panels: { ...state.panels, [panel]: !state.panels[panel] } })),
+  dialog: null,
+  setDialog: (dialog) => set({ dialog }),
   select: (selectedDeviceId) =>
     set((state) => ({
       selectedDeviceId,

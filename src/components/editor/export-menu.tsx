@@ -8,7 +8,7 @@ import { SliderField } from "@/components/ui/slider-field";
 import { copySceneToClipboard, exportScene } from "@/components/editor/export-actions";
 import { exportSize, isExportSizeSupported } from "@/editor/export/export-image";
 import { useScene } from "@/editor/store";
-import { useUIStore, type ExportFormat, type ExportScale } from "@/editor/ui-store";
+import { DEFAULT_EXPORT_SETTINGS, useUIStore, type ExportFormat, type ExportScale } from "@/editor/ui-store";
 import { modKey } from "@/lib/platform";
 
 const SCALES: ExportScale[] = [1, 2, 3];
@@ -58,6 +58,7 @@ export function ExportMenu() {
                   value={Math.round(settings.quality * 100)}
                   min={50}
                   max={100}
+                  defaultValue={Math.round(DEFAULT_EXPORT_SETTINGS.quality * 100)}
                   format={(v) => `${v}%`}
                   onChange={(v) => setSettings({ quality: v / 100 })}
                   onCommit={() => undefined}

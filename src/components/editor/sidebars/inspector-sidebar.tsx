@@ -8,9 +8,9 @@ import { ScreenshotPanel } from "@/components/editor/panels/screenshot-panel";
 import { ShadowPanel } from "@/components/editor/panels/shadow-panel";
 
 /**
- * Inspector, ordered from the selected device outwards: what it is
- * (Mockup), what it shows (Screenshot), how it's posed (Perspective, Shadow),
- * then the scene around it (Canvas size, Background).
+ * Inspector: the canvas first, then what the device shows (Screenshot), what
+ * it is (Mockup), the scene around it (Background) and finally its look
+ * (Shadow, Perspective).
  */
 export function InspectorSidebar() {
   return (
@@ -18,13 +18,12 @@ export function InspectorSidebar() {
       aria-label="Properties"
       className="flex h-full w-[300px] shrink-0 scrollbar-thin flex-col overflow-y-auto rounded-2xl bg-panel shadow-panel"
     >
-      <DevicePanel />
-      <ScreenshotPanel />
-      <PerspectivePanel />
-      <ShadowPanel />
-      <div role="separator" className="mx-4 my-1.5 h-px shrink-0 bg-line" />
       <CanvasPanel />
+      <ScreenshotPanel />
+      <DevicePanel />
       <BackgroundPanel />
+      <ShadowPanel />
+      <PerspectivePanel />
     </aside>
   );
 }

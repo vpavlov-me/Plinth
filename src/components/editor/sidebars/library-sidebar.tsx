@@ -381,7 +381,7 @@ function LayoutPreview({ layout }: { layout: LayoutPreset }) {
         <path
           key={i}
           d={roundedPolygonPath(shape.points, shape.radius)}
-          className="fill-[#3a3d46] stroke-[#9aa0ad]"
+          className="fill-line-strong stroke-muted"
           strokeWidth={Math.max(bounds.width, bounds.height) * 0.025}
           strokeLinejoin="round"
         />
@@ -436,7 +436,7 @@ function PresetThumb({ background, ratio }: { background: BackgroundConfig; rati
   return (
     <span className="flex size-8 shrink-0 items-center justify-center">
       <span
-        className="rounded-[4px] shadow-[inset_0_0_0_1px_rgb(255_255_255/0.12)]"
+        className="rounded-[4px] shadow-[inset_0_0_0_1px_var(--tile-ring)]"
         style={{ width, height, background: cssBackground(background) }}
       />
     </span>
@@ -446,5 +446,5 @@ function PresetThumb({ background, ratio }: { background: BackgroundConfig; rati
 function cssBackground(background: BackgroundConfig): string {
   if (background.type === "solid") return background.color;
   if (background.type === "gradient") return gradientCss(background);
-  return "#3a3a40";
+  return "var(--line-strong)";
 }
