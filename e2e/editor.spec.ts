@@ -236,6 +236,21 @@ test("collapses sections, switches the theme and opens the help dialogs", async 
   await expect(page.getByRole("dialog", { name: "About Plinth" })).toBeVisible();
 });
 
+test("Reset starts over with the default scene and can be undone", async ({ page }) => {
+  await openScreenshot(page, "portrait.png");
+  await expect(page.getByRole("heading", { name: "Drop a screenshot" })).toBeHidden();
+  await page.getByRole("radio", { name: /Square/ }).click();
+  expect(await canvasSize(page)).toContain("1200 by 1200");
+
+  await page.getByRole("button", { name: "Reset project" }).click();
+  await expect(page.getByRole("heading", { name: "Drop a screenshot" })).toBeVisible();
+  expect(await canvasSize(page)).toContain("1080 by 1350");
+
+  await page.getByRole("button", { name: "Undo" }).click();
+  await expect(page.getByRole("heading", { name: "Drop a screenshot" })).toBeHidden();
+  expect(await canvasSize(page)).toContain("1200 by 1200");
+});
+
 test("shows the frame title and resets sliders on double-click", async ({ page }) => {
   await page.getByRole("radio", { name: /Square/ }).click();
   await expect(page.getByText("Square 1:1")).toBeVisible();

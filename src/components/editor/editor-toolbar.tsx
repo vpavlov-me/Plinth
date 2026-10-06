@@ -1,9 +1,11 @@
 "use client";
 
-import { Info, Keyboard, Monitor, Moon, Redo2, Sun, Undo2 } from "lucide-react";
+import { Info, Keyboard, Monitor, Moon, Redo2, RotateCcw, Sun, Undo2 } from "lucide-react";
 import { useEffect } from "react";
 import { ExportMenu } from "@/components/editor/export-menu";
-import { IconButton } from "@/components/ui/button";
+import { Button, IconButton } from "@/components/ui/button";
+import { Tooltip } from "@/components/ui/tooltip";
+import { resetProject } from "@/editor/actions";
 import { useCanRedo, useCanUndo, useEditorStore } from "@/editor/store";
 import { useThemeStore, type ThemePreference } from "@/editor/theme";
 import { useUIStore } from "@/editor/ui-store";
@@ -34,6 +36,12 @@ export function EditorToolbar() {
       <IconButton label="Undo" shortcut={`${modKey()}Z`} icon={<Undo2 />} disabled={!canUndo} onClick={undo} />
       <IconButton label="Redo" shortcut={`${modKey()}⇧Z`} icon={<Redo2 />} disabled={!canRedo} onClick={redo} />
       <div className="mx-1 h-5 w-px bg-line" aria-hidden />
+      <Tooltip label="Start over: default scene, no screenshots">
+        <Button variant="ghost" aria-label="Reset project" className="text-muted hover:text-ink" onClick={resetProject}>
+          <RotateCcw className="size-4" />
+          Reset
+        </Button>
+      </Tooltip>
       <ExportMenu />
     </header>
   );
