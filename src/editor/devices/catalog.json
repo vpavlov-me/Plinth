@@ -1017,11 +1017,11 @@
     "category": "watch",
     "frame": {
       "width": 546,
-      "height": 1256
+      "height": 596
     },
     "screen": {
       "x": 50,
-      "y": 380,
+      "y": 50,
       "width": 416,
       "height": 496,
       "radius": 112
@@ -1029,24 +1029,10 @@
     "body": [
       {
         "x": 1,
-        "y": 331,
+        "y": 1,
         "width": 514,
         "height": 594,
         "radius": 167
-      },
-      {
-        "x": 57,
-        "y": 0,
-        "width": 402,
-        "height": 370,
-        "radius": [18, 18, 0, 0]
-      },
-      {
-        "x": 57,
-        "y": 886,
-        "width": 402,
-        "height": 370,
-        "radius": [0, 0, 18, 18]
       }
     ],
     "screenFill": "#000000",
@@ -1057,25 +1043,25 @@
       {
         "id": "midnight",
         "name": "Jet Black",
-        "swatch": "#1d1e21",
+        "swatch": "#2b2c30",
         "frameSrc": "/devices/watch-midnight.svg"
       },
       {
         "id": "silver",
         "name": "Silver",
-        "swatch": "#d3d4d8",
+        "swatch": "#c7c8cc",
         "frameSrc": "/devices/watch-silver.svg"
       },
       {
         "id": "rose",
         "name": "Rose Gold",
-        "swatch": "#e5c3b6",
+        "swatch": "#d9b3a5",
         "frameSrc": "/devices/watch-rose.svg"
       },
       {
         "id": "blue",
         "name": "Storm Blue",
-        "swatch": "#4b5a75",
+        "swatch": "#56647c",
         "frameSrc": "/devices/watch-blue.svg"
       }
     ],
