@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Tooltip } from "@/components/ui/tooltip";
 import { importScreenshot } from "@/editor/actions";
 import { cornerRadii, quadToCssMatrix } from "@/editor/geometry";
-import { getPerspectivePreset, perspectiveProjector } from "@/editor/presets/perspective-presets";
+import { deviceToCanvas, rectQuad } from "@/editor/rendering/device-quad";
 import { useDeviceLayout } from "@/editor/rendering/use-device-layout";
 import type { CanvasConfig, DeviceInstance } from "@/editor/types";
 import { cn } from "@/lib/cn";
@@ -18,6 +18,8 @@ type Props = {
   /** CSS pixels per canvas pixel. */
   viewScale: number;
   busy: boolean;
+  /** Only the upload icon, for a screen that devices in front partly cover. */
+  iconOnly?: boolean;
 };
 
 /**
@@ -25,31 +27,16 @@ type Props = {
  * Positioned in the canvas box's CSS pixels and follows the device's
  * position, scale, rotation and perspective. Content adapts to the screen size.
  */
-export function EmptyState({ instance, canvas, viewScale, busy }: Props) {
+export function EmptyState({ instance, canvas, viewScale, busy, iconOnly = false }: Props) {
   const { geometry, transform } = useDeviceLayout(instance, canvas);
   const { screen } = geometry;
 
-  // Screen corners in the device's local units — projected when a
-  // perspective preset is active, exactly like the artwork — then mapped to
-  // the canvas box's CSS pixels.
-  const project =
-    instance.perspective === "front"
-      ? (x: number, y: number) => ({ x, y })
-      : perspectiveProjector(geometry.width, geometry.height, getPerspectivePreset(instance.perspective));
-  const angle = (transform.rotation * Math.PI) / 180;
-  const [sin, cos] = [Math.sin(angle), Math.cos(angle)];
-  const toView = (x: number, y: number) => {
-    const p = project(x, y);
-    const lx = (p.x - geometry.width / 2) * transform.scale;
-    const ly = (p.y - geometry.height / 2) * transform.scale;
-    return { x: (transform.x + lx * cos - ly * sin) * viewScale, y: (transform.y + lx * sin + ly * cos) * viewScale };
-  };
-  const quad = [
-    toView(screen.x, screen.y),
-    toView(screen.x + screen.width, screen.y),
-    toView(screen.x + screen.width, screen.y + screen.height),
-    toView(screen.x, screen.y + screen.height),
-  ] as const;
+  // Screen corners in the canvas box's CSS pixels, following perspective and rotation.
+  const toCanvas = deviceToCanvas(instance, geometry, transform);
+  const quad = rectQuad((x, y) => {
+    const p = toCanvas(x, y);
+    return { x: p.x * viewScale, y: p.y * viewScale };
+  }, screen);
 
   const px = transform.scale * viewScale;
   const width = screen.width * px;
@@ -59,12 +46,12 @@ export function EmptyState({ instance, canvas, viewScale, busy }: Props) {
     .join(" ");
 
   const size = Math.min(width, height);
-  const variant = width >= 250 && height >= 230 ? "full" : size >= 110 ? "compact" : "icon";
+  const variant = iconOnly ? "icon" : width >= 250 && height >= 230 ? "full" : size >= 110 ? "compact" : "icon";
   const choose = () => pickImageFile((file) => void importScreenshot(file, instance.id));
 
   return (
     <div
-      className="absolute flex items-center justify-center overflow-hidden bg-overlay p-3 text-center backdrop-blur-sm transition-opacity duration-300 starting:opacity-0"
+      className="pointer-events-auto absolute flex items-center justify-center overflow-hidden bg-overlay p-3 text-center backdrop-blur-sm transition-opacity duration-300 starting:opacity-0"
       style={{
         left: 0,
         top: 0,
@@ -72,7 +59,7 @@ export function EmptyState({ instance, canvas, viewScale, busy }: Props) {
         height,
         borderRadius: radius,
         transformOrigin: "0 0",
-        transform: quadToCssMatrix(width, height, [...quad]),
+        transform: quadToCssMatrix(width, height, quad),
       }}
     >
       {variant === "icon" ? (

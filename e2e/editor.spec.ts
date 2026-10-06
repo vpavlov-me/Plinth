@@ -262,6 +262,13 @@ test("Reset appears after a change, asks for confirmation and can be undone", as
   expect(await canvasSize(page)).toContain("1200 by 1200");
 });
 
+test("every empty device in a layout gets an upload prompt", async ({ page }) => {
+  await page.getByRole("button", { name: "Duo", exact: true }).click();
+  await expect(page.getByRole("heading", { name: "Drop a screenshot" })).toHaveCount(2);
+  await openScreenshot(page, "portrait.png");
+  await expect(page.getByRole("heading", { name: "Drop a screenshot" })).toHaveCount(0);
+});
+
 test("shows the frame title and resets sliders on double-click", async ({ page }) => {
   await page.getByRole("radio", { name: /Square/ }).click();
   await expect(page.getByText("Square 1:1")).toBeVisible();

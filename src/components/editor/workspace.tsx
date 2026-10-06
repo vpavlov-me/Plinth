@@ -1,16 +1,18 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { EmptyState } from "@/components/editor/empty-state";
 import { OnboardingHint } from "@/components/editor/onboarding-hint";
 import { useOnboardingStore } from "@/editor/onboarding";
 import { getCanvasPreset } from "@/editor/presets/canvas-presets";
+import { clipOutPolygon, uploadPrompts, type Point } from "@/editor/rendering/device-quad";
 import { SCENE_PRESETS } from "@/editor/presets/scene-presets";
 import { importScreenshot, importScreenshots } from "@/editor/actions";
+import { assetSize } from "@/editor/assets";
 import { firstImageFile, imageFiles } from "@/editor/import-image";
 import { useActiveDeviceId } from "@/editor/selection";
-import { useDevice, useScene } from "@/editor/store";
+import { useScene } from "@/editor/store";
 import type { CanvasConfig } from "@/editor/types";
 import { useUIStore } from "@/editor/ui-store";
 import { cn } from "@/lib/cn";
@@ -31,10 +33,10 @@ export function Workspace() {
   const canvas = useScene((s) => s.canvas);
   const background = useScene((s) => s.background);
   const activeId = useActiveDeviceId();
-  // The upload prompt sits on the front-most empty device: it's an HTML
-  // overlay, so on a device further back it would cover the ones in front.
-  const emptyId = useScene((scene) => scene.devices.findLast((d) => d.screenshotId === null)?.id ?? null);
-  const empty = useDevice(emptyId);
+  // Every empty device gets an upload prompt, unless a device in front
+  // covers its screen (the prompt is an HTML overlay and would cover it).
+  const devices = useScene((s) => s.devices);
+  const prompts = useMemo(() => uploadPrompts({ devices, canvas }, assetSize), [devices, canvas]);
   const hydrated = useUIStore((s) => s.hydrated);
   const importing = useUIStore((s) => s.importing);
   const select = useUIStore((s) => s.select);
@@ -62,7 +64,7 @@ export function Workspace() {
       )
     : 0;
 
-  const isEmpty = hydrated && empty !== null;
+  const isEmpty = hydrated && prompts.length > 0;
 
   return (
     <main
@@ -117,9 +119,29 @@ export function Workspace() {
           >
             <CanvasStage viewScale={viewScale} />
           </div>
-          {isEmpty && !dragging && empty ? (
-            <EmptyState instance={empty} canvas={canvas} viewScale={viewScale} busy={importing} />
-          ) : null}
+          {isEmpty && !dragging
+            ? prompts.map((prompt) => {
+                const instance = devices.find((d) => d.id === prompt.id);
+                if (!instance) return null;
+                return (
+                  <ClipOut
+                    key={prompt.id}
+                    polygons={prompt.inFront}
+                    width={Math.round(canvas.width * viewScale)}
+                    height={Math.round(canvas.height * viewScale)}
+                    scale={viewScale}
+                  >
+                    <EmptyState
+                      instance={instance}
+                      canvas={canvas}
+                      viewScale={viewScale}
+                      busy={importing}
+                      iconOnly={prompt.partlyCovered}
+                    />
+                  </ClipOut>
+                );
+              })
+            : null}
         </div>
       ) : null}
 
@@ -169,5 +191,36 @@ function FrameLabel({ canvas }: { canvas: CanvasConfig }) {
         {canvas.width} × {canvas.height}
       </span>
     </div>
+  );
+}
+
+/**
+ * Hides its content wherever a device in front of it is drawn: one nested,
+ * click-through layer per device, so overlapping cut-outs stay cut out.
+ */
+function ClipOut({
+  polygons,
+  width,
+  height,
+  scale,
+  children,
+}: {
+  polygons: Point[][];
+  width: number;
+  height: number;
+  scale: number;
+  children: React.ReactNode;
+}) {
+  return polygons.reduceRight<React.ReactNode>(
+    (content, polygon, index) => (
+      <div
+        key={index}
+        className="pointer-events-none absolute inset-0"
+        style={{ clipPath: clipOutPolygon(width, height, polygon, scale) }}
+      >
+        {content}
+      </div>
+    ),
+    children,
   );
 }
