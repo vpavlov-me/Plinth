@@ -6,7 +6,8 @@ export const SITE = {
   description:
     "Free online mockup generator: drop a screenshot, place it in an iPhone, Android, iPad, MacBook, iMac, watch or browser frame, and export a polished PNG or JPG. Runs entirely in your browser — no sign-up, no uploads.",
   shortDescription: "Turn screenshots into polished device mockups, right in your browser.",
-  author: { name: "Vladimir Pavlov", url: "https://vpavlov.com", github: "https://github.com/vpavlov-me" },
+  author: { name: "Vladimir Pavlov", url: "https://vpavlov.com" },
+  repository: "https://github.com/vpavlov-me/Plinth",
   themeColor: "#0e0e10",
   themeColorLight: "#f4f4f6",
 };

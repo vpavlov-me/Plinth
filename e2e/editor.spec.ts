@@ -241,6 +241,9 @@ test("collapses sections, switches the theme and opens the help dialogs", async 
   await expect(page.getByRole("dialog", { name: "Keyboard shortcuts" })).toBeHidden();
   await page.getByRole("button", { name: "About Plinth" }).click();
   await expect(page.getByRole("dialog", { name: "About Plinth" })).toBeVisible();
+  await expect(
+    page.getByRole("dialog", { name: "About Plinth" }).getByRole("link", { name: "GitHub" }),
+  ).toHaveAttribute("href", "https://github.com/vpavlov-me/Plinth");
 });
 
 test("Reset appears after a change, asks for confirmation and can be undone", async ({ page }) => {

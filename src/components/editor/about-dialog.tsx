@@ -42,7 +42,7 @@ export function AboutDialog() {
         </p>
         <div className="mt-2.5 flex flex-wrap gap-2">
           <AuthorLink href={SITE.author.url} icon={<Globe />} label={new URL(SITE.author.url).host} />
-          <AuthorLink href={SITE.author.github} icon={<GitHubMark />} label="GitHub" />
+          <AuthorLink href={SITE.repository} icon={<GitHubMark />} label="GitHub" />
         </div>
       </div>
     </Dialog>
