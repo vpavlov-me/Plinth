@@ -432,6 +432,8 @@ export function sceneAssetIds(scene: Scene): string[] {
   // User-uploaded frames are assets too ("custom:<assetId>").
   for (const d of scene.devices) if (d.deviceId.startsWith("custom:")) ids.push(d.deviceId.slice("custom:".length));
   const { background } = scene;
-  if (background.type === "image" && background.source.kind === "upload") ids.push(background.source.assetId);
+  if ((background.type === "image" || background.type === "video") && background.source.kind === "upload") {
+    ids.push(background.source.assetId);
+  }
   return [...new Set(ids)];
 }

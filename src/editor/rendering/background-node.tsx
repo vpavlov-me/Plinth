@@ -8,11 +8,11 @@ import type {
   BackgroundConfig,
   BackgroundImageSource,
   CanvasConfig,
+  BackgroundVideoSource,
   GradientConfig,
-  ImageAsset,
   MeshBlob,
 } from "@/editor/types";
-import { useVideo } from "@/editor/video";
+import { resolveBackgroundVideo, useVideo } from "@/editor/video";
 
 type Props = { background: BackgroundConfig; canvas: CanvasConfig };
 
@@ -25,6 +25,8 @@ export function BackgroundNode({ background, canvas }: Props) {
       return <GradientNode gradient={background} width={width} height={height} />;
     case "image":
       return <BackgroundImage source={background.source} width={width} height={height} />;
+    case "video":
+      return <VideoBackground source={background.source} width={width} height={height} />;
     case "transparent":
       return null;
   }
@@ -87,11 +89,7 @@ export function paintBlob(ctx: CanvasRenderingContext2D, blob: MeshBlob, width: 
 }
 
 function BackgroundImage({ source, width, height }: { source: BackgroundImageSource; width: number; height: number }) {
-  const asset = useAsset(source.kind === "upload" ? source.assetId : null);
-  const isVideo = asset?.kind === "video";
-  const url = useBackgroundImageUrl(source);
-  const image = useImage(isVideo ? null : url);
-  if (isVideo) return <BackgroundVideo asset={asset} width={width} height={height} />;
+  const image = useImage(useBackgroundImageUrl(source));
   if (!image) return null;
   const size = { width: image.naturalWidth, height: image.naturalHeight };
   const rect = fitRect(size, { width, height }, "cover");
@@ -102,19 +100,21 @@ function BackgroundImage({ source, width, height }: { source: BackgroundImageSou
  * A video background, drawn "cover" from the frame current at draw time:
  * the live preview element in the editor, the decoded frame while exporting.
  */
-function BackgroundVideo({ asset, width, height }: { asset: ImageAsset; width: number; height: number }) {
-  const video = useVideo(asset.url);
+function VideoBackground({ source, width, height }: { source: BackgroundVideoSource; width: number; height: number }) {
+  // Re-resolves when an upload is restored.
+  const upload = useAsset(source.kind === "upload" ? source.assetId : null);
+  const resolved = resolveBackgroundVideo(source);
+  const video = useVideo(resolved?.url);
   const frames = useVideoFrameSource();
-  if (!video && !frames) return null;
-  const size = { width: asset.width, height: asset.height };
-  const rect = fitRect(size, { width, height }, "cover");
+  if (!resolved || (!video && !frames) || (source.kind === "upload" && !upload)) return null;
+  const rect = fitRect({ width: resolved.width, height: resolved.height }, { width, height }, "cover");
   return (
     <Shape
       listening={false}
       perfectDrawEnabled={false}
       sceneFunc={(context) => {
-        const source = (frames ? frames(asset.url) : null) ?? video;
-        if (!source) return;
+        const frame = (frames ? frames(resolved.url) : null) ?? video;
+        if (!frame) return;
         const ctx = context._context;
         ctx.save();
         ctx.beginPath();
@@ -122,7 +122,7 @@ function BackgroundVideo({ asset, width, height }: { asset: ImageAsset; width: n
         ctx.clip();
         ctx.imageSmoothingEnabled = true;
         ctx.imageSmoothingQuality = "high";
-        ctx.drawImage(source, rect.x, rect.y, rect.width, rect.height);
+        ctx.drawImage(frame, rect.x, rect.y, rect.width, rect.height);
         ctx.restore();
       }}
     />

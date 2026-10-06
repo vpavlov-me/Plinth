@@ -3,14 +3,18 @@ import { create } from "zustand";
 export type ExportFormat = "png" | "jpeg";
 export type ExportScale = 1 | 2 | 3;
 
+/** Video export size: the long side is 854, 1280 or 1920 px (480p, 720p, 1080p). */
+export type VideoQuality = 480 | 720 | 1080;
+
 export type ExportSettings = {
   format: ExportFormat;
   scale: ExportScale;
   /** JPG quality, 0.5–1. */
   quality: number;
+  videoQuality: VideoQuality;
 };
 
-export const DEFAULT_EXPORT_SETTINGS: ExportSettings = { format: "png", scale: 2, quality: 0.92 };
+export const DEFAULT_EXPORT_SETTINGS: ExportSettings = { format: "png", scale: 2, quality: 0.92, videoQuality: 1080 };
 
 export type EditorDialog = "shortcuts" | "about" | "reset";
 

@@ -8,7 +8,13 @@ import { SliderField } from "@/components/ui/slider-field";
 import { cancelVideoExport, copySceneToClipboard, exportScene } from "@/components/editor/export-actions";
 import { exportSize, isExportSizeSupported } from "@/editor/export/export-image";
 import { useScene } from "@/editor/store";
-import { DEFAULT_EXPORT_SETTINGS, useUIStore, type ExportFormat, type ExportScale } from "@/editor/ui-store";
+import {
+  DEFAULT_EXPORT_SETTINGS,
+  useUIStore,
+  type VideoQuality,
+  type ExportFormat,
+  type ExportScale,
+} from "@/editor/ui-store";
 import {
   formatDuration,
   MAX_VIDEO_SECONDS,
@@ -20,6 +26,7 @@ import {
 import { modKey } from "@/lib/platform";
 
 const SCALES: ExportScale[] = [1, 2, 3];
+const VIDEO_QUALITIES: VideoQuality[] = [480, 720, 1080];
 
 export function ExportMenu() {
   const settings = useUIStore((s) => s.exportSettings);
@@ -117,12 +124,21 @@ function VideoExport() {
   const canvas = useScene((s) => s.canvas);
   const duration = useScene(sceneVideoDuration);
   const longest = useScene(sceneLongestVideo);
-  const size = videoExportSize(canvas);
+  const quality = useUIStore((s) => s.exportSettings.videoQuality);
+  const setSettings = useUIStore((s) => s.setExportSettings);
+  const size = videoExportSize(canvas, quality);
 
   return (
     <div className="flex flex-col gap-3">
+      <Segmented<`${VideoQuality}`>
+        label="Video quality"
+        value={`${quality}`}
+        onChange={(value) => setSettings({ videoQuality: Number(value) as VideoQuality })}
+        options={VIDEO_QUALITIES.map((q) => ({ value: `${q}`, label: `${q}p` }))}
+      />
       <p className="text-xs leading-5 text-muted tabular-nums">
-        MP4 · {size.width} × {size.height} · {formatDuration(duration)} · no sound
+        MP4 · {size.width} × {size.height}
+        {quality === 1080 ? " (Full HD)" : null} · {formatDuration(duration)} · no sound
         {longest > MAX_VIDEO_SECONDS ? (
           <span className="block">Only the first {MAX_VIDEO_SECONDS} s are exported.</span>
         ) : null}

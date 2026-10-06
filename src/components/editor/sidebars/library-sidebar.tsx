@@ -21,6 +21,7 @@ import { applyScenePreset, changeDeviceModel } from "@/editor/scene";
 import { useActiveDeviceId } from "@/editor/selection";
 import { useDevice, useEditorStore, useScene } from "@/editor/store";
 import type { BackgroundConfig, DeviceDefinition } from "@/editor/types";
+import { videoPresetThumbSrc } from "@/editor/presets/video-presets";
 import { useVideoMode, videoDeviceGroups } from "@/editor/video";
 import { cn } from "@/lib/cn";
 
@@ -487,19 +488,27 @@ function BackgroundBox({
   children?: ReactNode;
 }) {
   const source = background.type === "image" ? background.source : null;
-  const upload = useAsset(source?.kind === "upload" ? source.assetId : null);
   const imageUrl = useBackgroundImageUrl(source ?? { kind: "upload", assetId: "" });
+  // Videos: a built-in loop shows its poster, an upload its first frame (previews stay still).
+  const videoSource = background.type === "video" ? background.source : null;
+  const upload = useAsset(videoSource?.kind === "upload" ? videoSource.assetId : null);
   const video = upload?.kind === "video" ? upload : null;
+  const poster = videoSource?.kind === "preset" ? videoPresetThumbSrc(videoSource.videoId) : null;
+  const cover = (url: string) => ({ background: `center / cover no-repeat url("${url}")` });
   const paint: React.CSSProperties =
     background.type === "solid"
       ? { background: background.color }
       : background.type === "gradient"
         ? { background: gradientCss(background) }
-        : background.type === "image" && !video
+        : background.type === "image"
           ? imageUrl
-            ? { background: `center / cover no-repeat url("${imageUrl}")` }
+            ? cover(imageUrl)
             : { background: "var(--line-strong)" }
-          : {};
+          : poster
+            ? cover(poster)
+            : background.type === "video" && !video
+              ? { background: "var(--line-strong)" }
+              : {};
   return (
     <span
       className={cn(

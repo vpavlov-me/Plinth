@@ -4,7 +4,9 @@ import { getAsset, useAssetStore } from "@/editor/assets";
 import { DEVICE_GROUPS } from "@/editor/devices/definitions";
 import { useScene } from "@/editor/store";
 import type { Size } from "@/editor/geometry";
-import type { ImageAsset, Scene } from "@/editor/types";
+import { getVideoPreset, videoPresetFiles, videoPresetSrc } from "@/editor/presets/video-presets";
+import type { BackgroundVideoSource, ImageAsset, Scene } from "@/editor/types";
+import type { VideoQuality } from "@/editor/ui-store";
 import { createId } from "@/editor/utils/id";
 
 /**
@@ -33,8 +35,8 @@ export const MAX_STORED_VIDEO_BYTES = 200 * 1024 * 1024;
 /** Exports never run longer than this. */
 export const MAX_VIDEO_SECONDS = 60;
 export const VIDEO_FPS = 30;
-/** Longest side of an exported video (Full HD). */
-export const VIDEO_EXPORT_MAX_SIDE = 1920;
+/** Longest side of an exported video per quality: 480p, 720p, Full HD. */
+export const VIDEO_QUALITY_SIDES: Record<VideoQuality, number> = { 480: 854, 720: 1280, 1080: 1920 };
 /** Small canvases are rendered at most this much larger so frames stay sharp. */
 const VIDEO_EXPORT_MAX_SCALE = 2;
 /** Devices that make no sense for a screen recording and are hidden in video mode. */
@@ -58,12 +60,31 @@ export function sceneHasVideo(scene: Pick<Scene, "devices">): boolean {
   return scene.devices.some((d) => isVideoAsset(d.screenshotId));
 }
 
-/** The background's video, when the background is an uploaded video. */
-export function backgroundVideo(scene: Pick<Scene, "background">): ImageAsset | null {
-  const { background } = scene;
-  if (background.type !== "image" || background.source.kind !== "upload") return null;
-  const asset = getAsset(background.source.assetId);
-  return asset?.kind === "video" ? asset : null;
+/** What a video background plays: a built-in loop or an uploaded video. */
+export type BackgroundVideo = {
+  url: string;
+  width: number;
+  height: number;
+  duration: number;
+  /** The file, for uploads. */
+  blob?: Blob;
+  /** Built-in loops: files to fetch when exporting, preferred first. */
+  files?: string[];
+};
+
+export function resolveBackgroundVideo(source: BackgroundVideoSource): BackgroundVideo | null {
+  if (source.kind === "preset") {
+    const preset = getVideoPreset(source.videoId);
+    return preset ? { url: videoPresetSrc(preset.id), files: videoPresetFiles(preset.id), ...preset } : null;
+  }
+  const asset = getAsset(source.assetId);
+  if (asset?.kind !== "video") return null;
+  return { url: asset.url, width: asset.width, height: asset.height, duration: asset.duration ?? 0, blob: asset.blob };
+}
+
+/** The scene's video background, if it has one. */
+export function backgroundVideo(scene: Pick<Scene, "background">): BackgroundVideo | null {
+  return scene.background.type === "video" ? resolveBackgroundVideo(scene.background.source) : null;
 }
 
 /** True when the scene moves at all: a video in a device or in the background. The export is then a video. */
@@ -86,11 +107,13 @@ export function sceneVideoDuration(scene: Pick<Scene, "devices" | "background">)
 }
 
 /**
- * Size of the exported video: the canvas scaled so its long side is at most
- * Full HD (and at most 2× for small canvases), with even sides for H.264.
+ * Size of the exported video: the canvas scaled so its long side matches the
+ * quality (854 / 1280 / 1920 px; at most 2× for small canvases), with even
+ * sides for H.264.
  */
-export function videoExportSize(canvas: Size): Size {
-  const scale = Math.min(VIDEO_EXPORT_MAX_SCALE, VIDEO_EXPORT_MAX_SIDE / Math.max(canvas.width, canvas.height));
+export function videoExportSize(canvas: Size, quality: VideoQuality = 1080): Size {
+  const longSide = VIDEO_QUALITY_SIDES[quality];
+  const scale = Math.min(VIDEO_EXPORT_MAX_SCALE, longSide / Math.max(canvas.width, canvas.height));
   const even = (value: number) => Math.max(2, Math.round((value * scale) / 2) * 2);
   return { width: even(canvas.width), height: even(canvas.height) };
 }

@@ -213,14 +213,29 @@ export function matchBackgroundColors(variant: MatchVariant = "soft", instanceId
   return true;
 }
 
-/** Adds an uploaded image or video to the background library and applies it. */
+/** Adds an uploaded image to the background library and applies it. */
 export async function importBackgroundImage(file: Blob & { name?: string }): Promise<void> {
-  const asset = await importWithFeedback(file, { allowVideo: true });
+  const asset = await importWithFeedback(file);
   if (!asset) return;
   useLibraryStore.getState().addImage(asset.id);
   useEditorStore.getState().update((scene) => ({
     ...scene,
     background: { type: "image", source: { kind: "upload", assetId: asset.id } },
+  }));
+}
+
+/** Adds an uploaded video to the background library and plays it as the background. */
+export async function importBackgroundVideo(file: Blob & { name?: string }): Promise<void> {
+  if (!videoType(file)) {
+    notify("Couldn’t import video", { description: "Use an MP4, WebM or MOV video.", type: "error" });
+    return;
+  }
+  const asset = await importWithFeedback(file, { allowVideo: true });
+  if (!asset) return;
+  useLibraryStore.getState().addVideo(asset.id);
+  useEditorStore.getState().update((scene) => ({
+    ...scene,
+    background: { type: "video", source: { kind: "upload", assetId: asset.id } },
   }));
 }
 

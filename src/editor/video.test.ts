@@ -24,7 +24,7 @@ const video = (id: string, duration: number): ImageAsset => ({
 });
 
 const videoBackground = (assetId: string): BackgroundConfig => ({
-  type: "image",
+  type: "video",
   source: { kind: "upload", assetId },
 });
 
@@ -38,6 +38,13 @@ describe("video export size", () => {
     expect(videoExportSize({ width: 800, height: 800 })).toEqual({ width: 1600, height: 1600 });
     expect(videoExportSize({ width: 4000, height: 3000 })).toEqual({ width: 1920, height: 1440 });
     expect(videoExportSize({ width: 1200, height: 627 })).toEqual({ width: 1920, height: 1004 });
+  });
+
+  it("scales the long side to 854 or 1280 px for 480p and 720p", () => {
+    expect(videoExportSize({ width: 1920, height: 1080 }, 720)).toEqual({ width: 1280, height: 720 });
+    expect(videoExportSize({ width: 1920, height: 1080 }, 480)).toEqual({ width: 854, height: 480 });
+    expect(videoExportSize({ width: 1080, height: 1350 }, 720)).toEqual({ width: 1024, height: 1280 });
+    expect(videoExportSize({ width: 1080, height: 1350 }, 480)).toEqual({ width: 684, height: 854 });
   });
 });
 
@@ -68,6 +75,15 @@ describe("video mode", () => {
     const both = updateDevice(scene, scene.devices[0]!.id, { screenshotId: "clip" });
     expect(sceneHasVideo(both)).toBe(true);
     expect(sceneVideoDuration(both)).toBe(3);
+  });
+
+  it("built-in video backgrounds have a known length", () => {
+    const scene = {
+      ...createDefaultScene(),
+      background: { type: "video", source: { kind: "preset", videoId: "aurora" } },
+    };
+    expect(sceneHasAnyVideo(scene as never)).toBe(true);
+    expect(sceneVideoDuration(scene as never)).toBe(8);
   });
 
   it("hides the watch and the spatial window", () => {

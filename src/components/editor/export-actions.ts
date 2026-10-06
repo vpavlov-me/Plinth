@@ -36,6 +36,7 @@ async function exportVideo(): Promise<void> {
   try {
     const { renderVideo } = await import("@/editor/export/export-video");
     const { blob, fileName, width, height } = await renderVideo(getScene(), {
+      quality: useUIStore.getState().exportSettings.videoQuality,
       signal: videoAbort.signal,
       onProgress: (done) => useUIStore.getState().setVideoProgress(done),
     });

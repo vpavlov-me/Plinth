@@ -5,8 +5,9 @@ import { videoType } from "@/editor/video";
 
 export const ACCEPTED_IMAGE_TYPES = ["image/png", "image/jpeg", "image/webp"] as const;
 export const ACCEPT_ATTRIBUTE = ".png,.jpg,.jpeg,.webp,image/png,image/jpeg,image/webp";
+export const ACCEPT_VIDEO_ATTRIBUTE = ".mp4,.m4v,.webm,.mov,video/mp4,video/webm,video/quicktime";
 /** Screenshots may also be screen recordings. */
-export const ACCEPT_SCREENSHOT_ATTRIBUTE = `${ACCEPT_ATTRIBUTE},.mp4,.m4v,.webm,.mov,video/mp4,video/webm,video/quicktime`;
+export const ACCEPT_SCREENSHOT_ATTRIBUTE = `${ACCEPT_ATTRIBUTE},${ACCEPT_VIDEO_ATTRIBUTE}`;
 
 /** Files larger than this are rejected before decoding. */
 export const MAX_FILE_BYTES = 50 * 1024 * 1024;

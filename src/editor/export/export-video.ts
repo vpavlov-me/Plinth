@@ -1,6 +1,7 @@
 import { getAsset } from "@/editor/assets";
 import { ExportError, mountScene, type ExportResult } from "@/editor/export/export-image";
-import type { ImageAsset, Scene } from "@/editor/types";
+import type { Scene } from "@/editor/types";
+import type { VideoQuality } from "@/editor/ui-store";
 import { backgroundVideo, sceneVideoDuration, VIDEO_FPS, videoExportSize } from "@/editor/video";
 
 export class ExportCanceled extends Error {
@@ -8,6 +9,7 @@ export class ExportCanceled extends Error {
 }
 
 type Options = {
+  quality?: VideoQuality;
   /** Called after every frame with the share done (0–1). */
   onProgress?: (done: number) => void;
   signal?: AbortSignal;
@@ -19,12 +21,16 @@ type Options = {
  * Each source video (device screens and the background) is decoded at the
  * exact times needed (shorter ones loop), the scene is drawn with those frames on the offscreen export stage
  * and the result is encoded by the browser: H.264 in MP4 where available,
- * else VP9/VP8 in WebM. Nothing is uploaded.
+ * else VP9/VP8 in WebM. Nothing is uploaded. `quality` sets the size
+ * (480p, 720p or Full HD on the long side).
  */
-export async function renderVideo(scene: Scene, { onProgress, signal }: Options = {}): Promise<ExportResult> {
+export async function renderVideo(
+  scene: Scene,
+  { quality = 1080, onProgress, signal }: Options = {},
+): Promise<ExportResult> {
   const duration = sceneVideoDuration(scene);
   if (!(duration > 0)) throw new ExportError("Add a video first.");
-  const { width, height } = videoExportSize(scene.canvas);
+  const { width, height } = videoExportSize(scene.canvas, quality);
   const frameCount = Math.max(1, Math.round(duration * VIDEO_FPS));
 
   const mb = await import("mediabunny");
@@ -32,13 +38,14 @@ export async function renderVideo(scene: Scene, { onProgress, signal }: Options 
   if (!codec) throw new ExportError("This browser can’t encode video. Use a recent Chrome, Edge or Safari.");
   const mp4 = codec === "avc";
 
-  const assets = new Map<string, ImageAsset>();
+  // Every distinct video in the scene, by URL (what the renderers look frames up by).
+  const videos = new Map<string, { duration: number; blob?: Blob; files?: string[] }>();
   for (const device of scene.devices) {
     const asset = getAsset(device.screenshotId);
-    if (asset?.kind === "video") assets.set(asset.url, asset);
+    if (asset?.kind === "video") videos.set(asset.url, { duration: asset.duration ?? 0, blob: asset.blob });
   }
   const background = backgroundVideo(scene);
-  if (background) assets.set(background.url, background);
+  if (background) videos.set(background.url, background);
 
   const inputs: InstanceType<typeof mb.Input>[] = [];
   const streams: { url: string; frames: AsyncGenerator<{ canvas: CanvasImageSource } | null> }[] = [];
@@ -47,13 +54,23 @@ export async function renderVideo(scene: Scene, { onProgress, signal }: Options 
   let output: InstanceType<typeof mb.Output> | null = null;
 
   try {
-    for (const [url, asset] of assets) {
-      const input = new mb.Input({ formats: mb.ALL_FORMATS, source: new mb.BlobSource(asset.blob) });
-      inputs.push(input);
-      const track = await input.getPrimaryVideoTrack();
-      if (!track || !(await track.canDecode())) throw new ExportError("This browser can’t decode the video.");
+    for (const [url, video] of videos) {
+      // Uploads are in memory; built-in loops are fetched, falling back to their other encoding.
+      const candidates: (Blob | string)[] = video.blob ? [video.blob] : (video.files ?? [url]);
+      let track: Awaited<ReturnType<InstanceType<typeof mb.Input>["getPrimaryVideoTrack"]>> = null;
+      for (const candidate of candidates) {
+        const blob = typeof candidate === "string" ? await (await fetch(candidate)).blob() : candidate;
+        const input = new mb.Input({ formats: mb.ALL_FORMATS, source: new mb.BlobSource(blob) });
+        inputs.push(input);
+        const found = await input.getPrimaryVideoTrack();
+        if (found && (await found.canDecode())) {
+          track = found;
+          break;
+        }
+      }
+      if (!track) throw new ExportError("This browser can’t decode the video.");
       const start = await track.getFirstTimestamp();
-      const length = Math.max(asset.duration ?? duration, 1 / VIDEO_FPS);
+      const length = Math.max(video.duration || duration, 1 / VIDEO_FPS);
       const sink = new mb.CanvasSink(track, { poolSize: 2 });
       // Shorter videos loop until the longest one ends.
       const times = Array.from({ length: frameCount }, (_, i) => start + ((i / VIDEO_FPS) % length));

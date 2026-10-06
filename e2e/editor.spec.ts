@@ -160,7 +160,7 @@ test("keeps the user's own backgrounds in the library", async ({ page }) => {
 
   await page.getByRole("button", { name: "Image", exact: true }).click();
   const chooser = page.waitForEvent("filechooser");
-  await page.getByRole("button", { name: "Upload an image or video" }).click();
+  await page.getByRole("button", { name: "Upload your image" }).click();
   await (await chooser).setFiles(join(FIXTURE_DIR, "small.png"));
   await expect(page.getByRole("button", { name: "small.png", exact: true })).toBeVisible();
 
@@ -498,9 +498,9 @@ test("video: a screen recording locks perspective and layouts and exports a vide
 
 test("video background: screenshots keep every feature and the export is a video", async ({ page }) => {
   await openScreenshot(page, "portrait.png");
-  await page.getByRole("button", { name: "Image", exact: true }).click();
+  await page.getByRole("button", { name: "Video", exact: true }).click();
   const chooser = page.waitForEvent("filechooser");
-  await page.getByRole("button", { name: "Upload an image or video" }).click();
+  await page.getByRole("button", { name: "Upload your video" }).click();
   await (await chooser).setFiles(join(FIXTURE_DIR, "clip.webm"));
   await expect(page.getByRole("button", { name: "Pause video" })).toBeVisible();
 
@@ -512,7 +512,7 @@ test("video background: screenshots keep every feature and the export is a video
   await page.getByRole("radio", { name: "Perspective Right" }).click();
 
   await page.getByRole("button", { name: "Export" }).click();
-  await expect(page.getByText(/MP4 · 1536 × 1920 · 0:0[12]/)).toBeVisible();
+  await expect(page.getByText(/MP4 · 1536 × 1920 \(Full HD\) · 0:0[12]/)).toBeVisible();
   await expect(page.getByRole("button", { name: "Copy PNG to clipboard" })).toHaveCount(0);
   const download = page.waitForEvent("download", { timeout: 60_000 });
   await page.getByRole("button", { name: /^Download video/ }).click();
@@ -525,5 +525,27 @@ test("video background: screenshots keep every feature and the export is a video
   const seconds = await track.computeDuration();
   expect(seconds).toBeGreaterThan(1.2);
   expect(seconds).toBeLessThan(1.8);
+  input.dispose();
+});
+
+test("video background presets, and a 720p export", async ({ page }) => {
+  await page.getByRole("button", { name: "Video", exact: true }).click();
+  // The first built-in loop is applied right away; the other one is a tile.
+  await expect(page.getByRole("button", { name: "Pause video" })).toBeVisible();
+  await page.getByRole("button", { name: "Sunset Flow", exact: true }).click();
+  await expect(page.getByRole("button", { name: "Sunset Flow", exact: true })).toHaveAttribute("aria-pressed", "true");
+
+  await page.getByRole("button", { name: "Export" }).click();
+  await page.getByRole("button", { name: "720p", exact: true }).click();
+  await expect(page.getByText(/MP4 · 1024 × 1280 · 0:08/)).toBeVisible();
+  const download = page.waitForEvent("download", { timeout: 120_000 });
+  await page.getByRole("button", { name: /^Download video/ }).click();
+  const bytes = readFileSync(await (await download).path());
+
+  const { Input, ALL_FORMATS, BufferSource } = await import("mediabunny");
+  const input = new Input({ formats: ALL_FORMATS, source: new BufferSource(bytes) });
+  const track = (await input.getPrimaryVideoTrack())!;
+  expect({ width: track.displayWidth, height: track.displayHeight }).toEqual({ width: 1024, height: 1280 });
+  expect(await track.computeDuration()).toBeGreaterThan(7.8);
   input.dispose();
 });
