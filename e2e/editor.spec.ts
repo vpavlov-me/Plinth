@@ -45,6 +45,12 @@ async function exportImage(page: Page, format: "PNG" | "JPG", scale: 1 | 2 | 3) 
   return path;
 }
 
+/** Opens a part of the library (only one is open at a time; Devices is open at first). */
+const openLibrary = async (page: Page, part: "Devices" | "Layouts" | "Presets") => {
+  const trigger = page.getByRole("complementary", { name: "Library" }).getByRole("button", { name: part, exact: true });
+  if ((await trigger.getAttribute("aria-expanded")) !== "true") await trigger.click();
+};
+
 /** The inspector's Mockup section (the Screenshot section has sliders with the same names). */
 const deviceSection = (page: Page) => page.getByRole("region", { name: "Mockup", exact: true });
 
@@ -204,6 +210,7 @@ test("uploads a custom device frame and detects its screen", async ({ page }) =>
 });
 
 test("applies social presets", async ({ page }) => {
+  await openLibrary(page, "Presets");
   await page.getByRole("button", { name: /^Social/ }).click();
   await page.getByRole("button", { name: /TikTok story/ }).click();
   expect(await canvasSize(page)).toContain("1080 by 1920");
@@ -263,6 +270,7 @@ test("Reset appears after a change, asks for confirmation and can be undone", as
 });
 
 test("every empty device in a layout gets an upload prompt", async ({ page }) => {
+  await openLibrary(page, "Layouts");
   await page.getByRole("button", { name: "Duo", exact: true }).click();
   await expect(page.getByRole("heading", { name: "Drop a screenshot" })).toHaveCount(2);
   await openScreenshot(page, "portrait.png");
@@ -304,6 +312,7 @@ const canvasCenter = async (page: Page) => {
 
 test("multi-device: Duo → select second device → move → export", async ({ page }) => {
   await openScreenshot(page, "portrait.png");
+  await openLibrary(page, "Layouts");
   await page.getByRole("button", { name: "Duo", exact: true }).click();
   await expect(page.getByRole("button", { name: "Duo", exact: true })).toHaveAttribute("aria-pressed", "true");
 
@@ -395,6 +404,7 @@ test("match colors: one click applies a background; undo and redo restore it", a
 
 test("persistence: a multi-device composition is restored after reload", async ({ page }) => {
   await openScreenshot(page, "portrait.png");
+  await openLibrary(page, "Layouts");
   await page.getByRole("button", { name: "Fan", exact: true }).click();
   await page.getByRole("button", { name: "Device 3", exact: true }).click();
   await openPerspective(page);
@@ -410,8 +420,10 @@ test("persistence: a multi-device composition is restored after reload", async (
 
 test("showcase presets use layouts", async ({ page }) => {
   await openScreenshot(page, "portrait.png");
+  await openLibrary(page, "Presets");
   await page.getByRole("button", { name: /^Showcase/ }).click();
   await page.getByRole("button", { name: /^Portfolio hero/ }).click();
+  await openLibrary(page, "Layouts");
   await expect(page.getByRole("button", { name: "Laptop + Phone", exact: true })).toHaveAttribute(
     "aria-pressed",
     "true",

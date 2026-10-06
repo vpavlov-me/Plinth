@@ -55,8 +55,8 @@ production site counts visits with Yandex Metrica.
   set a background, a layout and a look: Product Hunt (two tilted phones), App Store (front-facing phone with room for a
   headline), Google Play feature graphic, Portfolio hero (laptop + phone) and Presentation.
 - **Export**: PNG at 1×/2×/3×, JPG with a quality setting, transparent PNG, and copying to the clipboard (`⌘E` downloads).
-- **Panels**: floating library (left: Devices, Layouts and Presets, each part scrolls independently and collapses; groups
-  are folders) and properties panel (right: Canvas, Screenshot, Mockup, Background, Shadow and Perspective — each
+- **Panels**: floating library (left: Devices, Layouts and Presets as an accordion — opening one part closes the others,
+  everything stacks from the top and the open part scrolls; groups are folders) and properties panel (right: Canvas, Screenshot, Mockup, Background, Shadow and Perspective — each
   section collapses). Both panels are always visible. All expanding and collapsing is animated (and respects
   "reduce motion").
 - **Frame title**: like a Figma frame, the canvas has a title above it with the size preset's name (or the matching

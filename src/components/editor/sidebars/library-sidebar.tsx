@@ -23,59 +23,49 @@ import { useDevice, useEditorStore, useScene } from "@/editor/store";
 import type { BackgroundConfig, DeviceDefinition } from "@/editor/types";
 import { cn } from "@/lib/cn";
 
+type LibraryPart = "devices" | "layouts" | "presets";
+
 /**
- * Three parts — devices, layouts and presets — each with its own scroll. A
- * collapsed part shrinks to its header and the others smoothly take the space.
+ * Three parts — devices, layouts and presets — as an accordion: opening one
+ * closes the others. Everything stacks from the top; the open part scrolls
+ * when its content is taller than the space left.
  */
 export function LibrarySidebar() {
-  const [open, setOpen] = useState({ devices: true, layouts: true, presets: true });
+  const [open, setOpen] = useState<LibraryPart | null>("devices");
+  const toggle = (part: LibraryPart) => setOpen((current) => (current === part ? null : part));
   return (
     <aside
       aria-label="Library"
-      className="flex h-full w-[248px] flex-col overflow-hidden rounded-2xl bg-panel shadow-panel"
+      className="flex h-full w-[248px] flex-col overflow-hidden rounded-2xl bg-panel pb-2 shadow-panel"
     >
-      <LibraryHalf title="Devices" open={open.devices} onToggle={() => setOpen((o) => ({ ...o, devices: !o.devices }))}>
+      <LibraryPartSection title="Devices" open={open === "devices"} onToggle={() => toggle("devices")}>
         <DeviceLibrary />
-      </LibraryHalf>
-      <LibraryHalf
-        title="Layouts"
-        open={open.layouts}
-        fit
-        onToggle={() => setOpen((o) => ({ ...o, layouts: !o.layouts }))}
-      >
+      </LibraryPartSection>
+      <LibraryPartSection title="Layouts" open={open === "layouts"} onToggle={() => toggle("layouts")}>
         <LayoutLibrary />
-      </LibraryHalf>
-      <LibraryHalf title="Presets" open={open.presets} onToggle={() => setOpen((o) => ({ ...o, presets: !o.presets }))}>
+      </LibraryPartSection>
+      <LibraryPartSection title="Presets" open={open === "presets"} onToggle={() => toggle("presets")}>
         <PresetLibrary />
-      </LibraryHalf>
+      </LibraryPartSection>
     </aside>
   );
 }
 
-function LibraryHalf({
+function LibraryPartSection({
   title,
   open,
-  grow = 1,
-  fit = false,
   onToggle,
   children,
 }: {
   title: string;
   open: boolean;
-  /** Share of the free height while open. */
-  grow?: number;
-  /** Takes exactly the height of its content instead of a share of the free space. */
-  fit?: boolean;
   onToggle: () => void;
   children: ReactNode;
 }) {
   const id = useId();
   return (
-    <section
-      aria-label={title}
-      className="flex min-h-11 basis-0 flex-col overflow-hidden transition-[flex-grow] duration-300 ease-out motion-reduce:transition-none"
-      style={fit ? { flex: "none" } : { flexGrow: open ? grow : 0.0001 }}
-    >
+    // Takes its content's height and shrinks (scrolling) when space runs out.
+    <section aria-label={title} className="flex min-h-11 shrink flex-col overflow-hidden">
       <h2 className="flex shrink-0 items-center px-4 pt-3 pb-1">
         <button
           type="button"
@@ -89,16 +79,18 @@ function LibraryHalf({
           <ChevronDown className={COLLAPSE_CHEVRON} />
         </button>
       </h2>
+      {/* Animates the height through grid rows (0fr ↔ 1fr). */}
       <div
         id={id}
         inert={!open}
         className={cn(
-          "min-h-0 flex-1 scrollbar-thin overflow-y-auto pb-3 transition-opacity duration-300",
-          open ? "opacity-100" : "opacity-0",
-          fit && !open && "hidden",
+          "grid min-h-0 transition-[grid-template-rows,opacity] duration-300 ease-out motion-reduce:transition-none",
+          open ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0",
         )}
       >
-        {children}
+        <div className="min-h-0 scrollbar-thin overflow-y-auto">
+          <div className="pb-2">{children}</div>
+        </div>
       </div>
     </section>
   );
