@@ -57,9 +57,9 @@ export function useEditorShortcuts() {
         pickImageFile((file) => void importScreenshot(file, activeDeviceId()));
         return;
       }
-      if (!mod && (event.key === "[" || event.key === "]")) {
+      if (!mod && event.key === "?") {
         event.preventDefault();
-        useUIStore.getState().togglePanel(event.key === "[" ? "library" : "inspector");
+        useUIStore.getState().setDialog("shortcuts");
         return;
       }
       if (mod && key === "e") {

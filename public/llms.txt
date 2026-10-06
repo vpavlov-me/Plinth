@@ -37,7 +37,7 @@ Platform: web app for desktop and tablet browsers (not usable on phone-sized scr
 - Backgrounds: solid colours, two-colour and mesh gradients, built-in photos (paintings and nature, from Unsplash) and your own images.
 - Shadows: none, soft, medium, strong.
 - Undo and redo; the project is restored after a page reload.
-- Keyboard shortcuts: Cmd/Ctrl+O open, Cmd/Ctrl+V paste, Cmd/Ctrl+E export, Cmd/Ctrl+Z undo, [ and ] toggle the side panels, arrow keys nudge the device.
+- Keyboard shortcuts: Cmd/Ctrl+O open, Cmd/Ctrl+V paste, Cmd/Ctrl+E export, Cmd/Ctrl+Z undo, ? shows the shortcuts legend, arrow keys nudge the device. Double-clicking a slider resets it.
 
 ## Privacy
 

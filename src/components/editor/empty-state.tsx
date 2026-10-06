@@ -64,7 +64,7 @@ export function EmptyState({ instance, canvas, viewScale, busy }: Props) {
 
   return (
     <div
-      className="absolute flex items-center justify-center overflow-hidden bg-[#141417]/92 p-3 text-center backdrop-blur-sm transition-opacity duration-300 starting:opacity-0"
+      className="absolute flex items-center justify-center overflow-hidden bg-overlay p-3 text-center backdrop-blur-sm transition-opacity duration-300 starting:opacity-0"
       style={{
         left: 0,
         top: 0,
@@ -76,7 +76,7 @@ export function EmptyState({ instance, canvas, viewScale, busy }: Props) {
       }}
     >
       {variant === "icon" ? (
-        <Tooltip label="Add screenshot">
+        <Tooltip label={`Add screenshot or paste with ${modKey()}V`}>
           <button
             type="button"
             aria-label="Add screenshot"
@@ -99,11 +99,10 @@ export function EmptyState({ instance, canvas, viewScale, busy }: Props) {
           <h2 className={cn("font-semibold text-ink", variant === "full" ? "text-[15px]" : "text-[13px]")}>
             {busy ? "Processing image…" : "Drop a screenshot"}
           </h2>
-          {variant === "full" ? (
-            <p className="mt-1 text-xs leading-5 text-muted">
-              PNG, JPG or WebP. Drag it anywhere, paste with {modKey()}V, or choose a file.
-            </p>
-          ) : null}
+          <p className={cn("mt-1 text-muted", variant === "full" ? "text-xs leading-5" : "text-2xs leading-4")}>
+            {variant === "full" ? "PNG, JPG or WebP. Drag it anywhere, choose a file, or just " : "Or just "}
+            paste an image from your clipboard with <span className="font-medium text-ink">{modKey()}V</span>.
+          </p>
           <div className={cn("flex w-full gap-2", variant === "full" ? "mt-5" : "mt-3")}>
             <Button
               variant="primary"

@@ -53,10 +53,15 @@ production site counts visits with Yandex Metrica.
   headline), Google Play feature graphic, Portfolio hero (laptop + phone) and Presentation.
 - **Export**: PNG at 1×/2×/3×, JPG with a quality setting, transparent PNG, and copying to the clipboard (`⌘E` downloads).
 - **Panels**: floating library (left: Devices, Layouts and Presets, each part scrolls independently and collapses; groups
-  are folders) and properties panel (right: Mockup, Screenshot, Perspective and Shadow for the selected device, then Canvas and
-  Background for the scene — each section collapses). Hide/show the panels from
-  the toolbar or with `[` / `]`. All expanding, collapsing and panel transitions are animated (and respect
+  are folders) and properties panel (right: Canvas, Screenshot, Mockup, Background, Shadow and Perspective — each
+  section collapses). Both panels are always visible. All expanding and collapsing is animated (and respects
   "reduce motion").
+- **Frame title**: like a Figma frame, the canvas has a title above it with the size preset's name (or the matching
+  social preset) and its dimensions.
+- **Sliders**: hovering shows the value under the pointer (the one a click picks); double-clicking resets the default.
+- **Theme**: light and dark, following the system by default; the toolbar button cycles System → Light → Dark and the
+  choice is remembered per browser.
+- **Help**: a keyboard shortcuts legend (toolbar button or `?`) and an About dialog with links to the author.
 - **Undo/redo**: `⌘Z`, `⌘⇧Z` (or `Ctrl+Y`). A drag or slider movement counts as one step.
 - **Persistence**: the project — including every device, its crop and perspective, the layout and the selected device —
   is restored after a reload. Scene settings go to `localStorage` and images go to IndexedDB.
@@ -270,4 +275,3 @@ image, add it to both `PHOTO_PRESETS` and `scripts/fetch-backgrounds.sh` and run
 - No zoom or pan in the workspace. The canvas always fits the window.
 - Copy-to-clipboard depends on browser support for `ClipboardItem` (Chromium and Safari; Firefox is limited).
 - Screens narrower than 768 px get an informational notice instead of the editor.
-- The UI is dark-only by design.

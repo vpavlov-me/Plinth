@@ -211,21 +211,43 @@ test("applies social presets", async ({ page }) => {
   expect(await canvasSize(page)).toContain("1280 by 720");
 });
 
-test("hides and shows the side panels and collapses sections", async ({ page }) => {
-  await page.getByRole("button", { name: "Hide library" }).click();
-  await expect(page.getByRole("complementary", { name: "Library" })).toBeHidden();
-  await page.keyboard.press("[");
-  await expect(page.getByRole("complementary", { name: "Library" })).toBeVisible();
-
-  await page.getByRole("button", { name: "Hide properties" }).click();
-  await expect(page.getByRole("complementary", { name: "Properties" })).toBeHidden();
-  await page.getByRole("button", { name: "Show properties" }).click();
-
+test("collapses sections, switches the theme and opens the help dialogs", async ({ page }) => {
   const shadow = page.getByRole("button", { name: "Shadow", exact: true });
   await shadow.click();
   await expect(page.getByRole("button", { name: "Medium", exact: true })).toBeHidden();
   await shadow.click();
   await expect(page.getByRole("button", { name: "Medium", exact: true })).toBeVisible();
+
+  const html = page.locator("html");
+  await page.getByRole("button", { name: "Theme: system" }).click();
+  await expect(html).toHaveAttribute("data-theme", "light");
+  await page.getByRole("button", { name: "Theme: light" }).click();
+  await expect(html).toHaveAttribute("data-theme", "dark");
+  await page.reload();
+  await expect(html).toHaveAttribute("data-theme", "dark");
+  await page.getByRole("button", { name: "Theme: dark" }).click();
+  await expect(html).not.toHaveAttribute("data-theme", /.+/);
+
+  await page.keyboard.press("?");
+  await expect(page.getByRole("dialog", { name: "Keyboard shortcuts" })).toBeVisible();
+  await page.keyboard.press("Escape");
+  await expect(page.getByRole("dialog", { name: "Keyboard shortcuts" })).toBeHidden();
+  await page.getByRole("button", { name: "About Plinth" }).click();
+  await expect(page.getByRole("dialog", { name: "About Plinth" })).toBeVisible();
+});
+
+test("shows the frame title and resets sliders on double-click", async ({ page }) => {
+  await page.getByRole("radio", { name: /Square/ }).click();
+  await expect(page.getByText("Square 1:1")).toBeVisible();
+  await expect(page.getByText("1200 × 1200", { exact: true })).toBeVisible();
+
+  const scale = deviceSection(page).getByRole("slider", { name: "Scale" });
+  // The Scale field is the first slider of the Mockup section.
+  const box = (await deviceSection(page).locator(".cursor-ew-resize").first().boundingBox())!;
+  await page.mouse.click(box.x + box.width * 0.2, box.y + box.height / 2);
+  await expect(scale).not.toHaveValue("100");
+  await page.mouse.dblclick(box.x + box.width * 0.2, box.y + box.height / 2);
+  await expect(scale).toHaveValue("100");
 });
 
 /* -------------------------------------------------------------------------- */

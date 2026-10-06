@@ -114,7 +114,7 @@ function MatchColors() {
                 type="button"
                 aria-label={`Match colors: ${variant.name}`}
                 onClick={() => matchBackgroundColors(variant.id, activeId)}
-                className="size-8 shrink-0 cursor-default rounded-lg shadow-[inset_0_0_0_1px_rgb(255_255_255/0.08)] transition hover:brightness-110"
+                className="size-8 shrink-0 cursor-default rounded-lg shadow-[inset_0_0_0_1px_var(--tile-ring)] transition hover:brightness-110"
                 style={{ background: gradientCss(matchedBackground(palette, variant.id)) }}
               />
             </Tooltip>
@@ -155,7 +155,7 @@ function Tile({ label, selected, onSelect, onRemove, className, style, children 
         onClick={onSelect}
         style={style}
         className={cn(
-          "block w-full cursor-default overflow-hidden rounded-lg shadow-[inset_0_0_0_1px_rgb(255_255_255/0.08)] transition-[box-shadow,transform] hover:brightness-110",
+          "block w-full cursor-default overflow-hidden rounded-lg shadow-[inset_0_0_0_1px_var(--tile-ring)] transition-[box-shadow,transform] hover:brightness-110",
           selected && "ring-2 ring-ink ring-offset-2 ring-offset-panel",
           className,
         )}
