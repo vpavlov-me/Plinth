@@ -18,7 +18,7 @@ Platform: web app for desktop and tablet browsers (not usable on phone-sized scr
 ## How it works
 
 1. Open https://plinth.vpavlov.com and drop, paste (Cmd/Ctrl+V) or choose a screenshot (PNG, JPG or WebP, up to 50 MB).
-2. Pick a device and its colour; a screenshot that would be badly cropped switches to a better-fitting device.
+2. Pick a device and its colour; adding a screenshot never changes the device.
 3. Optionally pick a layout (Solo, Duo, Stack, Fan, Laptop + Phone, Phone + Tablet) and a perspective (Front, Tilt Left/Right, Perspective Left/Right).
 4. Pick a canvas size or a preset, then drag, scale and rotate devices on the canvas; zoom and position the screenshot inside a screen if needed.
 5. Choose a background (solid colour, gradient, photo, your own image, transparent, or "Match colors" generated from the screenshot) and a shadow.

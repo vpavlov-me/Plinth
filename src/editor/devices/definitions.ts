@@ -79,15 +79,6 @@ export function getVariant(device: DeviceDefinition, variantId: string | undefin
   return device.variants.find((v) => v.id === variantId) ?? device.variants[0];
 }
 
-/** Picks a sensible device for a freshly imported screenshot. */
-export function suggestDeviceForImage(width: number, height: number): string {
-  const ratio = height / width;
-  if (ratio >= 1.7) return "phone-pro";
-  if (ratio >= 1.15) return "tablet-pro-13";
-  if (ratio >= 0.85) return "tablet-pro-13-landscape";
-  return "browser";
-}
-
 /**
  * Screenshot size that fills the device's screen exactly, as shown in the
  * upload prompt: the screen's native pixels, only a width for windows whose
