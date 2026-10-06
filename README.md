@@ -25,7 +25,8 @@ production site counts visits with Yandex Metrica.
   handed out in the order you added them (mixed layouts put each one on the device whose screen fits it best). Click a
   device — or use the Device 1/2/3 switcher in the inspector — to edit, move, scale, rotate or replace it on its own;
   `⌫` removes a secondary device. Dropping two or three screenshots at once opens Duo or Fan with one per device.
-- **Upload prompts**: every device without a screenshot shows the upload prompt. A prompt is clipped by the devices in
+- **Upload prompts**: every device without a screenshot shows a minimal upload prompt (click anywhere on the screen,
+  drop or paste) with the screenshot size that fits the screen exactly, e.g. 1206 × 2622 px (windows: a width only). A prompt is clipped by the devices in
   front of it, shrinks to its icon when its screen is partly covered, and is left out when the screen is mostly hidden.
 - **Perspective**: Front, Tilt Left, Tilt Right, Perspective Left and Perspective Right, per device. Presets only — no
   angles or cameras — and they export at full resolution with matching shadows.

@@ -87,3 +87,15 @@ export function suggestDeviceForImage(width: number, height: number): string {
   if (ratio >= 0.85) return "tablet-pro-13-landscape";
   return "browser";
 }
+
+/**
+ * Screenshot size that fills the device's screen exactly, as shown in the
+ * upload prompt: the screen's native pixels, only a width for windows whose
+ * height follows the screenshot, or null when any size fits.
+ */
+export function idealScreenshotSize(device: DeviceDefinition): string | null {
+  const { width, height } = device.screen;
+  if (device.layout.type === "screenshot") return null;
+  if (device.layout.type === "stretch-y") return `${width} px wide`;
+  return `${Math.round(width)} × ${Math.round(height)} px`;
+}

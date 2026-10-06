@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { getDevice } from "@/editor/devices/definitions";
+import { getDevice, idealScreenshotSize } from "@/editor/devices/definitions";
 import { sanitizeScene } from "@/editor/persistence";
 import { SCENE_PRESETS } from "@/editor/presets/scene-presets";
 import {
@@ -82,5 +82,13 @@ describe("sanitizeScene", () => {
     const scene = createDefaultScene();
     expect(sanitizeScene({ ...scene, devices: [{ ...scene.devices[0], deviceId: "toaster" }] })).toBeNull();
     expect(sanitizeScene({ ...scene, background: { type: "solid", color: "red; evil" } })).toBeNull();
+  });
+});
+
+describe("ideal screenshot size", () => {
+  it("is the screen's native size, a width for windows, or nothing for no frame", () => {
+    expect(idealScreenshotSize(getDevice("phone-pro"))).toBe("1206 × 2622 px");
+    expect(idealScreenshotSize(getDevice("browser"))).toBe("1440 px wide");
+    expect(idealScreenshotSize(getDevice("none"))).toBeNull();
   });
 });
