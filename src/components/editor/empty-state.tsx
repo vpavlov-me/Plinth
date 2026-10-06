@@ -67,7 +67,7 @@ export function EmptyState({ instance, canvas, viewScale, busy, iconOnly = false
     >
       {variant === "icon" ? (
         <div className="flex flex-col items-center">
-          <Tooltip label={ideal ? `Add screenshot · ${ideal}` : "Add screenshot"}>
+          <Tooltip label={ideal ? `Add screenshot or video · ${ideal}` : "Add screenshot or video"}>
             <button
               type="button"
               aria-label="Add screenshot"

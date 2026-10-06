@@ -58,7 +58,7 @@ function ScreenshotRow({ instance }: { instance: DeviceInstance }) {
     return (
       <Button onClick={replace}>
         <ImagePlus className="size-4" />
-        Add screenshot
+        Add screenshot or video
       </Button>
     );
   }

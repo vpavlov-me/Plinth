@@ -27,7 +27,7 @@ import type {
   GradientConfig,
 } from "@/editor/types";
 import { cn } from "@/lib/cn";
-import { formatDuration, resolveBackgroundVideo, useVideoMode } from "@/editor/video";
+import { formatDuration, resolveBackgroundVideo, useAnyVideo } from "@/editor/video";
 import { VIDEO_PRESETS, videoPresetThumbSrc } from "@/editor/presets/video-presets";
 
 export function BackgroundPanel() {
@@ -35,7 +35,7 @@ export function BackgroundPanel() {
   const update = useEditorStore((s) => s.update);
   const commit = useEditorStore((s) => s.commit);
   // Remembers the last configuration of each type so switching tabs is lossless.
-  const videoMode = useVideoMode();
+  const anyVideo = useAnyVideo();
   const memory = useRef<Partial<Record<BackgroundType, BackgroundConfig>>>({});
   useEffect(() => {
     memory.current[background.type] = background;
@@ -67,7 +67,7 @@ export function BackgroundPanel() {
   return (
     <Section title="Background">
       {/* Colour matching reads a still screenshot; videos don't offer it. */}
-      {videoMode ? null : <MatchColors />}
+      {anyVideo ? null : <MatchColors />}
       <Segmented<BackgroundType>
         label="Background type"
         fitLabels

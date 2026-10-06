@@ -32,7 +32,7 @@ production site counts visits with Yandex Metrica.
   the scene simple: a single device (adding a video to a layout switches to Solo; `⌘Z` brings the layout back),
   perspective and layouts are locked, Match colors and Showcase presets are hidden, and the watch and spatial window
   aren't offered. A video can also be the background (Background → Video: the signature gradients as animated loops,
-  or your own uploads, kept in the library): that locks nothing, since screenshots stay still. The preview plays muted and looping (▶︎/⏸ above the canvas). Export renders every frame at 30 fps and
+  or your own uploads, kept in the library): that locks nothing, since screenshots stay still (only Match colors is hidden). The preview plays muted and looping (▶︎/⏸ above the canvas). Export renders every frame at 30 fps and
   encodes a silent MP4 (H.264; WebM where the browser can't encode H.264) at 480p, 720p or 1080p (854 / 1280 /
   1920 px on the long side), at most
   60 s long. The longest device video sets the length (a video background loops along); otherwise the background does. Videos over 200 MB aren't kept after a reload.

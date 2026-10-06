@@ -504,7 +504,8 @@ test("video background: screenshots keep every feature and the export is a video
   await (await chooser).setFiles(join(FIXTURE_DIR, "clip.webm"));
   await expect(page.getByRole("button", { name: "Pause video" })).toBeVisible();
 
-  // A still screenshot on a video background: nothing is locked.
+  // A still screenshot on a video background: nothing is locked; only Match colors is hidden.
+  await expect(page.getByRole("button", { name: "Match colors", exact: true })).toHaveCount(0);
   await expect(page.getByRole("button", { name: "Perspective", exact: true })).toBeVisible();
   await openLibrary(page, "Layouts");
   await expect(page.getByRole("button", { name: "Duo", exact: true })).toBeVisible();
