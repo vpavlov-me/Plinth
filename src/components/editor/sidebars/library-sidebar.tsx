@@ -10,6 +10,7 @@ import { COLLAPSE_CHEVRON, COLLAPSE_PANEL, COLLAPSE_TRIGGER } from "@/components
 import { Tooltip } from "@/components/ui/tooltip";
 import { applyLayoutPreset, importDeviceFrame } from "@/editor/actions";
 import { useAsset } from "@/editor/assets";
+import { useBackgroundImageUrl } from "@/editor/background-image";
 import { customDeviceId, type CustomFrame } from "@/editor/custom-frames";
 import { DEVICE_GROUPS } from "@/editor/devices/definitions";
 import { boundsOf, deviceOutline } from "@/editor/geometry";
@@ -137,6 +138,22 @@ function Folder({
 /* Devices                                                                    */
 /* -------------------------------------------------------------------------- */
 
+/** Tile preview area painted with the current scene background, so previews match the canvas. */
+function PreviewBackdrop({ compact = false, children }: { compact?: boolean; children: ReactNode }) {
+  const background = useScene((s) => s.background);
+  return (
+    <BackgroundBox
+      background={background}
+      className={cn(
+        "flex w-full items-center justify-center overflow-hidden rounded-md",
+        compact ? "h-11 p-1" : "h-16 p-1.5",
+      )}
+    >
+      {children}
+    </BackgroundBox>
+  );
+}
+
 function useSelectDevice() {
   const activeId = useActiveDeviceId();
   const update = useEditorStore((s) => s.update);
@@ -190,7 +207,7 @@ function DeviceTile({
         selected ? "border-accent bg-accent-soft" : "border-transparent hover:bg-hover",
       )}
     >
-      <span className="flex h-14 w-full items-center justify-center">
+      <PreviewBackdrop>
         {device.previewSrc ? (
           <img src={device.previewSrc} alt="" className="max-h-full max-w-full" draggable={false} />
         ) : (
@@ -198,7 +215,7 @@ function DeviceTile({
             <ScanLine className="size-4" />
           </span>
         )}
-      </span>
+      </PreviewBackdrop>
       <span
         className={cn(
           "line-clamp-2 w-full text-center text-2xs leading-tight font-medium",
@@ -268,9 +285,9 @@ function CustomFrameTile({
           selected ? "border-accent bg-accent-soft" : "border-transparent hover:bg-hover",
         )}
       >
-        <span className="flex h-14 w-full items-center justify-center">
+        <PreviewBackdrop>
           <img src={asset.url} alt="" className="max-h-full max-w-full" draggable={false} />
-        </span>
+        </PreviewBackdrop>
         <span
           className={cn(
             "line-clamp-2 w-full text-center text-2xs leading-tight font-medium",
@@ -311,7 +328,9 @@ function LayoutLibrary() {
             current === layout.id ? "border-accent bg-accent-soft" : "border-transparent hover:bg-hover",
           )}
         >
-          <LayoutPreview layout={layout} />
+          <PreviewBackdrop compact>
+            <LayoutPreview layout={layout} />
+          </PreviewBackdrop>
           <span
             className={cn(
               "w-full truncate text-center text-2xs leading-tight font-medium",
@@ -381,7 +400,7 @@ function LayoutPreview({ layout }: { layout: LayoutPreset }) {
         <path
           key={i}
           d={roundedPolygonPath(shape.points, shape.radius)}
-          className="fill-line-strong stroke-muted"
+          className="fill-[#d9dde5] stroke-[#1f2023]"
           strokeWidth={Math.max(bounds.width, bounds.height) * 0.025}
           strokeLinejoin="round"
         />
@@ -435,16 +454,46 @@ function PresetThumb({ background, ratio }: { background: BackgroundConfig; rati
   const height = ratio >= 1 ? 32 / ratio : 32;
   return (
     <span className="flex size-8 shrink-0 items-center justify-center">
-      <span
-        className="rounded-[4px] shadow-[inset_0_0_0_1px_var(--tile-ring)]"
-        style={{ width, height, background: cssBackground(background) }}
-      />
+      <BackgroundBox background={background} className="rounded-[4px]" style={{ width, height }} />
     </span>
   );
 }
 
-function cssBackground(background: BackgroundConfig): string {
-  if (background.type === "solid") return background.color;
-  if (background.type === "gradient") return gradientCss(background);
-  return "var(--line-strong)";
+/** A box painted with a scene background, as in the canvas (photos cover it, transparent shows the checkerboard). */
+function BackgroundBox({
+  background,
+  className,
+  style,
+  children,
+}: {
+  background: BackgroundConfig;
+  className?: string;
+  style?: React.CSSProperties;
+  children?: ReactNode;
+}) {
+  const imageUrl = useBackgroundImageUrl(
+    background.type === "image" ? background.source : { kind: "upload", assetId: "" },
+  );
+  const paint: React.CSSProperties =
+    background.type === "solid"
+      ? { background: background.color }
+      : background.type === "gradient"
+        ? { background: gradientCss(background) }
+        : background.type === "image"
+          ? imageUrl
+            ? { background: `center / cover no-repeat url("${imageUrl}")` }
+            : { background: "var(--line-strong)" }
+          : {};
+  return (
+    <span
+      className={cn(
+        "shadow-[inset_0_0_0_1px_var(--tile-ring)]",
+        background.type === "transparent" && "checkerboard",
+        className,
+      )}
+      style={{ ...paint, ...style }}
+    >
+      {children}
+    </span>
+  );
 }
