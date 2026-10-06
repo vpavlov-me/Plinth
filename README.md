@@ -18,8 +18,8 @@ production site counts visits with Yandex Metrica.
 - **Devices**: 25 built-in devices with colour options — phones (Pro, Pro Max, standard, compact with home button,
   Android Pro / Ultra / Fold), tablets (13″ and 11″ pro, mini, Android, 2-in-1), laptops (Air 13″, Pro 14″/16″,
   14″ Windows-style), desktops (24″ all-in-one, 27″ display), a watch, a spatial glass window, four window styles
-  (Safari-, Chromium-style and minimal browser, app window) and no frame. A screenshot that would be badly cropped by
-  the current device switches to a better-fitting one.
+  (Safari-, Chromium-style and minimal browser, app window) and no frame. Adding a screenshot never changes the device:
+  the screenshot fills the screen you picked.
 - **Layouts**: Solo, Duo, Stack, Fan, Laptop + Phone and Phone + Tablet arrange several devices in one click. The
   composition is fitted to the canvas, the current screenshot fills every device, and screenshots you have added are
   handed out in the order you added them (mixed layouts put each one on the device whose screen fits it best). Click a

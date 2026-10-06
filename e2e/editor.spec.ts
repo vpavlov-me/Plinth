@@ -269,6 +269,13 @@ test("every empty device in a layout gets an upload prompt", async ({ page }) =>
   await expect(page.getByRole("heading", { name: "Drop a screenshot" })).toHaveCount(0);
 });
 
+test("adding a screenshot keeps the chosen device", async ({ page }) => {
+  await expect(page.getByLabel("Device model")).toHaveValue("phone-pro");
+  await openScreenshot(page, "landscape.png");
+  await expect(page.getByText("landscape.png")).toBeVisible();
+  await expect(page.getByLabel("Device model")).toHaveValue("phone-pro");
+});
+
 test("shows the frame title and resets sliders on double-click", async ({ page }) => {
   await page.getByRole("radio", { name: /Square/ }).click();
   await expect(page.getByText("Square 1:1")).toBeVisible();
