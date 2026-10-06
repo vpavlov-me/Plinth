@@ -4,6 +4,7 @@ import { useRef } from "react";
 import { Monitor } from "lucide-react";
 import { AboutDialog } from "@/components/editor/about-dialog";
 import { EditorToolbar } from "@/components/editor/editor-toolbar";
+import { ResetDialog } from "@/components/editor/reset-dialog";
 import { InspectorSidebar } from "@/components/editor/sidebars/inspector-sidebar";
 import { LibrarySidebar } from "@/components/editor/sidebars/library-sidebar";
 import { ShortcutsDialog } from "@/components/editor/shortcuts-dialog";
@@ -40,6 +41,7 @@ export function EditorShell() {
         <NarrowScreenNotice />
         <ShortcutsDialog />
         <AboutDialog />
+        <ResetDialog />
       </Toaster>
     </TooltipProvider>
   );

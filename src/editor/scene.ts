@@ -80,6 +80,24 @@ export function createDefaultScene(): Scene {
   };
 }
 
+/**
+ * True when the scene is exactly the starting scene (instance ids aside), so
+ * there is nothing to reset.
+ */
+export function isDefaultScene(scene: Scene): boolean {
+  const withoutIds = (s: Scene) => ({ ...s, devices: s.devices.map((d) => ({ ...d, id: "" })) });
+  return stableJson(withoutIds(scene)) === stableJson(withoutIds(createDefaultScene()));
+}
+
+/** JSON with sorted object keys, so key order never affects comparisons. */
+function stableJson(value: unknown): string {
+  return JSON.stringify(value, (_key, v: unknown) =>
+    v && typeof v === "object" && !Array.isArray(v)
+      ? Object.fromEntries(Object.entries(v as Record<string, unknown>).sort(([a], [b]) => (a < b ? -1 : 1)))
+      : v,
+  );
+}
+
 /** Most screenshots a layout uses; the screenshot list keeps no more. */
 export const MAX_SCREENSHOTS = 3;
 

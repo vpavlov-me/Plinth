@@ -29,12 +29,11 @@ export function ScreenshotPanel() {
     <Section
       title="Screenshot"
       action={
-        instance.screenshotId ? (
+        instance.screenshotId && !isDefaultCrop(instance.crop) ? (
           <Button
             size="sm"
             variant="secondary"
             className="-mr-1"
-            disabled={isDefaultCrop(instance.crop)}
             onClick={() => update((scene) => updateDevice(scene, instance.id, { crop: { ...DEFAULT_CROP } }))}
           >
             <RotateCcw className="size-3.5" />

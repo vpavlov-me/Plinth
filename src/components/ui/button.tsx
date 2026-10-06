@@ -4,13 +4,14 @@ import { forwardRef, type ButtonHTMLAttributes, type ReactNode } from "react";
 import { Tooltip } from "@/components/ui/tooltip";
 import { cn } from "@/lib/cn";
 
-type Variant = "primary" | "secondary" | "ghost";
+type Variant = "primary" | "secondary" | "ghost" | "danger";
 type Size = "sm" | "md";
 
 const VARIANTS: Record<Variant, string> = {
   primary: "bg-primary text-primary-ink hover:opacity-90",
   secondary: "border border-line bg-panel text-ink hover:bg-hover",
   ghost: "text-ink hover:bg-hover",
+  danger: "bg-danger text-white hover:opacity-90",
 };
 
 const SIZES: Record<Size, string> = {

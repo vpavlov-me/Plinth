@@ -5,8 +5,8 @@ import { useEffect } from "react";
 import { ExportMenu } from "@/components/editor/export-menu";
 import { Button, IconButton } from "@/components/ui/button";
 import { Tooltip } from "@/components/ui/tooltip";
-import { resetProject } from "@/editor/actions";
-import { useCanRedo, useCanUndo, useEditorStore } from "@/editor/store";
+import { isDefaultScene } from "@/editor/scene";
+import { useCanRedo, useCanUndo, useEditorStore, useScene } from "@/editor/store";
 import { useThemeStore, type ThemePreference } from "@/editor/theme";
 import { useUIStore } from "@/editor/ui-store";
 import { modKey } from "@/lib/platform";
@@ -17,6 +17,8 @@ export function EditorToolbar() {
   const undo = useEditorStore((s) => s.undo);
   const redo = useEditorStore((s) => s.redo);
   const setDialog = useUIStore((s) => s.setDialog);
+  // Reset only appears once there is something to reset.
+  const changed = useScene((scene) => !isDefaultScene(scene));
 
   return (
     <header className="relative flex h-14 shrink-0 items-center gap-2 px-4">
@@ -36,12 +38,19 @@ export function EditorToolbar() {
       <IconButton label="Undo" shortcut={`${modKey()}Z`} icon={<Undo2 />} disabled={!canUndo} onClick={undo} />
       <IconButton label="Redo" shortcut={`${modKey()}⇧Z`} icon={<Redo2 />} disabled={!canRedo} onClick={redo} />
       <div className="mx-1 h-5 w-px bg-line" aria-hidden />
-      <Tooltip label="Start over: default scene, no screenshots">
-        <Button variant="ghost" aria-label="Reset project" className="text-muted hover:text-ink" onClick={resetProject}>
-          <RotateCcw className="size-4" />
-          Reset
-        </Button>
-      </Tooltip>
+      {changed ? (
+        <Tooltip label="Start over: default scene, no screenshots">
+          <Button
+            variant="ghost"
+            aria-label="Reset project"
+            className="text-muted hover:text-ink"
+            onClick={() => setDialog("reset")}
+          >
+            <RotateCcw className="size-4" />
+            Reset
+          </Button>
+        </Tooltip>
+      ) : null}
       <ExportMenu />
     </header>
   );

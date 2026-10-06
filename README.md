@@ -62,8 +62,10 @@ production site counts visits with Yandex Metrica.
 - **Theme**: light and dark, following the system by default; the toolbar button cycles System → Light → Dark and the
   choice is remembered per browser.
 - **Help**: a keyboard shortcuts legend (toolbar button or `?`) and an About dialog with links to the author.
-- **Reset**: the toolbar's Reset button (next to Export) starts over with the default scene and no screenshots, as one
-  undo step. Your library (own frames, gradients and images) is kept.
+- **Reset**: the toolbar's Reset button (next to Export) appears once the project differs from the default scene. After
+  a confirmation it starts over with the default scene and no screenshots, as one undo step. Your library (own frames,
+  gradients and images) is kept. The Screenshot and Mockup sections' Reset buttons likewise only show when there is
+  something to reset.
 - **Undo/redo**: `⌘Z`, `⌘⇧Z` (or `Ctrl+Y`). A drag or slider movement counts as one step.
 - **Persistence**: the project — including every device, its crop and perspective, the layout and the selected device —
   is restored after a reload. Scene settings go to `localStorage` and images go to IndexedDB.

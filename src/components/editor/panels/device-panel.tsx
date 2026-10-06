@@ -41,15 +41,16 @@ export function DevicePanel() {
           {ids.length > 1 ? (
             <IconButton label="Remove device" shortcut="⌫" icon={<Trash2 />} onClick={removeSelectedDevice} />
           ) : null}
-          <Button
-            size="sm"
-            variant="secondary"
-            disabled={instance.x === 0.5 && instance.y === 0.5 && instance.scale === 1 && instance.rotation === 0}
-            onClick={() => update((scene) => resetDeviceTransform(scene, instance.id))}
-          >
-            <RotateCcw className="size-3.5" />
-            Reset
-          </Button>
+          {instance.x !== 0.5 || instance.y !== 0.5 || instance.scale !== 1 || instance.rotation !== 0 ? (
+            <Button
+              size="sm"
+              variant="secondary"
+              onClick={() => update((scene) => resetDeviceTransform(scene, instance.id))}
+            >
+              <RotateCcw className="size-3.5" />
+              Reset
+            </Button>
+          ) : null}
         </div>
       }
     >

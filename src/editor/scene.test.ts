@@ -6,6 +6,7 @@ import {
   applyScenePreset,
   changeDeviceModel,
   createDefaultScene,
+  isDefaultScene,
   sceneAssetIds,
   setCanvasPreset,
   setCanvasSize,
@@ -17,6 +18,15 @@ const sizes: Record<string, { width: number; height: number }> = { shot: { width
 const sizeOf = (id: string) => sizes[id] ?? null;
 
 describe("scene operations", () => {
+  it("recognises the default scene, also after a save and restore", () => {
+    expect(isDefaultScene(createDefaultScene())).toBe(true);
+    expect(isDefaultScene(sanitizeScene(JSON.parse(JSON.stringify(createDefaultScene())))!)).toBe(true);
+    const scene = createDefaultScene();
+    expect(isDefaultScene(setScreenshot(scene, scene.devices[0]!.id, "shot", sizeOf))).toBe(false);
+    expect(isDefaultScene(setCanvasPreset(scene, "square", sizeOf))).toBe(false);
+    expect(isDefaultScene(updateDevice(scene, scene.devices[0]!.id, { rotation: 5 }))).toBe(false);
+  });
+
   it("preserves relative composition when the canvas changes", () => {
     const base = createDefaultScene();
     const id = base.devices[0]!.id;

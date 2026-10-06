@@ -236,15 +236,26 @@ test("collapses sections, switches the theme and opens the help dialogs", async 
   await expect(page.getByRole("dialog", { name: "About Plinth" })).toBeVisible();
 });
 
-test("Reset starts over with the default scene and can be undone", async ({ page }) => {
+test("Reset appears after a change, asks for confirmation and can be undone", async ({ page }) => {
+  const reset = page.getByRole("button", { name: "Reset project" });
+  await expect(reset).toBeHidden();
+
   await openScreenshot(page, "portrait.png");
   await expect(page.getByRole("heading", { name: "Drop a screenshot" })).toBeHidden();
   await page.getByRole("radio", { name: /Square/ }).click();
   expect(await canvasSize(page)).toContain("1200 by 1200");
 
-  await page.getByRole("button", { name: "Reset project" }).click();
+  const dialog = page.getByRole("dialog", { name: "Reset the project?" });
+  await reset.click();
+  await dialog.getByRole("button", { name: "Cancel" }).click();
+  await expect(dialog).toBeHidden();
+  expect(await canvasSize(page)).toContain("1200 by 1200");
+
+  await reset.click();
+  await dialog.getByRole("button", { name: "Reset", exact: true }).click();
   await expect(page.getByRole("heading", { name: "Drop a screenshot" })).toBeVisible();
   expect(await canvasSize(page)).toContain("1080 by 1350");
+  await expect(reset).toBeHidden();
 
   await page.getByRole("button", { name: "Undo" }).click();
   await expect(page.getByRole("heading", { name: "Drop a screenshot" })).toBeHidden();
