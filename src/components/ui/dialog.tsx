@@ -11,11 +11,13 @@ type Props = {
   title: string;
   description?: ReactNode;
   className?: string;
-  children: ReactNode;
+  /** Buttons at the bottom, right-aligned. */
+  footer?: ReactNode;
+  children?: ReactNode;
 };
 
 /** Centred modal with a title, an optional description and a close button. */
-export function Dialog({ open, onOpenChange, title, description, className, children }: Props) {
+export function Dialog({ open, onOpenChange, title, description, className, footer, children }: Props) {
   // Focus the dialog itself, so the close button doesn't show a focus ring on open.
   const popupRef = useRef<HTMLDivElement>(null);
   return (
@@ -46,12 +48,20 @@ export function Dialog({ open, onOpenChange, title, description, className, chil
               <X className="size-4" />
             </BaseDialog.Close>
           </header>
-          <div className="min-h-0 scrollbar-thin overflow-y-auto px-5 pt-3 pb-5">{children}</div>
+          {children ? (
+            <div className={cn("min-h-0 scrollbar-thin overflow-y-auto px-5 pt-3", footer ? "pb-1" : "pb-5")}>
+              {children}
+            </div>
+          ) : null}
+          {footer ? <footer className="flex justify-end gap-2 px-5 pt-4 pb-5">{footer}</footer> : null}
         </BaseDialog.Popup>
       </BaseDialog.Portal>
     </BaseDialog.Root>
   );
 }
+
+/** Closes the surrounding dialog; renders the given element (usually a Button). */
+export const DialogClose = BaseDialog.Close;
 
 /** A key cap, e.g. <Kbd>⌘</Kbd>. */
 export function Kbd({ children }: { children: ReactNode }) {
