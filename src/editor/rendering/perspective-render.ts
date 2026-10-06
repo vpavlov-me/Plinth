@@ -76,7 +76,7 @@ function cacheKey(artwork: DeviceArtwork, perspective: PerspectiveId, density: n
     artwork.device.id,
     artwork.device.screenFill,
     artwork.frame?.src ?? null,
-    artwork.screenshot?.src ?? null,
+    artwork.screenshot?.key ?? null,
     crop.zoom,
     crop.x,
     crop.y,

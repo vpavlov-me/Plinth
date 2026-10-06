@@ -14,6 +14,7 @@ import { MAX_CROP_ZOOM, updateDevice } from "@/editor/scene";
 import { getScene, useEditorStore, useScene } from "@/editor/store";
 import type { CanvasConfig, DeviceInstance } from "@/editor/types";
 import { useUIStore } from "@/editor/ui-store";
+import { usePlaybackStore, useVideoMode } from "@/editor/video";
 
 /** Snap distance to the canvas centre lines, in screen pixels. */
 const SNAP_DISTANCE = 6;
@@ -36,6 +37,19 @@ export default function CanvasStage({ viewScale }: { viewScale: number }) {
   const transformerRef = useRef<Konva.Transformer>(null);
   const stageRef = useRef<Konva.Stage>(null);
   const [guides, setGuides] = useState<Guides>({ vertical: false, horizontal: false });
+  const devicesLayerRef = useRef<Konva.Layer>(null);
+  const videoMode = useVideoMode();
+  const playing = usePlaybackStore((s) => s.playing);
+
+  // Video preview: redraw the devices every frame while it plays.
+  useEffect(() => {
+    if (!videoMode || !playing) return;
+    let frame = requestAnimationFrame(function tick() {
+      devicesLayerRef.current?.batchDraw();
+      frame = requestAnimationFrame(tick);
+    });
+    return () => cancelAnimationFrame(frame);
+  }, [videoMode, playing]);
 
   // Attach the transformer to the selected device.
   useEffect(() => {
@@ -65,7 +79,7 @@ export default function CanvasStage({ viewScale }: { viewScale: number }) {
       <Layer listening={false}>
         <BackgroundNode background={background} canvas={canvas} />
       </Layer>
-      <Layer>
+      <Layer ref={devicesLayerRef}>
         {devices.map((instance) => (
           <InteractiveDevice
             key={instance.id}

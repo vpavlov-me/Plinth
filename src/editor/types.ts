@@ -192,6 +192,10 @@ export type ImageAsset = {
   width: number;
   height: number;
   name: string;
+  /** "video" for screen recordings (see `video.ts`); images leave it out. */
+  kind?: "image" | "video";
+  /** Length of a video, in seconds. */
+  duration?: number;
   /** Kept so the asset can be persisted locally. */
   blob: Blob;
 };

@@ -1,6 +1,6 @@
 import { mkdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
-import type { Browser } from "@playwright/test";
+import type { Browser, Page } from "@playwright/test";
 
 export const FIXTURE_DIR = join(process.cwd(), "test-results", "fixtures");
 
@@ -44,5 +44,45 @@ export async function createFixtures(browser: Browser): Promise<void> {
     true,
   );
   writeFileSync(join(FIXTURE_DIR, "invalid.png"), "definitely not an image");
+  await recordVideo(page, "clip.webm", 360, 720, 1500);
   await page.close();
+}
+
+/** Records a short animated WebM (a moving bar over changing colours) with MediaRecorder. */
+async function recordVideo(page: Page, name: string, width: number, height: number, ms: number): Promise<void> {
+  await page.setContent("<html><body></body></html>");
+  const base64 = await page.evaluate(
+    async ({ width, height, ms }) => {
+      const canvas = document.createElement("canvas");
+      canvas.width = width;
+      canvas.height = height;
+      const ctx = canvas.getContext("2d")!;
+      const stream = canvas.captureStream(30);
+      const recorder = new MediaRecorder(stream, { mimeType: "video/webm;codecs=vp8" });
+      const chunks: Blob[] = [];
+      recorder.ondataavailable = (event) => chunks.push(event.data);
+      const stopped = new Promise((resolve) => (recorder.onstop = resolve));
+      const start = performance.now();
+      const draw = () => {
+        const t = (performance.now() - start) / ms;
+        ctx.fillStyle = `hsl(${Math.round(t * 360)}, 70%, 50%)`;
+        ctx.fillRect(0, 0, width, height);
+        ctx.fillStyle = "#fff";
+        ctx.fillRect(0, t * height, width, 40);
+        if (t < 1) requestAnimationFrame(draw);
+      };
+      draw();
+      recorder.start(100);
+      await new Promise((resolve) => setTimeout(resolve, ms));
+      recorder.stop();
+      await stopped;
+      const buffer = await new Blob(chunks, { type: "video/webm" }).arrayBuffer();
+      let binary = "";
+      const bytes = new Uint8Array(buffer);
+      for (let i = 0; i < bytes.length; i += 0x8000) binary += String.fromCharCode(...bytes.subarray(i, i + 0x8000));
+      return btoa(binary);
+    },
+    { width, height, ms },
+  );
+  writeFileSync(join(FIXTURE_DIR, name), Buffer.from(base64, "base64"));
 }
