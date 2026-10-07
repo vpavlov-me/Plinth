@@ -31,7 +31,7 @@ const FRAMELESS: DeviceDefinition = {
 
 export const DEVICES: DeviceDefinition[] = [...BUILT_IN, FRAMELESS];
 
-export const DEVICE_CATEGORIES: { id: DeviceCategory; label: string }[] = [
+const DEVICE_CATEGORIES: { id: DeviceCategory; label: string }[] = [
   { id: "phone", label: "Phones" },
   { id: "tablet", label: "Tablets" },
   { id: "laptop", label: "Laptops" },

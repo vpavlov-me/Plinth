@@ -5,7 +5,7 @@ import type { PerspectiveId } from "@/editor/types";
  * projects it back with a fixed camera, so users pick a look instead of
  * handling cameras or angles.
  */
-export type PerspectivePreset = {
+type PerspectivePreset = {
   id: PerspectiveId;
   name: string;
   /** Degrees. Positive X tips the top edge away from the viewer. */
@@ -17,7 +17,7 @@ export type PerspectivePreset = {
 };
 
 /** Camera distance as a multiple of the device's longer side. */
-export const CAMERA_DISTANCE = 2.4;
+const CAMERA_DISTANCE = 2.4;
 
 export const PERSPECTIVE_PRESETS: PerspectivePreset[] = [
   { id: "front", name: "Front", rotateX: 0, rotateY: 0, rotateZ: 0 },
@@ -27,7 +27,7 @@ export const PERSPECTIVE_PRESETS: PerspectivePreset[] = [
   { id: "perspective-right", name: "Perspective Right", rotateX: 26, rotateY: -26, rotateZ: 10 },
 ];
 
-export const PERSPECTIVE_IDS = PERSPECTIVE_PRESETS.map((p) => p.id);
+const PERSPECTIVE_IDS = PERSPECTIVE_PRESETS.map((p) => p.id);
 
 export function getPerspectivePreset(id: PerspectiveId): PerspectivePreset {
   return PERSPECTIVE_PRESETS.find((p) => p.id === id) ?? PERSPECTIVE_PRESETS[0]!;

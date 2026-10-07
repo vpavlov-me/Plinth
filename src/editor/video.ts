@@ -21,22 +21,22 @@ import { createId } from "@/editor/utils/id";
  * encode H.264) at up to Full HD.
  */
 
-export const VIDEO_TYPES = ["video/mp4", "video/webm", "video/quicktime"] as const;
-export const VIDEO_EXTENSIONS: Record<string, string> = {
+const VIDEO_TYPES = ["video/mp4", "video/webm", "video/quicktime"] as const;
+const VIDEO_EXTENSIONS: Record<string, string> = {
   mp4: "video/mp4",
   m4v: "video/mp4",
   webm: "video/webm",
   mov: "video/quicktime",
 };
 /** Videos larger than this are rejected. */
-export const MAX_VIDEO_BYTES = 500 * 1024 * 1024;
+const MAX_VIDEO_BYTES = 500 * 1024 * 1024;
 /** Videos larger than this play in the session but aren't saved for the next visit. */
 export const MAX_STORED_VIDEO_BYTES = 200 * 1024 * 1024;
 /** Exports never run longer than this. */
 export const MAX_VIDEO_SECONDS = 60;
 export const VIDEO_FPS = 30;
 /** Longest side of an exported video per quality: 480p, 720p, Full HD. */
-export const VIDEO_QUALITY_SIDES: Record<VideoQuality, number> = { 480: 854, 720: 1280, 1080: 1920 };
+const VIDEO_QUALITY_SIDES: Record<VideoQuality, number> = { 480: 854, 720: 1280, 1080: 1920 };
 /** Small canvases are rendered at most this much larger so frames stay sharp. */
 const VIDEO_EXPORT_MAX_SCALE = 2;
 /** Devices that make no sense for a screen recording and are hidden in video mode. */
@@ -51,7 +51,7 @@ export class VideoImportError extends Error {
 /* Scene helpers                                                              */
 /* -------------------------------------------------------------------------- */
 
-export function isVideoAsset(id: string | null | undefined): boolean {
+function isVideoAsset(id: string | null | undefined): boolean {
   return getAsset(id)?.kind === "video";
 }
 
@@ -61,7 +61,7 @@ export function sceneHasVideo(scene: Pick<Scene, "devices">): boolean {
 }
 
 /** What a video background plays: a built-in loop or an uploaded video. */
-export type BackgroundVideo = {
+type BackgroundVideo = {
   url: string;
   width: number;
   height: number;
@@ -199,7 +199,7 @@ export const usePlaybackStore = create<PlaybackState>((set) => ({
 }));
 
 /** A muted, looping preview element for a video URL, created once; resolves when its first frame is ready. */
-export function loadVideo(url: string): Promise<HTMLVideoElement> {
+function loadVideo(url: string): Promise<HTMLVideoElement> {
   const cached = videos.get(url);
   if (cached) return cached.ready;
   const video = document.createElement("video");
@@ -233,7 +233,7 @@ export function loadVideo(url: string): Promise<HTMLVideoElement> {
 }
 
 /** Stops and forgets a preview element (its asset was released). */
-export function releaseVideo(url: string): void {
+function releaseVideo(url: string): void {
   const entry = videos.get(url);
   if (!entry) return;
   entry.video.pause();

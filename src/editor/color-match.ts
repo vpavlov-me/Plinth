@@ -9,7 +9,7 @@ import type { GradientConfig, MeshBlob } from "@/editor/types";
  * dominant colours are never used as-is, so the result doesn't turn muddy.
  */
 
-export type Hsl = { h: number; s: number; l: number };
+type Hsl = { h: number; s: number; l: number };
 
 export type MatchVariant = "soft" | "vivid" | "dark";
 

@@ -16,7 +16,7 @@ export type CustomFrame = {
   screen: RoundedRect;
 };
 
-export const CUSTOM_PREFIX = "custom:";
+const CUSTOM_PREFIX = "custom:";
 
 export class FrameDetectionError extends Error {
   override name = "FrameDetectionError";
@@ -109,7 +109,7 @@ export function customDeviceId(assetId: string): string {
   return `${CUSTOM_PREFIX}${assetId}`;
 }
 
-export function toDeviceDefinition(frame: CustomFrame, asset: ImageAsset): DeviceDefinition {
+function toDeviceDefinition(frame: CustomFrame, asset: ImageAsset): DeviceDefinition {
   return {
     id: customDeviceId(frame.assetId),
     name: frame.name,

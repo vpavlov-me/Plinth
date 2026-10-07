@@ -3,7 +3,7 @@ import type { GradientConfig } from "@/editor/types";
 /** A short, curated set — users add their own colours with the "+" tile. */
 export const SOLID_SWATCHES = ["#ffffff", "#f1f1f3", "#e9e4da", "#cdd9ec", "#1c1c1f", "#0a0a0b"];
 
-export type GradientPreset = { id: string; name: string; gradient: GradientConfig };
+type GradientPreset = { id: string; name: string; gradient: GradientConfig };
 
 /**
  * Plinth's signature gradients: saturated bases with layered colour lights —

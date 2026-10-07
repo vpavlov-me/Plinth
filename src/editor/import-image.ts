@@ -3,18 +3,18 @@ import type { ImageAsset } from "@/editor/types";
 import { createId } from "@/editor/utils/id";
 import { videoType } from "@/editor/video";
 
-export const ACCEPTED_IMAGE_TYPES = ["image/png", "image/jpeg", "image/webp"] as const;
+const ACCEPTED_IMAGE_TYPES = ["image/png", "image/jpeg", "image/webp"] as const;
 export const ACCEPT_ATTRIBUTE = ".png,.jpg,.jpeg,.webp,image/png,image/jpeg,image/webp";
 export const ACCEPT_VIDEO_ATTRIBUTE = ".mp4,.m4v,.webm,.mov,video/mp4,video/webm,video/quicktime";
 /** Screenshots may also be screen recordings. */
 export const ACCEPT_SCREENSHOT_ATTRIBUTE = `${ACCEPT_ATTRIBUTE},${ACCEPT_VIDEO_ATTRIBUTE}`;
 
 /** Files larger than this are rejected before decoding. */
-export const MAX_FILE_BYTES = 50 * 1024 * 1024;
+const MAX_FILE_BYTES = 50 * 1024 * 1024;
 /** Images are downscaled so neither side exceeds this. */
-export const MAX_IMAGE_SIDE = 8192;
+const MAX_IMAGE_SIDE = 8192;
 /** …and the total pixel count stays below this (≈ 48 MP). */
-export const MAX_IMAGE_PIXELS = 48_000_000;
+const MAX_IMAGE_PIXELS = 48_000_000;
 
 export class ImageImportError extends Error {
   override name = "ImageImportError";
@@ -33,7 +33,7 @@ function detectType(file: Blob & { name?: string }): string {
   return EXTENSION_TYPES[extension] ?? "";
 }
 
-export type ImportResult = { asset: ImageAsset; downscaled: boolean };
+type ImportResult = { asset: ImageAsset; downscaled: boolean };
 
 /**
  * Validates, decodes and registers an image file. Everything happens

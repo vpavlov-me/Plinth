@@ -66,7 +66,7 @@ function GradientNode({ gradient, width, height }: { gradient: GradientConfig; w
  * A soft colour light: a radial gradient that fades to the same colour at zero
  * alpha (no grey fringe), optionally stretched into an ellipse and turned.
  */
-export function paintBlob(ctx: CanvasRenderingContext2D, blob: MeshBlob, width: number, height: number): void {
+function paintBlob(ctx: CanvasRenderingContext2D, blob: MeshBlob, width: number, height: number): void {
   const radius = blob.r * Math.max(width, height);
   const stretch = Math.max(0.2, Math.min(5, blob.stretch ?? 1));
   const solid = blob.color.slice(0, 7);
@@ -151,7 +151,7 @@ function coverCrop(
  * semantics: 0° points up, 90° points right, and the gradient line is long
  * enough for the corners to receive the first and last colours.
  */
-export function linearGradientProps(gradient: GradientConfig, width: number, height: number) {
+function linearGradientProps(gradient: GradientConfig, width: number, height: number) {
   const radians = (gradient.angle * Math.PI) / 180;
   const dx = Math.sin(radians);
   const dy = -Math.cos(radians);

@@ -8,9 +8,9 @@ import type { Scene } from "@/editor/types";
 import { VideoFrameContext, type VideoFrameSource } from "@/editor/rendering/video-frames";
 
 /** Longest side of an exported image. Browsers refuse larger canvases. */
-export const MAX_EXPORT_SIDE = 16384;
+const MAX_EXPORT_SIDE = 16384;
 /** Total pixel budget (≈ 400 MB of RGBA). Above this browsers may fail silently. */
-export const MAX_EXPORT_PIXELS = 100_000_000;
+const MAX_EXPORT_PIXELS = 100_000_000;
 
 export class ExportError extends Error {
   override name = "ExportError";
@@ -109,7 +109,7 @@ export async function renderScene(scene: Scene, settings: ExportSettings): Promi
   }
 }
 
-export type MountedScene = {
+type MountedScene = {
   stage: import("konva").default.Stage;
   unmount: () => Promise<void>;
 };
