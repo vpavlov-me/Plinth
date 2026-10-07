@@ -6,7 +6,7 @@ import { GRADIENT_PRESETS } from "@/editor/presets/background-presets";
  * `public/backgrounds/videos/<id>.webm` (VP9) and `<id>.mp4` (H.264), both
  * 1440 × 1440, with a `<id>-thumb.jpg` poster for the tiles.
  */
-export type VideoPreset = {
+type VideoPreset = {
   id: string;
   name: string;
   width: number;

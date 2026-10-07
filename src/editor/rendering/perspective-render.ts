@@ -16,7 +16,7 @@ import type { PerspectiveId, Rect } from "@/editor/types";
  * context transform), so exports at 3× are rendered at 3×, never upscaled.
  */
 
-export type PerspectiveImage = {
+type PerspectiveImage = {
   canvas: HTMLCanvasElement;
   /** Where to draw the canvas, in the device's frame units. */
   rect: Rect;

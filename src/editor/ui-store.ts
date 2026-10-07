@@ -16,7 +16,7 @@ export type ExportSettings = {
 
 export const DEFAULT_EXPORT_SETTINGS: ExportSettings = { format: "png", scale: 2, quality: 0.92, videoQuality: 1080 };
 
-export type EditorDialog = "shortcuts" | "about" | "reset";
+type EditorDialog = "shortcuts" | "about" | "reset";
 
 type UIState = {
   /** Instance id of the selected device, or null. */

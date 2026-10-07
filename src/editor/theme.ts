@@ -7,7 +7,7 @@ import { create } from "zustand";
  */
 export type ThemePreference = "system" | "light" | "dark";
 
-export const THEME_KEY = "plinth.theme.v1";
+const THEME_KEY = "plinth.theme.v1";
 
 const ORDER: ThemePreference[] = ["system", "light", "dark"];
 

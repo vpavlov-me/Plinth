@@ -157,7 +157,7 @@ export function clamp(value: number, min: number, max: number): number {
 }
 
 /** Normalises an angle to (-180, 180]. */
-export function normalizeRotation(degrees: number): number {
+function normalizeRotation(degrees: number): number {
   let r = ((degrees % 360) + 360) % 360;
   if (r > 180) r -= 360;
   return Math.round(r * 100) / 100;

@@ -139,7 +139,7 @@ export function updateDevice(scene: Scene, deviceId: string, patch: Partial<Devi
  * is recomputed whenever either of them changes. Multi-device compositions
  * keep their canvas: there is no single screenshot to size it by.
  */
-export function syncOriginalCanvas(scene: Scene, sizeOf: AssetSizeLookup): Scene {
+function syncOriginalCanvas(scene: Scene, sizeOf: AssetSizeLookup): Scene {
   if (scene.canvas.preset !== "original" || scene.devices.length !== 1) return scene;
   const primary = scene.devices[0]!;
   const screenshot = primary.screenshotId ? sizeOf(primary.screenshotId) : null;

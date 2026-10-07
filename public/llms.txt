@@ -1,6 +1,6 @@
 # Plinth
 
-> Plinth is a free, browser-based mockup generator. Drop a screenshot, choose a device frame (iPhone- and Android-style phones, tablets, laptops, desktops, a watch or a browser window), adjust the composition and background, and export a polished PNG or JPG. Everything runs locally in the browser: no account, no uploads, no server-side processing.
+> Plinth is a free, browser-based mockup generator. Drop a screenshot, choose a device frame (iPhone- and Android-style phones, tablets, laptops, desktops, a watch or a browser window), adjust the composition and background, and export a polished PNG or JPG — or a silent MP4 when a screen recording or a video background is used. Everything runs locally in the browser: no account, no uploads, no server-side processing.
 
 Website: https://plinth.vpavlov.com
 Author: Vladimir Pavlov (https://vpavlov.com)
@@ -17,12 +17,12 @@ Platform: web app for desktop and tablet browsers (not usable on phone-sized scr
 
 ## How it works
 
-1. Open https://plinth.vpavlov.com and drop, paste (Cmd/Ctrl+V) or choose a screenshot (PNG, JPG or WebP, up to 50 MB).
+1. Open https://plinth.vpavlov.com and drop, paste (Cmd/Ctrl+V) or choose a screenshot (PNG, JPG or WebP, up to 50 MB) or a screen recording (MP4, WebM or MOV the browser can decode).
 2. Pick a device and its colour; adding a screenshot never changes the device.
 3. Optionally pick a layout (Solo, Duo, Stack, Fan, Laptop + Phone, Phone + Tablet) and a perspective (Front, Tilt Left/Right, Perspective Left/Right).
 4. Pick a canvas size or a preset, then drag, scale and rotate devices on the canvas; zoom and position the screenshot inside a screen if needed.
-5. Choose a background (solid colour, gradient, photo, your own image, transparent, or "Match colors" generated from the screenshot) and a shadow.
-6. Export: PNG at 1×, 2× or 3×, JPG with a quality setting, transparent PNG, or copy to the clipboard.
+5. Choose a background (solid colour, gradient, photo, your own image, an animated gradient or your own video, transparent, or "Match colors" generated from the screenshot) and a shadow.
+6. Export: PNG at 1×, 2× or 3×, JPG with a quality setting, transparent PNG, or copy to the clipboard. With a video in the scene the export is a silent MP4 at 480p, 720p or 1080p.
 
 ## Features
 
@@ -34,7 +34,8 @@ Platform: web app for desktop and tablet browsers (not usable on phone-sized scr
 - Screenshot crop: zoom and reposition the screenshot inside the device screen.
 - Match colors: one-click background generated locally from the screenshot's colours (Soft, Vivid, Dark).
 - Showcase presets: Product Hunt, App Store, Google Play feature graphic, portfolio hero, presentation.
-- Backgrounds: solid colours, two-colour and mesh gradients, built-in photos (paintings and nature, from Unsplash) and your own images.
+- Backgrounds: solid colours, two-colour and mesh gradients, built-in photos (paintings and nature, from Unsplash), your own images, animated gradients and your own videos.
+- Video: a screen recording can replace a screenshot (a single device; perspective and layouts are locked), and the background can be an animated gradient loop or your own video. Export is a silent MP4 (WebM where H.264 can't be encoded) at 30 fps, up to 60 s; the longest device video sets the length.
 - Shadows: none, soft, medium, strong.
 - Undo and redo; the project is restored after a page reload.
 - Keyboard shortcuts: Cmd/Ctrl+O open, Cmd/Ctrl+V paste, Cmd/Ctrl+E export, Cmd/Ctrl+Z undo, ? shows the shortcuts legend, arrow keys nudge the device. Double-clicking a slider resets it.

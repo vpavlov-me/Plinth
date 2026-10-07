@@ -5,7 +5,7 @@ import { ToggleGroup } from "@base-ui/react/toggle-group";
 import type { ReactNode } from "react";
 import { cn } from "@/lib/cn";
 
-export type SegmentedOption<T extends string> = { value: T; label: string; icon?: ReactNode };
+type SegmentedOption<T extends string> = { value: T; label: string; icon?: ReactNode };
 
 type Props<T extends string> = {
   label: string;

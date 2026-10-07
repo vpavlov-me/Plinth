@@ -5,7 +5,7 @@ import type { AssetSizeLookup } from "@/editor/scene";
 import type { DeviceInstance, Rect, ResolvedDeviceGeometry, Scene } from "@/editor/types";
 
 export type Point = { x: number; y: number };
-export type Quad = [Point, Point, Point, Point];
+type Quad = [Point, Point, Point, Point];
 
 /**
  * Maps a point in the device's local units (frame origin top-left) to canvas
@@ -47,7 +47,7 @@ export function rectQuad(
 /** Share of a device's screen that devices in front may cover before it gets no upload prompt. */
 const MAX_COVERED = 0.5;
 
-export type UploadPrompt = {
+type UploadPrompt = {
   id: string;
   /** Outlines (canvas pixels) of the devices drawn in front of it, to clip the prompt by. */
   inFront: Point[][];

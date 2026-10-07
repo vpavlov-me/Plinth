@@ -4,7 +4,7 @@ import type { Scene } from "@/editor/types";
 import type { VideoQuality } from "@/editor/ui-store";
 import { backgroundVideo, sceneVideoDuration, VIDEO_FPS, videoExportSize } from "@/editor/video";
 
-export class ExportCanceled extends Error {
+class ExportCanceled extends Error {
   override name = "ExportCanceled";
 }
 

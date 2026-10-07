@@ -7,7 +7,7 @@
  * on Unsplash by museums (https://unsplash.com/license); `author` and
  * `sourceUrl` are shown in the picker as attribution.
  */
-export type PhotoPreset = {
+type PhotoPreset = {
   id: string;
   /** Short description, used as the accessible name of the tile. */
   name: string;

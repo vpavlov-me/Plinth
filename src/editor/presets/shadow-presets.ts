@@ -18,7 +18,7 @@ export const SHADOW_PRESET_LABELS: Record<NamedShadowPreset, string> = {
 
 export const DEFAULT_SHADOW: ShadowConfig = SHADOW_PRESETS.soft;
 
-export function isShadowVisible(shadow: ShadowConfig): boolean {
+function isShadowVisible(shadow: ShadowConfig): boolean {
   return shadow.preset !== "none" && shadow.opacity > 0;
 }
 

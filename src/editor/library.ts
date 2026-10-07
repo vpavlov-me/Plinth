@@ -29,7 +29,7 @@ type LibraryState = {
 export type LibraryData = Pick<LibraryState, "colors" | "gradients" | "images" | "videos" | "frames">;
 
 /** Each list keeps at most this many items (newest first). */
-export const LIBRARY_LIMIT = 24;
+const LIBRARY_LIMIT = 24;
 
 const prepend = <T>(list: T[], item: T, same: (a: T, b: T) => boolean) =>
   [item, ...list.filter((existing) => !same(existing, item))].slice(0, LIBRARY_LIMIT);
