@@ -150,6 +150,42 @@ const metal = (base, { light = 0.18, highlight = 0.45, edge = -0.45 } = {}) => (
   highlight: shade(base, highlight),
 });
 
+const isDark = (hex) => {
+  const n = parseInt(hex.slice(1), 16);
+  return ((n >> 16) & 255) * 0.3 + ((n >> 8) & 255) * 0.59 + (n & 255) * 0.11 < 96;
+};
+
+/**
+ * Concentric bands along a rounded outline, for edge cross-sections: each
+ * entry is [from, to] as fractions of `width` measured inwards, a colour and an opacity.
+ */
+function profile(outer, width, bands) {
+  return bands.map(([from, to, color, opacity]) => {
+    const w = (to - from) * width;
+    return `<path fill="none" stroke="${color}" stroke-opacity="${opacity}" stroke-width="${r2(w)}" d="${path(inset(outer, from * width + w / 2))}"/>`;
+  });
+}
+
+/** Light from the top left, shade to the bottom right, across the whole frame. */
+function keyLight(id, width, height) {
+  return `<linearGradient id="${id}" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="${r2(width * 0.6)}" y2="${r2(height)}"><stop offset="0" stop-color="#fff" stop-opacity="0.32"/><stop offset="0.28" stop-color="#fff" stop-opacity="0"/><stop offset="0.7" stop-color="#000" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity="0.28"/></linearGradient>`;
+}
+
+/** Soft studio-light reflections: a few diagonal bright bands, as on polished metal. */
+function reflections(id, width, height) {
+  const peaks = [
+    [0.16, 0.5],
+    [0.43, 0.22],
+    [0.74, 0.35],
+  ];
+  const stops = peaks.flatMap(([at, a]) => [
+    `<stop offset="${at - 0.05}" stop-color="#fff" stop-opacity="0"/>`,
+    `<stop offset="${at}" stop-color="#fff" stop-opacity="${a}"/>`,
+    `<stop offset="${at + 0.05}" stop-color="#fff" stop-opacity="0"/>`,
+  ]);
+  return `<linearGradient id="${id}" gradientUnits="userSpaceOnUse" x1="0" y1="${r2(height * 0.15)}" x2="${r2(width)}" y2="${r2(height * 0.55)}">${stops.join("")}</linearGradient>`;
+}
+
 /* -------------------------------------------------------------------------- */
 /* Builders                                                                   */
 /* Each returns { width, height, screen, body, layout?, render(variant, fill) }  */
@@ -179,64 +215,92 @@ function handheld(spec) {
     screen,
     body: [inset(body, 1)],
     render(variant, fill) {
-      const defs = [linear("metal", metalStops(variant.metal)), SHEEN, GLARE];
+      const m = variant.metal;
+      const front = variant.front ?? "#060607";
+      const lightFront = !isDark(front);
+      const defs = [
+        linear("metal", metalStops(m)),
+        keyLight("keylight", width, height),
+        reflections("streaks", width, height),
+        GLARE,
+      ];
       const out = [previewFill(fill, screen)];
+      // Buttons sit behind the band; only their outer faces show.
       for (const b of spec.buttons ?? []) {
-        const x = b.side === "left" ? pad - 7 : pad + bodyW - 3;
-        const btn = button(x, body.y + b.y, 10, b.h, variant.metal.mid, b.side);
+        const x = b.side === "left" ? pad - 6 : pad + bodyW - 4;
+        const btn = button(x, body.y + b.y, 10, b.h, m.mid, b.side);
         defs.push(btn.def);
         out.push(btn.body);
       }
-      out.push(`<path fill-rule="evenodd" fill="url(#metal)" d="${path(body)}${path(glass)}"/>`);
-      out.push(`<path fill-rule="evenodd" fill="url(#sheen)" d="${path(body)}${path(glass)}"/>`);
-      // Antenna lines on the band.
+      const bandRing = `${path(body)}${path(glass)}`;
+      out.push(`<path fill-rule="evenodd" fill="url(#metal)" d="${bandRing}"/>`);
+      // Cross-section of the band, outside in: shadowed silhouette, the lit
+      // rounded edge, the flat face, a polished chamfer and the dark gasket.
+      out.push(
+        ...profile(body, band, [
+          [0, 0.07, m.edge, 0.9],
+          [0.07, 0.2, m.highlight, 0.85],
+          [0.2, 0.3, m.light, 0.5],
+          [0.62, 0.74, m.edge, 0.22],
+          [0.74, 0.84, m.highlight, 0.55],
+          [0.84, 1, "#050506", 0.85],
+        ]),
+      );
+      // Antenna lines: matte strips across the band.
       if (spec.antennas !== false) {
         for (const y of [0.1, 0.9]) {
-          out.push(
-            `<rect x="${body.x}" y="${r2(body.y + bodyH * y)}" width="${band}" height="7" fill="${variant.metal.edge}" opacity="0.55"/>`,
-          );
-          out.push(
-            `<rect x="${body.x + bodyW - band}" y="${r2(body.y + bodyH * y)}" width="${band}" height="7" fill="${variant.metal.edge}" opacity="0.55"/>`,
-          );
+          for (const x of [body.x, body.x + bodyW - band]) {
+            out.push(
+              `<rect x="${r2(x)}" y="${r2(body.y + bodyH * y)}" width="${band}" height="6" fill="${shade(m.mid, -0.25)}" opacity="0.7"/>`,
+            );
+          }
         }
       }
-      out.push(`<path fill="none" stroke="#000" stroke-opacity="0.45" stroke-width="2" d="${path(inset(body, 1))}"/>`);
-      // Polished chamfer running around the band.
+      // One key light from the top left for the whole device, plus soft studio reflections.
+      out.push(`<path fill-rule="evenodd" fill="url(#keylight)" d="${bandRing}"/>`);
+      out.push(`<path fill-rule="evenodd" fill="url(#streaks)" d="${bandRing}"/>`);
       out.push(
-        `<path fill="none" stroke="#ffffff" stroke-opacity="0.2" stroke-width="1.5" d="${path(inset(body, Math.max(3, band * 0.4)))}"/>`,
+        `<path fill="none" stroke="#000" stroke-opacity="0.5" stroke-width="1.5" d="${path(inset(body, 0.75))}"/>`,
       );
-      const front = variant.front ?? "#060607";
-      const darkFront = front === "#060607" || front === "#08090a";
-      if (darkFront) {
-        defs.push(
-          linear(
-            "glassdepth",
-            [
-              [0, shade(front, 0.06)],
-              [0.05, front],
-              [1, front],
-            ],
-            "y",
-          ),
-        );
-      }
+
+      // Front glass: deep black (or the light front), its rounded edge catching the light.
+      defs.push(
+        linear(
+          "glassdepth",
+          [
+            [0, shade(front, lightFront ? -0.04 : 0.05)],
+            [0.025, front],
+            [0.97, front],
+            [1, shade(front, lightFront ? -0.06 : 0.03)],
+          ],
+          "y",
+        ),
+      );
+      out.push(`<path fill-rule="evenodd" fill="url(#glassdepth)" d="${path(glass)}${path(screen)}"/>`);
       out.push(
-        `<path fill-rule="evenodd" fill="${darkFront ? "url(#glassdepth)" : front}" d="${path(glass)}${path(screen)}"/>`,
+        ...profile(glass, Math.min(10, bx * 0.3), [
+          [0, 0.25, "#000000", 0.9],
+          [0.25, 0.45, "#ffffff", lightFront ? 0.5 : 0.16],
+          [0.45, 1, "#ffffff", lightFront ? 0.15 : 0.04],
+        ]),
       );
-      // Where the glass meets the band: a dark seam, then a thin lit edge.
-      out.push(`<path fill="none" stroke="#000" stroke-opacity="0.55" stroke-width="2.5" d="${path(glass)}"/>`);
       out.push(
-        `<path fill="none" stroke="#ffffff" stroke-opacity="0.18" stroke-width="1.5" d="${path(inset(glass, 1.5))}"/>`,
+        `<path fill-rule="evenodd" fill="url(#keylight)" opacity="${lightFront ? 0.5 : 0.12}" d="${path(glass)}${path(screen)}"/>`,
       );
+      // The display's black border, just inside the opening.
       out.push(screenEdge(screen));
       out.push(glare(screen));
       if (spec.earpiece !== false && kindHasEarpiece(spec.cutout)) {
-        // Earpiece slit in the thin top bezel.
+        // Earpiece slit in the thin top bezel, recessed into the glass.
         const w = Math.min(160, screen.w * 0.12);
         const top = glass.y + (screen.y - glass.y) / 2 - 2.5;
-        out.push(`<path fill="#1d1e22" d="${rrect(screen.x + screen.w / 2 - w / 2, top, w, 5, 2.5)}"/>`);
+        const ex = screen.x + screen.w / 2 - w / 2;
+        out.push(`<path fill="${lightFront ? "#b9b8b4" : "#17181b"}" d="${rrect(ex, top, w, 5, 2.5)}"/>`);
         out.push(
-          `<path stroke="#ffffff" stroke-opacity="0.12" stroke-width="1" d="M${r2(screen.x + screen.w / 2 - w / 2 + 3)},${r2(top + 4.5)} H${r2(screen.x + screen.w / 2 + w / 2 - 3)}"/>`,
+          `<path stroke="#000" stroke-opacity="0.6" stroke-width="1" d="M${r2(ex + 3)},${r2(top + 0.75)} H${r2(ex + w - 3)}"/>`,
+        );
+        out.push(
+          `<path stroke="#ffffff" stroke-opacity="0.16" stroke-width="1" d="M${r2(ex + 3)},${r2(top + 4.6)} H${r2(ex + w - 3)}"/>`,
         );
       }
       out.push(...cutout(spec.cutout, screen, body, { bt, bb, band, front }));
@@ -322,10 +386,12 @@ function laptop(spec) {
         linear(
           "deck",
           [
-            [0, shade(v.alu, 0.35)],
-            [0.18, shade(v.alu, 0.12)],
-            [0.55, v.alu],
-            [1, shade(v.alu, -0.45)],
+            [0, shade(v.alu, 0.55)],
+            [0.1, shade(v.alu, 0.28)],
+            [0.32, shade(v.alu, 0.06)],
+            [0.7, shade(v.alu, -0.08)],
+            [0.9, shade(v.alu, -0.3)],
+            [1, shade(v.alu, -0.55)],
           ],
           "y",
         ),
@@ -344,6 +410,16 @@ function laptop(spec) {
           "y",
         ),
         linear("lidedge", metalStops(metal(v.alu))),
+        keyLight("keylight", width, height),
+        reflections("streaks", width, height),
+        linear(
+          "thumb",
+          [
+            [0, shade(v.alu, -0.45)],
+            [1, shade(v.alu, -0.12)],
+          ],
+          "y",
+        ),
         linear(
           "barrel",
           [
@@ -356,11 +432,26 @@ function laptop(spec) {
       ];
       const glass = inset(lid, spec.rim);
       const out = [previewFill(fill, screen)];
-      out.push(`<path fill-rule="evenodd" fill="url(#lidedge)" d="${path(lid)}${path(glass)}"/>`);
+      const lidRing = `${path(lid)}${path(glass)}`;
+      out.push(`<path fill-rule="evenodd" fill="url(#lidedge)" d="${lidRing}"/>`);
+      // Lid edge, outside in: silhouette, lit chamfer, face, dark gasket.
+      out.push(
+        ...profile(lid, spec.rim, [
+          [0, 0.12, shade(v.alu, -0.5), 0.9],
+          [0.12, 0.35, shade(v.alu, 0.5), 0.8],
+          [0.75, 1, "#050506", 0.8],
+        ]),
+      );
+      out.push(`<path fill-rule="evenodd" fill="url(#keylight)" d="${lidRing}"/>`);
       out.push(`<path fill-rule="evenodd" fill="#050506" d="${path(glass)}${path(screen)}"/>`);
       out.push(
-        `<path fill="none" stroke="#ffffff" stroke-opacity="0.14" stroke-width="2" d="${path(inset(glass, 1))}"/>`,
+        ...profile(glass, 8, [
+          [0, 0.3, "#000000", 0.9],
+          [0.3, 0.55, "#ffffff", 0.14],
+          [0.55, 1, "#ffffff", 0.04],
+        ]),
       );
+      out.push(`<path fill-rule="evenodd" fill="url(#keylight)" opacity="0.12" d="${path(glass)}${path(screen)}"/>`);
       out.push(screenEdge(screen));
       out.push(glare(screen));
       if (spec.notch) {
@@ -375,6 +466,7 @@ function laptop(spec) {
       // Base: deck, front lip, thumb notch, hinge shadow.
       out.push(`<path fill="url(#deck)" d="${path(base)}"/>`);
       out.push(`<path fill="url(#deckx)" d="${path(base)}"/>`);
+      out.push(`<path fill="url(#streaks)" opacity="0.25" d="${path(base)}"/>`);
       out.push(`<path fill="url(#hinge)" d="${rrect(lidX + 30, baseY, lidW - 60, 16, 0)}"/>`);
       // Hinge barrel between lid and deck.
       out.push(`<path fill="url(#barrel)" d="${rrect(lidX + lidW * 0.06, baseY - 4, lidW * 0.88, 10, 5)}"/>`);
@@ -388,7 +480,7 @@ function laptop(spec) {
         `<path fill="none" stroke="#000" stroke-opacity="0.35" stroke-width="2" d="M${r2(baseH * 0.9)},${r2(height - 1)} H${r2(width - baseH * 0.9)}"/>`,
       );
       out.push(
-        `<path fill="${shade(v.alu, -0.3)}" d="${rrect(width / 2 - baseW * 0.075, baseY, baseW * 0.15, baseH * 0.32, [0, 0, 14, 14])}"/>`,
+        `<path fill="url(#thumb)" d="${rrect(width / 2 - baseW * 0.075, baseY, baseW * 0.15, baseH * 0.32, [0, 0, 14, 14])}"/>`,
       );
       out.push(`<path stroke="#fff" stroke-opacity="0.45" stroke-width="2" d="M12,${baseY + 1.5} H${width - 12}"/>`);
       return svg(width, height, defs, out);
@@ -442,6 +534,8 @@ function monitor(spec) {
           "y",
         ),
         linear("rim", metalStops(metal(v.body, { highlight: 0.35, edge: -0.35 }))),
+        keyLight("keylight", width, height),
+        reflections("streaks", width, height),
       ];
       const glassFace = rect(spec.rim, spec.rim, w - 2 * spec.rim, spec.screen.h + 2 * spec.bezel - spec.rim, [
         Math.max(0, display.r - spec.rim),
@@ -470,8 +564,35 @@ function monitor(spec) {
       } else {
         out.push(`<path fill-rule="evenodd" fill="#050506" d="${path(glassFace)}${path(screen)}"/>`);
       }
+      // Stand catches the same light as the display.
+      out.push(`<path fill="url(#streaks)" opacity="0.5" d="${path(neck)}"/>`);
+      out.push(`<path fill="url(#keylight)" d="${path(foot)}"/>`);
+      // Rounded aluminium edge around the display.
       out.push(
-        `<path fill="none" stroke="#000" stroke-opacity="0.3" stroke-width="3" d="${path(inset(display, 1.5))}"/>`,
+        ...profile(display, 10, [
+          [0, 0.25, shade(v.body, -0.45), 0.8],
+          [0.25, 0.6, shade(v.body, 0.5), spec.chin ? 0.5 : 0.7],
+        ]),
+      );
+      if (spec.chin) {
+        const chinY = spec.screen.h + spec.bezel * 2;
+        out.push(
+          `<path fill="url(#streaks)" opacity="0.2" d="${rrect(0, chinY, w, displayH - chinY, [0, 0, display.r, display.r])}"/>`,
+        );
+        out.push(
+          `<path fill="url(#keylight)" opacity="0.6" d="${rrect(0, chinY, w, displayH - chinY, [0, 0, display.r, display.r])}"/>`,
+        );
+      } else {
+        out.push(`<path fill-rule="evenodd" fill="url(#keylight)" d="${path(display)}${path(glassFace)}"/>`);
+        out.push(
+          ...profile(glassFace, 8, [
+            [0, 0.3, "#000000", 0.9],
+            [0.3, 0.55, "#ffffff", 0.14],
+          ]),
+        );
+      }
+      out.push(
+        `<path fill="none" stroke="#000" stroke-opacity="0.35" stroke-width="2" d="${path(inset(display, 1))}"/>`,
       );
       out.push(screenEdge(screen));
       out.push(glare(screen));
@@ -501,6 +622,8 @@ function watch(spec) {
         GLARE,
         SHEEN,
         linear("case", metalStops(metal(v.case))),
+        keyLight("keylight", width, height),
+        reflections("streaks", width, height),
         linear(
           "crown",
           [
@@ -523,9 +646,26 @@ function watch(spec) {
       }
       out.push(`<path fill="url(#crown)" d="${rrect(caseW - 6, caseH * 0.58, 14, caseH * 0.2, 6)}"/>`);
       out.push(`<path fill-rule="evenodd" fill="url(#case)" d="${path(kase)}${path(glass)}"/>`);
-      out.push(`<path fill-rule="evenodd" fill="url(#sheen)" d="${path(kase)}${path(glass)}"/>`);
+      const m = metal(v.case);
+      out.push(
+        ...profile(kase, spec.rim, [
+          [0, 0.08, m.edge, 0.9],
+          [0.08, 0.28, m.highlight, 0.8],
+          [0.28, 0.4, m.light, 0.45],
+          [0.7, 0.85, m.highlight, 0.5],
+          [0.85, 1, "#050506", 0.85],
+        ]),
+      );
+      out.push(`<path fill-rule="evenodd" fill="url(#keylight)" d="${path(kase)}${path(glass)}"/>`);
+      out.push(`<path fill-rule="evenodd" fill="url(#streaks)" d="${path(kase)}${path(glass)}"/>`);
       out.push(`<path fill-rule="evenodd" fill="#030304" d="${path(glass)}${path(screen)}"/>`);
-      out.push(`<path fill="none" stroke="#fff" stroke-opacity="0.2" stroke-width="2" d="${path(inset(glass, 1))}"/>`);
+      out.push(
+        ...profile(glass, 10, [
+          [0, 0.25, "#000000", 0.9],
+          [0.25, 0.45, "#ffffff", 0.18],
+          [0.45, 1, "#ffffff", 0.05],
+        ]),
+      );
       out.push(screenEdge(screen));
       out.push(glare(screen));
       return svg(width, height, defs, out);
