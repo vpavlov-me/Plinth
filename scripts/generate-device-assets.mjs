@@ -91,19 +91,6 @@ const SHEEN = linear(
   "y",
 );
 
-/** Very subtle reflection over the glass; drawn above the screenshot. */
-const GLARE = linear(
-  "glare",
-  [
-    [0, "#ffffff", 0.07],
-    [0.42, "#ffffff", 0.015],
-    [0.43, "#ffffff", 0],
-    [1, "#ffffff", 0],
-  ],
-  "xy",
-);
-
-const glare = (screen) => `<path fill="url(#glare)" d="${path(screen)}"/>`;
 /**
  * The display's black border, then a soft shadow falling inwards: the panel
  * sits a little below the glass, so its edge reads as recessed.
@@ -226,7 +213,7 @@ function reflections(id, width, height) {
 
 /* -------------------------------------------------------------------------- */
 /* Builders                                                                   */
-/* Each returns { width, height, screen, body, layout?, render(variant, fill) }  */
+/* Each returns { width, height, screen, body, glare?, layout?, render(variant, fill) }  */
 /* -------------------------------------------------------------------------- */
 
 /**
@@ -251,6 +238,7 @@ function handheld(spec) {
     width,
     height,
     screen,
+    glare: true,
     body: [inset(body, 1)],
     render(variant, fill) {
       const m = variant.metal;
@@ -263,7 +251,6 @@ function handheld(spec) {
         linear("metal", metalStops(m)),
         keyLight("keylight", width, height),
         reflections("streaks", width, height),
-        GLARE,
       ];
       const out = [previewFill(fill, screen)];
       // Buttons sit behind the band; only their outer faces show.
@@ -330,7 +317,6 @@ function handheld(spec) {
       );
       // The display's black border, just inside the opening.
       out.push(screenEdge(screen));
-      out.push(glare(screen));
       if (spec.earpiece !== false && kindHasEarpiece(spec.cutout)) {
         // Earpiece slit in the thin top bezel, recessed into the glass.
         const w = Math.min(160, screen.w * 0.12);
@@ -424,10 +410,10 @@ function laptop(spec) {
     width,
     height,
     screen,
+    glare: true,
     body: [inset(lid, 1), inset({ ...base, r: base.r }, 1)],
     render(v, fill) {
       const defs = [
-        GLARE,
         linear(
           "deck",
           [
@@ -498,7 +484,6 @@ function laptop(spec) {
       );
       out.push(`<path fill-rule="evenodd" fill="url(#keylight)" opacity="0.12" d="${path(glass)}${path(screen)}"/>`);
       out.push(screenEdge(screen));
-      out.push(glare(screen));
       if (spec.notch) {
         const nx = screen.x + screen.w / 2 - spec.notch.w / 2;
         out.push(
@@ -551,10 +536,10 @@ function monitor(spec) {
     width,
     height,
     screen,
+    glare: true,
     body: [inset(display, 1), neck, inset(foot, 1)],
     render(v, fill) {
       const defs = [
-        GLARE,
         linear("standg", [
           [0, shade(v.stand, -0.35)],
           [0.15, shade(v.stand, 0.1)],
@@ -640,7 +625,6 @@ function monitor(spec) {
         `<path fill="none" stroke="#000" stroke-opacity="0.35" stroke-width="2" d="${path(inset(display, 1))}"/>`,
       );
       out.push(screenEdge(screen));
-      out.push(glare(screen));
       out.push(lens(w / 2, spec.bezel / 2, 9));
       return svg(width, height, defs, out);
     },
@@ -661,10 +645,10 @@ function watch(spec) {
     width,
     height,
     screen,
+    glare: true,
     body: [inset(kase, 1)],
     render(v, fill) {
       const defs = [
-        GLARE,
         SHEEN,
         linear("case", metalStops(metal(v.case))),
         keyLight("keylight", width, height),
@@ -712,7 +696,6 @@ function watch(spec) {
         ]),
       );
       out.push(screenEdge(screen));
-      out.push(glare(screen));
       return svg(width, height, defs, out);
     },
   };
@@ -1447,6 +1430,8 @@ for (const device of DEVICES) {
     screen: toRect(shape.screen),
     body: shape.body.map(toRect),
     screenFill: device.screenFill ?? "#000000",
+    // The reflection over the glass is painted by the editor (and can be turned off), not baked into the frame.
+    ...(shape.glare ? { glare: true } : {}),
     layout: shape.layout ?? { type: "fixed" },
     variants,
     previewSrc: `/devices/${device.id}-preview.svg`,

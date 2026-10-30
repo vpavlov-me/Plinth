@@ -287,6 +287,20 @@ test("adding a screenshot keeps the chosen device", async ({ page }) => {
   await expect(page.getByLabel("Device model")).toHaveValue("phone-pro");
 });
 
+test("screen glare can be turned off and stays off after reload", async ({ page }) => {
+  await openScreenshot(page, "portrait.png");
+  const glare = page.getByRole("switch", { name: "Screen glare" });
+  await expect(glare).toBeChecked();
+  await glare.click();
+  await expect(glare).not.toBeChecked();
+  await page.waitForTimeout(800);
+  await page.reload();
+  await expect(page.getByRole("switch", { name: "Screen glare" })).not.toBeChecked();
+  // Browser windows have no glass, so no switch.
+  await page.getByLabel("Device model").selectOption("browser");
+  await expect(page.getByRole("switch", { name: "Screen glare" })).toHaveCount(0);
+});
+
 test("shows the frame title and resets sliders on double-click", async ({ page }) => {
   await page.getByRole("radio", { name: /Square/ }).click();
   await expect(page.getByText("Square 1:1")).toBeVisible();

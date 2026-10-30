@@ -80,6 +80,7 @@ function cacheKey(artwork: DeviceArtwork, perspective: PerspectiveId, density: n
     crop.zoom,
     crop.x,
     crop.y,
+    artwork.glare,
     geometry.width,
     geometry.height,
     geometry.screen,
