@@ -76,7 +76,14 @@ export const DeviceNode = forwardRef<Konva.Group, Props>(function DeviceNode(
   const frameSrc = getVariant(device, instance.variantId)?.frameSrc ?? device.frameSrc;
   const frame = useImage(frameSrc);
   const screenshot = useScreenMedia(instance.screenshotId);
-  const artwork: DeviceArtwork = { device, geometry, frame, screenshot, crop: instance.crop };
+  const artwork: DeviceArtwork = {
+    device,
+    geometry,
+    frame,
+    screenshot,
+    crop: instance.crop,
+    glare: !!device.glare && instance.glare,
+  };
   // Videos are always shown flat (perspective is locked in video mode).
   const perspective = cropping || screenshot?.video ? "front" : instance.perspective;
   const projected = perspective !== "front";

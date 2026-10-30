@@ -5,6 +5,7 @@ import { Button, IconButton } from "@/components/ui/button";
 import { Section } from "@/components/ui/section";
 import { Segmented } from "@/components/ui/segmented";
 import { SliderField } from "@/components/ui/slider-field";
+import { SwitchField } from "@/components/ui/switch-field";
 import { Tooltip } from "@/components/ui/tooltip";
 import { removeSelectedDevice } from "@/editor/actions";
 import { customDeviceId } from "@/editor/custom-frames";
@@ -151,6 +152,9 @@ export function DevicePanel() {
         onChange={(v) => patch({ y: 0.5 + v / canvas.height }, true)}
         onCommit={commit}
       />
+      {device.glare ? (
+        <SwitchField label="Screen glare" checked={instance.glare} onChange={(glare) => patch({ glare })} />
+      ) : null}
     </Section>
   );
 }

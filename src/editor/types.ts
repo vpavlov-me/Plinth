@@ -106,6 +106,8 @@ export type DeviceInstance = {
   /** Degrees, clockwise. */
   rotation: number;
   shadow: ShadowConfig;
+  /** Paint the reflection over the screen glass (devices that have one, see `DeviceDefinition.glare`). */
+  glare: boolean;
 };
 
 export type Scene = {
@@ -173,6 +175,8 @@ export type DeviceDefinition = {
   screenFill: string;
   layout: DeviceLayoutMode;
   variants?: DeviceVariant[];
+  /** The device has a glass screen that can show a reflection (painted by the editor, not the frame artwork). */
+  glare?: boolean;
   /**
    * User-uploaded frame: its shadow is cast from the artwork's alpha
    * channel instead of the `body` rectangles.

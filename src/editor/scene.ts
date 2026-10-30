@@ -61,6 +61,7 @@ export function createDeviceInstance(
     perspective: "front",
     ...DEFAULT_TRANSFORM,
     shadow: { ...DEFAULT_SHADOW },
+    glare: true,
     ...patch,
   };
 }

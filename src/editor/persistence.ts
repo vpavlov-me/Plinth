@@ -402,6 +402,7 @@ function sanitizeDevice(value: unknown): DeviceInstance | null {
     scale: Math.max(0.05, value.scale as number),
     rotation: value.rotation as number,
     shadow: sanitizeShadow(value.shadow),
+    glare: value.glare !== false,
   };
 }
 

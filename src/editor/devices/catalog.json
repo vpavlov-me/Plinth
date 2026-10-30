@@ -24,6 +24,7 @@
       }
     ],
     "screenFill": "#000000",
+    "glare": true,
     "layout": {
       "type": "fixed"
     },
@@ -80,6 +81,7 @@
       }
     ],
     "screenFill": "#000000",
+    "glare": true,
     "layout": {
       "type": "fixed"
     },
@@ -136,6 +138,7 @@
       }
     ],
     "screenFill": "#000000",
+    "glare": true,
     "layout": {
       "type": "fixed"
     },
@@ -198,6 +201,7 @@
       }
     ],
     "screenFill": "#000000",
+    "glare": true,
     "layout": {
       "type": "fixed"
     },
@@ -248,6 +252,7 @@
       }
     ],
     "screenFill": "#000000",
+    "glare": true,
     "layout": {
       "type": "fixed"
     },
@@ -304,6 +309,7 @@
       }
     ],
     "screenFill": "#000000",
+    "glare": true,
     "layout": {
       "type": "fixed"
     },
@@ -360,6 +366,7 @@
       }
     ],
     "screenFill": "#000000",
+    "glare": true,
     "layout": {
       "type": "fixed"
     },
@@ -410,6 +417,7 @@
       }
     ],
     "screenFill": "#000000",
+    "glare": true,
     "layout": {
       "type": "fixed"
     },
@@ -454,6 +462,7 @@
       }
     ],
     "screenFill": "#000000",
+    "glare": true,
     "layout": {
       "type": "fixed"
     },
@@ -498,6 +507,7 @@
       }
     ],
     "screenFill": "#000000",
+    "glare": true,
     "layout": {
       "type": "fixed"
     },
@@ -542,6 +552,7 @@
       }
     ],
     "screenFill": "#000000",
+    "glare": true,
     "layout": {
       "type": "fixed"
     },
@@ -598,6 +609,7 @@
       }
     ],
     "screenFill": "#000000",
+    "glare": true,
     "layout": {
       "type": "fixed"
     },
@@ -642,6 +654,7 @@
       }
     ],
     "screenFill": "#000000",
+    "glare": true,
     "layout": {
       "type": "fixed"
     },
@@ -693,6 +706,7 @@
       }
     ],
     "screenFill": "#000000",
+    "glare": true,
     "layout": {
       "type": "fixed"
     },
@@ -756,6 +770,7 @@
       }
     ],
     "screenFill": "#000000",
+    "glare": true,
     "layout": {
       "type": "fixed"
     },
@@ -807,6 +822,7 @@
       }
     ],
     "screenFill": "#000000",
+    "glare": true,
     "layout": {
       "type": "fixed"
     },
@@ -858,6 +874,7 @@
       }
     ],
     "screenFill": "#000000",
+    "glare": true,
     "layout": {
       "type": "fixed"
     },
@@ -916,6 +933,7 @@
       }
     ],
     "screenFill": "#000000",
+    "glare": true,
     "layout": {
       "type": "fixed"
     },
@@ -992,6 +1010,7 @@
       }
     ],
     "screenFill": "#000000",
+    "glare": true,
     "layout": {
       "type": "fixed"
     },
@@ -1036,6 +1055,7 @@
       }
     ],
     "screenFill": "#000000",
+    "glare": true,
     "layout": {
       "type": "fixed"
     },

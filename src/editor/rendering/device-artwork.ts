@@ -1,5 +1,5 @@
 import { croppedImageRect, traceRoundedRect } from "@/editor/geometry";
-import type { DeviceDefinition, ResolvedDeviceGeometry, RoundedRect, ScreenshotCrop } from "@/editor/types";
+import type { DeviceDefinition, Rect, ResolvedDeviceGeometry, RoundedRect, ScreenshotCrop } from "@/editor/types";
 
 /**
  * What the screen shows: a decoded screenshot or the current frame of a
@@ -26,6 +26,8 @@ export type DeviceArtwork = {
   /** Screenshot or video, or null when the device is empty. */
   screenshot: ScreenMedia | null;
   crop: ScreenshotCrop;
+  /** Paint the reflection over the screen glass. */
+  glare: boolean;
 };
 
 /** Extra clip area hidden under the frame; avoids anti-aliasing seams at the screen edge. */
@@ -77,6 +79,7 @@ export function drawDeviceArtwork(ctx: CanvasRenderingContext2D, artwork: Device
     ctx.imageSmoothingQuality = "high";
     ctx.drawImage(artwork.screenshot.source, rect.x, rect.y, rect.width, rect.height);
   }
+  if (artwork.glare) drawGlare(ctx, artwork.geometry.screen);
   ctx.restore();
 
   if (artwork.frame) {
@@ -88,4 +91,24 @@ export function drawDeviceArtwork(ctx: CanvasRenderingContext2D, artwork: Device
     }
     ctx.restore();
   }
+}
+
+/** Very subtle diagonal reflection over the glass, from the top-left corner; drawn above the screenshot. */
+const GLARE_STOPS: [number, number][] = [
+  [0, 0.07],
+  [0.42, 0.015],
+  [0.43, 0],
+  [1, 0],
+];
+
+/** Fills the (already clipped) screen; the gradient runs corner to corner of the screen's bounding box. */
+function drawGlare(ctx: CanvasRenderingContext2D, screen: Rect): void {
+  ctx.save();
+  ctx.translate(screen.x, screen.y);
+  ctx.scale(screen.width, screen.height);
+  const gradient = ctx.createLinearGradient(0, 0, 1, 1);
+  for (const [offset, alpha] of GLARE_STOPS) gradient.addColorStop(offset, `rgb(255 255 255 / ${alpha})`);
+  ctx.fillStyle = gradient;
+  ctx.fillRect(0, 0, 1, 1);
+  ctx.restore();
 }
